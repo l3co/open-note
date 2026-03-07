@@ -7,7 +7,8 @@ use commands::notebook::{
     create_notebook, delete_notebook, list_notebooks, rename_notebook, reorder_notebooks,
 };
 use commands::page::{
-    create_page, delete_page, list_pages, load_page, move_page, update_page, update_page_blocks,
+    create_page, delete_page, list_pages, load_page, move_page, read_file_content,
+    save_file_content, update_page, update_page_blocks,
 };
 use commands::section::{
     create_section, delete_section, list_sections, rename_section, reorder_sections,
@@ -57,6 +58,9 @@ pub fn run() {
             update_page_blocks,
             delete_page,
             move_page,
+            // File I/O
+            read_file_content,
+            save_file_content,
             // Trash
             list_trash_items,
             restore_from_trash,

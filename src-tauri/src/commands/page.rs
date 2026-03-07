@@ -69,3 +69,13 @@ pub fn move_page(
     let root = state.get_workspace_root()?;
     FsStorageEngine::move_page(&root, page_id, target_section_id).map_err(|e| e.to_string())
 }
+
+#[tauri::command]
+pub fn read_file_content(path: String) -> Result<String, String> {
+    std::fs::read_to_string(&path).map_err(|e| format!("Failed to read file: {e}"))
+}
+
+#[tauri::command]
+pub fn save_file_content(path: String, content: String) -> Result<(), String> {
+    std::fs::write(&path, &content).map_err(|e| format!("Failed to write file: {e}"))
+}

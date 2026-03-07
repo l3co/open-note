@@ -98,6 +98,14 @@ export const deletePage = (pageId: PageId) =>
 export const movePage = (pageId: PageId, targetSectionId: SectionId) =>
   invoke<Page>("move_page", { pageId, targetSectionId });
 
+// ─── File I/O ───
+
+export const readFileContent = (path: string) =>
+  invoke<string>("read_file_content", { path });
+
+export const saveFileContent = (path: string, content: string) =>
+  invoke<void>("save_file_content", { path, content });
+
 // ─── Tags ───
 
 export const listAllTags = () => invoke<string[]>("list_all_tags");
