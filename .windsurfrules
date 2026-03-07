@@ -1,0 +1,252 @@
+# Open Note — Windsurf Project Rules
+
+## Identidade do Projeto
+
+Open Note é um app desktop **local-first** de anotações, inspirado no Microsoft OneNote.
+Formato aberto, dados no filesystem, sem lock-in, sem telemetria, sem conta obrigatória.
+
+---
+
+## Stack Técnica
+
+| Camada | Tecnologia |
+|---|---|
+| **Runtime** | Tauri v2 (desktop + mobile futuro) |
+| **Frontend** | React 18 + TypeScript + TailwindCSS + shadcn/ui |
+| **State** | Zustand |
+| **Editor** | TipTap (ProseMirror) para rich text |
+| **Markdown** | CodeMirror 6 |
+| **Ink** | Canvas API + perfect-freehand (Overlay + Block) |
+| **PDF** | pdf.js (pdfjs-dist) |
+| **Backend** | Rust (Tauri v2) |
+| **Storage** | Filesystem local (JSON), formato `.opn.json` |
+| **Busca** | Tantivy (Rust) |
+| **Sync** | Google Drive, OneDrive, Dropbox (OAuth2, opt-in) |
+| **Testes** | Vitest, Testing Library, MSW, Playwright, cargo test, insta, cargo-tarpaulin |
+| **Icons** | Lucide React |
+
+---
+
+## Estrutura do Projeto (Cargo Workspace)
+
+```
+open-note/
+├── crates/
+│   ├── core/       # Domínio puro (entidades, regras, validações) — SEM dependência de Tauri
+│   ├── storage/    # Filesystem, atomic writes, lock, trash, assets, migrations
+│   ├── search/     # Tantivy — indexação e busca full-text
+│   └── sync/       # Cloud sync (Google Drive, OneDrive, Dropbox)
+├── src-tauri/      # Camada FINA de IPC sobre os crates (Tauri v2)
+│   └── src/
+│       ├── main.rs
+│       ├── commands/   # Handlers IPC (delegam para crates)
+│       └── state.rs    # AppState, SaveCoordinator
+├── src/            # Frontend React + TypeScript
+│   ├── components/
+│   ├── stores/     # Zustand stores
+│   ├── hooks/
+│   ├── lib/        # Utilitários, helpers
+│   ├── locales/    # i18n (pt-BR.json, en.json)
+│   └── styles/
+├── e2e/            # Testes E2E (Playwright)
+├── docs/           # Documentação de fases (FASE_01.md a FASE_10.md)
+├── ROADMAP.md      # Visão geral, domínio, fases, riscos
+└── Cargo.toml      # Workspace root
+```
+
+### Regras de Estrutura
+
+- **Toda lógica de negócio vive em `crates/`.** `src-tauri/` é camada fina de IPC — delega para crates.
+- **Domínio (`crates/core/`) é puro.** Não conhece Tauri, não conhece filesystem, não conhece frameworks.
+- **Storage (`crates/storage/`) é infraestrutura.** Depende de `core`, nunca o contrário.
+- **Dependências apontam para dentro:** `src-tauri → crates/storage → crates/core`
+- **Frontend nunca acessa filesystem diretamente.** Sempre via IPC commands.
+
+---
+
+## Modelo de Domínio
+
+### Hierarquia
+
+```
+Workspace → Notebook → Section → Page → Block
+```
+
+### Tipos de Block (snake_case no JSON via serde)
+
+`text`, `code`, `checklist`, `table`, `image`, `ink`, `pdf`, `divider`, `callout`, `embed`
+
+### Formato de Arquivo
+
+- **Pages:** `{slug}.opn.json` — schema versionado, contém `blocks[]` + `annotations{}`
+- **Metadata:** `notebook.json`, `section.json`, `workspace.json`
+- **Assets:** `assets/` por section
+- **Global:** `~/.opennote/app_state.json`
+- **Lixeira:** `.trash/` com soft-delete, retenção 30 dias
+- **Índice:** `.opennote/index/` (Tantivy, dados derivados)
+
+---
+
+## Convenções de Código
+
+### Rust
+
+- **Naming:** `snake_case` para funções/variáveis, `PascalCase` para tipos/traits
+- **Block types no JSON:** `snake_case` via `#[serde(rename_all = "snake_case")]`
+- **Erros:** `thiserror` para erros tipados, nunca `unwrap()` em produção
+- **Serialização:** `serde` + `serde_json`, schema versionado (`schema_version` em todo JSON)
+- **IDs:** Newtype pattern — `struct PageId(Uuid)`, nunca `String` raw
+- **Async:** `tokio` para operações assíncronas
+- **TypeScript bindings:** `ts-rs` com `#[derive(TS)]` em toda struct/enum exposta ao frontend
+- **Testes:** `#[cfg(test)]` inline + `tests/` para integração, `insta` para snapshots JSON
+- **Migrations:** `crates/storage/src/migrations/` — funções puras `fn migrate_v1_to_v2(Value) -> Value`
+
+### TypeScript / React
+
+- **Naming:** `camelCase` para variáveis/funções, `PascalCase` para componentes/tipos
+- **Componentes:** Functional components com hooks, sem class components
+- **State:** Zustand stores separados por domínio (`useWorkspaceStore`, `useUIStore`, etc.)
+- **Styling:** TailwindCSS utility-first, shadcn/ui para componentes base
+- **i18n:** `react-i18next` — nenhuma string visível hardcoded
+- **Imports:** Absolutos via alias `@/` para `src/`
+- **Erros do backend:** Código de erro (`NOTEBOOK_ALREADY_EXISTS`) — frontend traduz via i18n
+- **Testes:** Vitest + Testing Library + MSW para mocks de IPC
+
+### Geral
+
+- **Commits:** Conventional Commits (`feat:`, `fix:`, `docs:`, `refactor:`, `test:`, `chore:`)
+- **Branches:** `main` (produção), `feat/xxx`, `fix/xxx`
+- **Idioma do código:** Inglês
+- **Idioma da comunicação:** Português (PT-BR)
+
+---
+
+## Arquitetura — Regras Inegociáveis
+
+### Clean Architecture
+
+- Dependências apontam para dentro (domínio no centro)
+- Domínio (`crates/core`) **não importa** frameworks, Tauri, serde_json, filesystem
+- Infraestrutura é detalhe substituível
+
+### Domain-Driven Design
+
+- Linguagem ubíqua: Workspace, Notebook, Section, Page, Block, Stroke, Annotation
+- Modelos ricos com comportamento (não anêmicos)
+- Regras de negócio no domínio, nunca em controllers/commands IPC
+- Bounded contexts: Core, Storage, Search, Sync
+
+### SOLID
+
+- Funções pequenas (~10-20 linhas)
+- Uma responsabilidade por função/struct
+- Composição sobre herança
+- Contratos via traits (Rust) e interfaces (TypeScript)
+- Dependências explícitas (injeção via parâmetros/construtor)
+
+---
+
+## Testes — Cidadãos de Primeira Classe
+
+### Pirâmide
+
+1. **Unit** → domínio (`crates/core`) — coverage 90%
+2. **Integração** → storage com filesystem real, stores + IPC mock — coverage 85%
+3. **Snapshot** → serialização JSON estável (`insta`)
+4. **Contrato** → `ts-rs` valida TypeScript ↔ Rust no CI
+5. **E2E** → Playwright para fluxos críticos — coverage 80%
+
+### Regras
+
+- **TDD preferido:** Red → Green → Refactor
+- **PR bloqueado se coverage cair abaixo do threshold**
+- **Sem código novo sem teste correspondente**
+- **Bug fix = regression test primeiro, depois fix**
+- **Nunca deletar ou enfraquecer testes sem justificativa explícita**
+
+### Ferramentas
+
+- **Rust:** `cargo test`, `cargo-tarpaulin` (coverage), `insta` (snapshots)
+- **Frontend:** Vitest, Testing Library, MSW
+- **E2E:** Playwright
+- **CI:** GitHub Actions — lint + test + coverage + build
+
+---
+
+## Sistema de Temas (3 Camadas)
+
+1. **Base Theme:** Light, Paper, Dark, System
+2. **Accent Color:** Blue, Indigo, Purple, Berry, Red, Orange, Amber, Green, Teal, Graphite
+3. **Chrome Tint:** Neutral, Tinted (sidebar/toolbar com tonalidade da accent color)
+
+- Persistência: `GlobalSettings.theme` → `ThemeConfig { base_theme, accent_color, chrome_tint }`
+- Aplicação: `<html data-theme="dark" data-chrome="tinted">`
+- Todos os componentes usam variáveis CSS — nenhum valor hardcoded
+- WCAG AA obrigatório em todas as combinações
+
+---
+
+## Conceitos Transversais
+
+- **Local-first, cloud-aware:** App funciona 100% offline. Cloud é opt-in (Fase 09).
+- **SaveCoordinator:** Mutex por `page_id` no backend — serializa saves para evitar race conditions.
+- **Asset lifecycle:** Assets acompanham pages ao mover/deletar.
+- **Annotations órfãs:** Ao deletar bloco → strokes convertem para coord. absoluta, highlights removidos.
+- **Workspace Lock:** `.lock` com PID para prevenir acesso concorrente.
+- **Page Limits:** Soft 200 / hard 500 blocos com warnings no status bar.
+- **Toast System:** `useToast()` hook transversal (success, error, warning, info).
+- **EditorPreferences:** Modo de edição e split_view persistidos por page.
+
+---
+
+## Fases do Projeto
+
+| Fase | Nome | Status |
+|------|------|--------|
+| 01 | Fundação (Tauri + Cargo workspace + CI) | A implementar |
+| 02 | Modelo de Domínio & Storage Local | Planejado |
+| 03 | UI Shell & Navegação | Planejado |
+| 04 | Editor Rich Text (TipTap) | Planejado |
+| 05 | Blocos Avançados | Planejado |
+| 06 | Modo Markdown | Planejado |
+| 07 | Handwriting, Ink & Anotação + PDF | Planejado |
+| 08 | Busca & Indexação (Tantivy) | Planejado |
+| 09 | Cloud Sync | Planejado |
+| 10 | Distribuição & Polish | Planejado |
+
+**Documentação detalhada:** `ROADMAP.md` + `docs/FASE_01.md` a `docs/FASE_10.md`
+
+**Sempre consultar a fase relevante antes de implementar.** Cada fase define: entregáveis, modelo de dados, comandos IPC, testes esperados, riscos e Definition of Done.
+
+---
+
+## Anti-Padrões — NUNCA Fazer
+
+- **Lógica de negócio em `src-tauri/`** → Sempre em `crates/core` ou `crates/storage`
+- **Domínio dependendo de framework** → `crates/core` é puro Rust, sem Tauri/serde_json
+- **Strings hardcoded na UI** → Sempre via i18n (`react-i18next`)
+- **`unwrap()` em produção** → Usar `Result<T, E>` com tratamento explícito
+- **Modelo anêmico** → Structs devem ter comportamento, não apenas dados
+- **Commits gigantes** → Atômicos e focados em uma mudança
+- **Testes apagados** → Nunca sem justificativa e substituição
+- **Valores de cor hardcoded no CSS** → Sempre variáveis CSS do sistema de temas
+- **Frontend acessando filesystem** → Sempre via IPC commands Tauri
+- **Tokens/secrets em plain text** → Usar keychain/keyring do OS
+- **`eval()` no frontend** → Jamais
+- **Otimização prematura** → Medir primeiro, otimizar depois
+- **Abstrações especulativas** → Resolver o problema de hoje, não o de amanhã
+
+---
+
+## Checklist Antes de Cada PR
+
+- [ ] Testes passando (`cargo test` + `npm test`)
+- [ ] Linting limpo (`clippy`, `eslint`, `prettier`)
+- [ ] Coverage não caiu
+- [ ] CI verde
+- [ ] Commit messages seguem Conventional Commits
+- [ ] TypeScript bindings alinhados (`ts-rs`)
+- [ ] Sem `unwrap()` novo em produção
+- [ ] Sem strings hardcoded na UI
+- [ ] Acessibilidade validada (se mudou UI)
+- [ ] Documentação atualizada (se mudou contrato/API)
