@@ -1,0 +1,14 @@
+{
+  "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+  "name": "Meus Estudos",
+  "root_path": "/tmp/test-workspace",
+  "created_at": "2025-01-15T10:00:00Z",
+  "updated_at": "2025-03-01T14:30:00Z",
+  "settings": {
+    "default_notebook_id": null,
+    "auto_save_interval_ms": 1000,
+    "sidebar_width": 260,
+    "sidebar_open": true,
+    "last_opened_page_id": null
+  }
+}

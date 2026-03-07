@@ -341,3 +341,35 @@ fn full_crud_workflow() {
     let restored_pages = FsStorageEngine::list_pages(&root, sec.id).unwrap();
     assert_eq!(restored_pages.len(), 1);
 }
+
+// ─── Fixture tests ───
+
+#[test]
+fn load_workspace_v1_fixture() {
+    let fixture =
+        std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/workspace_v1");
+    let ws = FsStorageEngine::load_workspace(&fixture).unwrap();
+    assert_eq!(ws.name, "Meus Estudos");
+    assert_eq!(ws.settings.auto_save_interval_ms, 1000);
+    assert!(ws.settings.sidebar_open);
+}
+
+#[test]
+fn load_page_v1_fixture() {
+    let fixture = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures/page_v1.opn.json");
+    let page: opennote_core::page::Page = opennote_storage::atomic::read_json(&fixture).unwrap();
+    assert_eq!(page.title, "Aula 01 — Introdução ao Rust");
+    assert_eq!(page.tags, vec!["rust", "programação"]);
+    assert_eq!(page.block_count(), 3);
+    assert_eq!(page.schema_version, 1);
+}
+
+#[test]
+fn corrupted_page_fixture_returns_error() {
+    let fixture = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures/page_corrupted.opn.json");
+    let result: Result<opennote_core::page::Page, _> =
+        opennote_storage::atomic::read_json(&fixture);
+    assert!(result.is_err());
+}

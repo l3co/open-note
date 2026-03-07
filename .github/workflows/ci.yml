@@ -69,6 +69,10 @@ jobs:
       - name: Run tests
         run: cargo test --workspace
 
+      - name: Verify TypeScript bindings are up to date
+        run: |
+          git diff --exit-code src/types/bindings/ || (echo "::error::TypeScript bindings are out of date. Run 'cargo test -p opennote-core' and commit the changes." && exit 1)
+
   lint-frontend:
     name: Lint (Frontend)
     runs-on: ubuntu-latest
