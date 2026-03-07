@@ -189,6 +189,142 @@ describe("tiptapToBlocks", () => {
     expect(blocks[1].type).toBe("image");
   });
 
+  it("handles codeBlock nodes in tiptap content", () => {
+    const doc: JSONContent = {
+      type: "doc",
+      content: [
+        {
+          type: "codeBlock",
+          attrs: { language: "javascript" },
+          content: [{ type: "text", text: "const x = 1;" }],
+        },
+      ],
+    };
+
+    const blocks = tiptapToBlocks(doc, []);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("text");
+    if (blocks[0].type === "text") {
+      const nodes = blocks[0].content.tiptap_json.content;
+      expect(nodes).toHaveLength(1);
+      expect(nodes[0].type).toBe("codeBlock");
+      expect(nodes[0].attrs.language).toBe("javascript");
+    }
+  });
+
+  it("handles table nodes in tiptap content", () => {
+    const doc: JSONContent = {
+      type: "doc",
+      content: [
+        {
+          type: "table",
+          content: [
+            {
+              type: "tableRow",
+              content: [
+                { type: "tableHeader", content: [{ type: "paragraph", content: [{ type: "text", text: "H1" }] }] },
+                { type: "tableHeader", content: [{ type: "paragraph", content: [{ type: "text", text: "H2" }] }] },
+              ],
+            },
+            {
+              type: "tableRow",
+              content: [
+                { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "C1" }] }] },
+                { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "C2" }] }] },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+
+    const blocks = tiptapToBlocks(doc, []);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("text");
+    if (blocks[0].type === "text") {
+      expect(blocks[0].content.tiptap_json.content[0].type).toBe("table");
+    }
+  });
+
+  it("handles taskList nodes in tiptap content", () => {
+    const doc: JSONContent = {
+      type: "doc",
+      content: [
+        {
+          type: "taskList",
+          content: [
+            {
+              type: "taskItem",
+              attrs: { checked: true },
+              content: [{ type: "paragraph", content: [{ type: "text", text: "Done" }] }],
+            },
+            {
+              type: "taskItem",
+              attrs: { checked: false },
+              content: [{ type: "paragraph", content: [{ type: "text", text: "Todo" }] }],
+            },
+          ],
+        },
+      ],
+    };
+
+    const blocks = tiptapToBlocks(doc, []);
+    expect(blocks).toHaveLength(1);
+    if (blocks[0].type === "text") {
+      const taskList = blocks[0].content.tiptap_json.content[0];
+      expect(taskList.type).toBe("taskList");
+      expect(taskList.content).toHaveLength(2);
+    }
+  });
+
+  it("handles callout nodes in tiptap content", () => {
+    const doc: JSONContent = {
+      type: "doc",
+      content: [
+        {
+          type: "callout",
+          attrs: { variant: "warning" },
+          content: [
+            { type: "paragraph", content: [{ type: "text", text: "Be careful!" }] },
+          ],
+        },
+      ],
+    };
+
+    const blocks = tiptapToBlocks(doc, []);
+    expect(blocks).toHaveLength(1);
+    if (blocks[0].type === "text") {
+      const callout = blocks[0].content.tiptap_json.content[0];
+      expect(callout.type).toBe("callout");
+      expect(callout.attrs.variant).toBe("warning");
+    }
+  });
+
+  it("roundtrips advanced block types through serialization", () => {
+    const doc: JSONContent = {
+      type: "doc",
+      content: [
+        { type: "paragraph", content: [{ type: "text", text: "intro" }] },
+        { type: "codeBlock", attrs: { language: "rust" }, content: [{ type: "text", text: "fn main() {}" }] },
+        { type: "horizontalRule" },
+        { type: "callout", attrs: { variant: "info" }, content: [{ type: "paragraph", content: [{ type: "text", text: "Note" }] }] },
+      ],
+    };
+
+    const blocks = tiptapToBlocks(doc, []);
+    expect(blocks).toHaveLength(3);
+    expect(blocks[0].type).toBe("text");
+    expect(blocks[1].type).toBe("divider");
+    expect(blocks[2].type).toBe("text");
+
+    const tiptap = blocksToTiptap(blocks);
+    expect(tiptap.content).toHaveLength(4);
+    expect(tiptap.content![0].type).toBe("paragraph");
+    expect(tiptap.content![1].type).toBe("codeBlock");
+    expect(tiptap.content![2].type).toBe("horizontalRule");
+    expect(tiptap.content![3].type).toBe("callout");
+  });
+
   it("roundtrips correctly: blocks -> tiptap -> blocks", () => {
     const original: Block[] = [
       {

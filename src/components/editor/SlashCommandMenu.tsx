@@ -7,6 +7,12 @@ import {
   ListOrdered,
   Quote,
   Minus,
+  CheckSquare,
+  Code,
+  Table2,
+  ImageIcon,
+  Info,
+  Link,
 } from "lucide-react";
 import type { Editor } from "@tiptap/react";
 
@@ -15,6 +21,7 @@ interface SlashCommand {
   label: string;
   description: string;
   icon: React.ReactNode;
+  category: "text" | "media" | "structure";
   action: (editor: Editor) => void;
 }
 
@@ -24,6 +31,7 @@ const COMMANDS: SlashCommand[] = [
     label: "Heading 1",
     description: "Título grande",
     icon: <Heading1 size={18} />,
+    category: "text",
     action: (editor) =>
       editor.chain().focus().toggleHeading({ level: 1 }).run(),
   },
@@ -32,6 +40,7 @@ const COMMANDS: SlashCommand[] = [
     label: "Heading 2",
     description: "Subtítulo",
     icon: <Heading2 size={18} />,
+    category: "text",
     action: (editor) =>
       editor.chain().focus().toggleHeading({ level: 2 }).run(),
   },
@@ -40,6 +49,7 @@ const COMMANDS: SlashCommand[] = [
     label: "Heading 3",
     description: "Subtítulo menor",
     icon: <Heading3 size={18} />,
+    category: "text",
     action: (editor) =>
       editor.chain().focus().toggleHeading({ level: 3 }).run(),
   },
@@ -48,6 +58,7 @@ const COMMANDS: SlashCommand[] = [
     label: "Lista",
     description: "Lista com marcadores",
     icon: <List size={18} />,
+    category: "text",
     action: (editor) => editor.chain().focus().toggleBulletList().run(),
   },
   {
@@ -55,20 +66,120 @@ const COMMANDS: SlashCommand[] = [
     label: "Lista numerada",
     description: "Lista ordenada",
     icon: <ListOrdered size={18} />,
+    category: "text",
     action: (editor) => editor.chain().focus().toggleOrderedList().run(),
+  },
+  {
+    id: "checklist",
+    label: "Checklist",
+    description: "Lista de tarefas",
+    icon: <CheckSquare size={18} />,
+    category: "text",
+    action: (editor) => editor.chain().focus().toggleTaskList().run(),
   },
   {
     id: "blockquote",
     label: "Citação",
     description: "Bloco de citação",
     icon: <Quote size={18} />,
+    category: "text",
     action: (editor) => editor.chain().focus().toggleBlockquote().run(),
+  },
+  {
+    id: "code",
+    label: "Código",
+    description: "Bloco de código",
+    icon: <Code size={18} />,
+    category: "structure",
+    action: (editor) => editor.chain().focus().toggleCodeBlock().run(),
+  },
+  {
+    id: "table",
+    label: "Tabela",
+    description: "Tabela 3×3",
+    icon: <Table2 size={18} />,
+    category: "structure",
+    action: (editor) =>
+      editor
+        .chain()
+        .focus()
+        .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+        .run(),
+  },
+  {
+    id: "callout",
+    label: "Callout",
+    description: "Bloco de destaque",
+    icon: <Info size={18} />,
+    category: "structure",
+    action: (editor) =>
+      editor.chain().focus().setCallout({ variant: "info" }).run(),
+  },
+  {
+    id: "image",
+    label: "Imagem",
+    description: "Inserir imagem",
+    icon: <ImageIcon size={18} />,
+    category: "media",
+    action: (editor) => {
+      const url = window.prompt("URL da imagem:");
+      if (url) {
+        editor.chain().focus().setImage({ src: url }).run();
+      }
+    },
+  },
+  {
+    id: "embed",
+    label: "Embed",
+    description: "Conteúdo embarcado (URL)",
+    icon: <Link size={18} />,
+    category: "media",
+    action: (editor) => {
+      const url = window.prompt("URL para embed:");
+      if (url) {
+        const youtubeMatch = url.match(
+          /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/,
+        );
+        if (youtubeMatch?.[1]) {
+          editor
+            .chain()
+            .focus()
+            .insertContent({
+              type: "paragraph",
+              content: [
+                {
+                  type: "text",
+                  text: `[YouTube: ${url}]`,
+                  marks: [{ type: "link", attrs: { href: url } }],
+                },
+              ],
+            })
+            .run();
+        } else {
+          editor
+            .chain()
+            .focus()
+            .insertContent({
+              type: "paragraph",
+              content: [
+                {
+                  type: "text",
+                  text: url,
+                  marks: [{ type: "link", attrs: { href: url } }],
+                },
+              ],
+            })
+            .run();
+        }
+      }
+    },
   },
   {
     id: "divider",
     label: "Divisor",
     description: "Linha separadora",
     icon: <Minus size={18} />,
+    category: "structure",
     action: (editor) => editor.chain().focus().setHorizontalRule().run(),
   },
 ];
