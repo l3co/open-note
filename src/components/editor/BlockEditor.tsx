@@ -19,6 +19,7 @@ import type { JSONContent, Editor } from "@tiptap/react";
 import { FloatingToolbar } from "@/components/editor/FloatingToolbar";
 import { SlashCommandMenu } from "@/components/editor/SlashCommandMenu";
 import { Callout } from "@/components/editor/extensions/CalloutExtension";
+import { InkBlock } from "@/components/editor/extensions/InkBlockExtension";
 
 const lowlight = createLowlight(common);
 
@@ -62,6 +63,7 @@ export function BlockEditor({
         HTMLAttributes: { class: "editor-image" },
       }),
       Callout,
+      InkBlock,
       Placeholder.configure({
         placeholder: ({ node }) => {
           if (node.type.name === "heading") {

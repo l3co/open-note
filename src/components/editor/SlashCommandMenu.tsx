@@ -13,6 +13,7 @@ import {
   ImageIcon,
   Info,
   Link,
+  Pencil,
 } from "lucide-react";
 import type { Editor } from "@tiptap/react";
 
@@ -173,6 +174,19 @@ const COMMANDS: SlashCommand[] = [
         }
       }
     },
+  },
+  {
+    id: "draw",
+    label: "Desenho",
+    description: "Bloco de desenho livre",
+    icon: <Pencil size={18} />,
+    category: "media",
+    action: (editor) =>
+      editor
+        .chain()
+        .focus()
+        .insertContent({ type: "inkBlock", attrs: { height: 300 } })
+        .run(),
   },
   {
     id: "divider",

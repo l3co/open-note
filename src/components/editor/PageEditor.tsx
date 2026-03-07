@@ -13,6 +13,7 @@ import { blocksToTiptap, tiptapToBlocks } from "@/lib/serialization";
 import { tiptapToMarkdown, markdownToTiptap } from "@/lib/markdown";
 import { usePageStore } from "@/stores/usePageStore";
 import { useUIStore } from "@/stores/useUIStore";
+import { InkOverlay } from "@/components/ink/InkOverlay";
 
 interface PageEditorProps {
   page: Page;
@@ -20,6 +21,7 @@ interface PageEditorProps {
 
 export function PageEditor({ page }: PageEditorProps) {
   const editorRef = useRef<Editor | null>(null);
+  const contentAreaRef = useRef<HTMLDivElement>(null);
   const [content, setContent] = useState<JSONContent | null>(null);
   const [mode, setMode] = useState<EditorMode>("richtext");
   const [markdownContent, setMarkdownContent] = useState("");
@@ -117,23 +119,22 @@ export function PageEditor({ page }: PageEditorProps) {
         <EditorModeToggle mode={mode} onChange={handleModeChange} />
       </div>
 
-      {mode === "richtext" ? (
-        <div className="mt-4">
+      <div ref={contentAreaRef} className="relative mt-4">
+        <InkOverlay contentRef={contentAreaRef} />
+        {mode === "richtext" ? (
           <BlockEditor
             initialContent={initialContent}
             onUpdate={handleUpdate}
             onEditorReady={handleEditorReady}
           />
-        </div>
-      ) : (
-        <div className="mt-4">
+        ) : (
           <MarkdownEditor
             content={markdownContent}
             onChange={handleMarkdownChange}
             theme={cmTheme}
           />
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
