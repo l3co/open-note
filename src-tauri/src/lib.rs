@@ -6,7 +6,9 @@ use commands::get_app_info;
 use commands::notebook::{
     create_notebook, delete_notebook, list_notebooks, rename_notebook, reorder_notebooks,
 };
-use commands::page::{create_page, delete_page, list_pages, load_page, move_page, update_page};
+use commands::page::{
+    create_page, delete_page, list_pages, load_page, move_page, update_page, update_page_blocks,
+};
 use commands::section::{
     create_section, delete_section, list_sections, rename_section, reorder_sections,
 };
@@ -52,6 +54,7 @@ pub fn run() {
             load_page,
             create_page,
             update_page,
+            update_page_blocks,
             delete_page,
             move_page,
             // Trash

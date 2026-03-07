@@ -3,11 +3,14 @@ import type { Page } from "@/types/bindings/Page";
 import type { PageSummary } from "@/types/bindings/PageSummary";
 import * as ipc from "@/lib/ipc";
 
+export type SaveStatus = "idle" | "saving" | "saved" | "error";
+
 interface PageStore {
   currentPage: Page | null;
   pages: Map<string, PageSummary[]>;
   isLoading: boolean;
   isSaving: boolean;
+  saveStatus: SaveStatus;
   lastSavedAt: Date | null;
   error: string | null;
 
@@ -16,8 +19,11 @@ interface PageStore {
   createPage: (sectionId: string, title: string) => Promise<Page>;
   updatePage: (page: Page) => Promise<void>;
   updatePageTitle: (title: string) => Promise<void>;
+  updateBlocks: (pageId: string, blocks: Page["blocks"]) => Promise<Page>;
   deletePage: (pageId: string) => Promise<void>;
   movePage: (pageId: string, targetSectionId: string) => Promise<void>;
+  setCurrentPage: (page: Page) => void;
+  setSaveStatus: (status: SaveStatus) => void;
   clearCurrentPage: () => void;
   clearError: () => void;
 }
@@ -27,6 +33,7 @@ export const usePageStore = create<PageStore>((set, get) => ({
   pages: new Map(),
   isLoading: false,
   isSaving: false,
+  saveStatus: "idle",
   lastSavedAt: null,
   error: null,
 
@@ -104,6 +111,25 @@ export const usePageStore = create<PageStore>((set, get) => ({
     }
   },
 
-  clearCurrentPage: () => set({ currentPage: null }),
+  updateBlocks: async (pageId, blocks) => {
+    set({ isSaving: true, saveStatus: "saving" });
+    try {
+      const page = await ipc.updatePageBlocks(pageId, blocks);
+      set({
+        currentPage: page,
+        isSaving: false,
+        saveStatus: "saved",
+        lastSavedAt: new Date(),
+      });
+      return page;
+    } catch (e) {
+      set({ error: String(e), isSaving: false, saveStatus: "error" });
+      throw e;
+    }
+  },
+
+  setCurrentPage: (page) => set({ currentPage: page }),
+  setSaveStatus: (status) => set({ saveStatus: status }),
+  clearCurrentPage: () => set({ currentPage: null, saveStatus: "idle" }),
   clearError: () => set({ error: null }),
 }));

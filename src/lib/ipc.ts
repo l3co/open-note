@@ -3,6 +3,7 @@ import type { AppState } from "@/types/bindings/AppState";
 import type { GlobalSettings } from "@/types/bindings/GlobalSettings";
 import type { Notebook } from "@/types/bindings/Notebook";
 import type { NotebookId } from "@/types/bindings/NotebookId";
+import type { Block } from "@/types/bindings/Block";
 import type { Page } from "@/types/bindings/Page";
 import type { PageId } from "@/types/bindings/PageId";
 import type { PageSummary } from "@/types/bindings/PageSummary";
@@ -87,6 +88,9 @@ export const createPage = (sectionId: SectionId, title: string) =>
 
 export const updatePage = (page: Page) =>
   invoke<void>("update_page", { page });
+
+export const updatePageBlocks = (pageId: PageId, blocks: Block[]) =>
+  invoke<Page>("update_page_blocks", { pageId, blocks });
 
 export const deletePage = (pageId: PageId) =>
   invoke<void>("delete_page", { pageId });

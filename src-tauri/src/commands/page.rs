@@ -1,5 +1,6 @@
 use tauri::State;
 
+use opennote_core::block::Block;
 use opennote_core::id::{PageId, SectionId};
 use opennote_core::page::{Page, PageSummary};
 use opennote_storage::engine::FsStorageEngine;
@@ -35,6 +36,22 @@ pub fn create_page(
 pub fn update_page(state: State<AppManagedState>, page: Page) -> Result<(), String> {
     let root = state.get_workspace_root()?;
     FsStorageEngine::update_page(&root, &page).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn update_page_blocks(
+    state: State<AppManagedState>,
+    page_id: PageId,
+    blocks: Vec<Block>,
+) -> Result<Page, String> {
+    let root = state.get_workspace_root()?;
+    state.save_coordinator.with_page_lock(page_id, || {
+        let mut page = FsStorageEngine::load_page(&root, page_id).map_err(|e| e.to_string())?;
+        page.blocks = blocks.clone();
+        page.updated_at = chrono::Utc::now();
+        FsStorageEngine::update_page(&root, &page).map_err(|e| e.to_string())?;
+        Ok(page)
+    })
 }
 
 #[tauri::command]

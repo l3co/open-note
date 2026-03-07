@@ -2022,6 +2022,7 @@ dependencies = [
 name = "open-note"
 version = "0.1.0"
 dependencies = [
+ "chrono",
  "opennote-core",
  "opennote-search",
  "opennote-storage",
