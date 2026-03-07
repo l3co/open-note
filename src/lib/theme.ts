@@ -106,3 +106,10 @@ export function applyBaseTheme(theme: string): void {
 export function applyChromeTint(tint: string): void {
   document.documentElement.setAttribute("data-chrome", tint);
 }
+
+export function listenSystemTheme(callback: (isDark: boolean) => void): () => void {
+  const mq = window.matchMedia("(prefers-color-scheme: dark)");
+  const handler = (e: MediaQueryListEvent) => callback(e.matches);
+  mq.addEventListener("change", handler);
+  return () => mq.removeEventListener("change", handler);
+}

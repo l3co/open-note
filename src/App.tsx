@@ -9,6 +9,7 @@ import { Toolbar } from "@/components/layout/Toolbar";
 import { ContentArea } from "@/components/layout/ContentArea";
 import { StatusBar } from "@/components/layout/StatusBar";
 import { TrashPanel } from "@/components/shared/TrashPanel";
+import { listenSystemTheme } from "@/lib/theme";
 import * as ipc from "@/lib/ipc";
 
 export function App() {
@@ -21,6 +22,13 @@ export function App() {
 
   useEffect(() => {
     applyThemeToDOM();
+    const unsub = listenSystemTheme(() => {
+      const { theme } = useUIStore.getState();
+      if (theme.baseTheme === "system") {
+        applyThemeToDOM();
+      }
+    });
+    return unsub;
   }, [applyThemeToDOM]);
 
   useEffect(() => {
