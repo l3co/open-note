@@ -585,6 +585,40 @@ impl FsStorageEngine {
         Ok(count)
     }
 
+    // ─── Tags ───
+
+    pub fn list_all_tags(workspace_root: &Path) -> StorageResult<Vec<String>> {
+        let mut tags = HashSet::new();
+        for nb_entry in fs::read_dir(workspace_root)? {
+            let nb_entry = nb_entry?;
+            let nb_path = nb_entry.path();
+            if !nb_path.is_dir() || is_hidden(&nb_path) || !nb_path.join(NOTEBOOK_FILE).exists() {
+                continue;
+            }
+            for sec_entry in fs::read_dir(&nb_path)? {
+                let sec_entry = sec_entry?;
+                let sec_path = sec_entry.path();
+                if !sec_path.is_dir() || is_hidden(&sec_path) {
+                    continue;
+                }
+                for page_entry in fs::read_dir(&sec_path)? {
+                    let page_entry = page_entry?;
+                    let page_path = page_entry.path();
+                    if page_path.is_file() && path_has_extension(&page_path, PAGE_EXTENSION) {
+                        if let Ok(page) = read_json::<Page>(&page_path) {
+                            for tag in &page.tags {
+                                tags.insert(tag.clone());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        let mut sorted: Vec<String> = tags.into_iter().collect();
+        sorted.sort();
+        Ok(sorted)
+    }
+
     // ─── Helpers ───
 
     fn find_notebook_dir(workspace_root: &Path, notebook_id: NotebookId) -> StorageResult<PathBuf> {

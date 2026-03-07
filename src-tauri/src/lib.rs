@@ -10,6 +10,7 @@ use commands::page::{create_page, delete_page, list_pages, load_page, move_page,
 use commands::section::{
     create_section, delete_section, list_sections, rename_section, reorder_sections,
 };
+use commands::tags::list_all_tags;
 use commands::trash::{empty_trash, list_trash_items, permanently_delete, restore_from_trash};
 use commands::workspace::{
     close_workspace, create_workspace, get_app_state, get_global_settings, get_workspace_settings,
@@ -58,6 +59,8 @@ pub fn run() {
             restore_from_trash,
             permanently_delete,
             empty_trash,
+            // Tags
+            list_all_tags,
             // Assets
             import_asset,
             import_asset_from_bytes,

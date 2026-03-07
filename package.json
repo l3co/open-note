@@ -30,9 +30,11 @@
   "dependencies": {
     "@tauri-apps/api": "^2.10.1",
     "@tauri-apps/plugin-shell": "^2.3.5",
+    "clsx": "^2.1.1",
     "lucide-react": "^0.577.0",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
+    "sonner": "^2.0.7",
     "zustand": "^5.0.11"
   },
   "devDependencies": {

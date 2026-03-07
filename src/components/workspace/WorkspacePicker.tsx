@@ -1,0 +1,309 @@
+import { useState, useEffect, useCallback } from "react";
+import { FolderOpen, Plus, Cloud, X, AlertCircle } from "lucide-react";
+import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
+import { useUIStore } from "@/stores/useUIStore";
+import * as ipc from "@/lib/ipc";
+import type { AppState } from "@/types/bindings/AppState";
+
+export function WorkspacePicker() {
+  const [appState, setAppState] = useState<AppState | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
+  const [newName, setNewName] = useState("");
+  const [newPath, setNewPath] = useState("");
+
+  const { openWorkspace, createWorkspace } = useWorkspaceStore();
+  const { closeWorkspacePicker } = useUIStore();
+
+  const loadAppState = useCallback(async () => {
+    try {
+      const state = await ipc.getAppState();
+      setAppState(state);
+    } catch (e) {
+      setError(String(e));
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- async data fetching on mount
+    loadAppState();
+  }, [loadAppState]);
+
+  const handleOpen = async (path: string) => {
+    try {
+      await openWorkspace(path);
+      closeWorkspacePicker();
+    } catch (e) {
+      setError(String(e));
+    }
+  };
+
+  const handleCreate = async () => {
+    if (!newName.trim() || !newPath.trim()) return;
+    try {
+      await createWorkspace(newPath.trim(), newName.trim());
+      closeWorkspacePicker();
+    } catch (e) {
+      setError(String(e));
+    }
+  };
+
+  const handleRemoveRecent = async (path: string) => {
+    try {
+      await ipc.removeRecentWorkspace(path);
+      await loadAppState();
+    } catch (e) {
+      setError(String(e));
+    }
+  };
+
+  return (
+    <div
+      className="flex h-screen w-full items-center justify-center"
+      style={{ backgroundColor: "var(--bg-secondary)" }}
+    >
+      <div
+        className="w-[420px] rounded-xl border p-6 shadow-lg"
+        style={{
+          backgroundColor: "var(--bg-primary)",
+          borderColor: "var(--border)",
+          boxShadow: "var(--shadow-lg)",
+        }}
+      >
+        <h1
+          className="mb-1 text-center text-2xl font-bold"
+          style={{ color: "var(--text-primary)" }}
+        >
+          Open Note
+        </h1>
+        <p
+          className="mb-6 text-center text-sm"
+          style={{ color: "var(--text-tertiary)" }}
+        >
+          Local-first note-taking
+        </p>
+
+        {error && (
+          <div
+            className="mb-4 flex items-center gap-2 rounded-lg px-3 py-2 text-xs"
+            style={{
+              backgroundColor: "rgba(239, 68, 68, 0.1)",
+              color: "var(--danger)",
+            }}
+          >
+            <AlertCircle size={14} />
+            <span className="flex-1">{error}</span>
+            <button onClick={() => setError(null)}>
+              <X size={12} />
+            </button>
+          </div>
+        )}
+
+        {loading ? (
+          <div
+            className="py-8 text-center text-sm"
+            style={{ color: "var(--text-tertiary)" }}
+          >
+            Carregando...
+          </div>
+        ) : (
+          <>
+            {appState && appState.recent_workspaces.length > 0 && (
+              <div className="mb-4">
+                <h2
+                  className="mb-2 text-xs font-medium uppercase tracking-wide"
+                  style={{ color: "var(--text-tertiary)" }}
+                >
+                  Workspaces recentes
+                </h2>
+                <div className="space-y-1">
+                  {appState.recent_workspaces.map((rw) => (
+                    <div
+                      key={rw.path}
+                      className="group flex items-center rounded-lg px-3 py-2 cursor-pointer"
+                      onClick={() => handleOpen(rw.path)}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.backgroundColor =
+                          "var(--bg-hover)")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.backgroundColor = "transparent")
+                      }
+                    >
+                      <FolderOpen
+                        size={16}
+                        className="mr-3 shrink-0"
+                        style={{ color: "var(--text-tertiary)" }}
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div
+                          className="truncate text-sm font-medium"
+                          style={{ color: "var(--text-primary)" }}
+                        >
+                          {rw.name}
+                        </div>
+                        <div
+                          className="truncate text-xs"
+                          style={{ color: "var(--text-tertiary)" }}
+                        >
+                          {rw.path} • local
+                        </div>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRemoveRecent(rw.path);
+                        }}
+                        className="flex h-5 w-5 items-center justify-center rounded opacity-0 group-hover:opacity-100"
+                        style={{ color: "var(--text-tertiary)" }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.backgroundColor =
+                            "var(--bg-active)")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.backgroundColor =
+                            "transparent")
+                        }
+                        aria-label="Remover dos recentes"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {showCreate ? (
+              <div
+                className="rounded-lg border p-3"
+                style={{ borderColor: "var(--border)" }}
+              >
+                <h3
+                  className="mb-2 text-xs font-medium"
+                  style={{ color: "var(--text-secondary)" }}
+                >
+                  Novo workspace
+                </h3>
+                <input
+                  autoFocus
+                  className="mb-2 h-8 w-full rounded border bg-transparent px-3 text-sm outline-none"
+                  style={{
+                    borderColor: "var(--border)",
+                    color: "var(--text-primary)",
+                  }}
+                  placeholder="Nome do workspace"
+                  value={newName}
+                  onChange={(e) => setNewName(e.target.value)}
+                />
+                <input
+                  className="mb-3 h-8 w-full rounded border bg-transparent px-3 text-sm outline-none"
+                  style={{
+                    borderColor: "var(--border)",
+                    color: "var(--text-primary)",
+                  }}
+                  placeholder="Caminho da pasta (ex: ~/Documents/notas)"
+                  value={newPath}
+                  onChange={(e) => setNewPath(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleCreate();
+                    if (e.key === "Escape") setShowCreate(false);
+                  }}
+                />
+                <div className="flex justify-end gap-2">
+                  <button
+                    onClick={() => setShowCreate(false)}
+                    className="rounded px-3 py-1.5 text-xs"
+                    style={{ color: "var(--text-secondary)" }}
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={handleCreate}
+                    className="rounded px-3 py-1.5 text-xs font-medium"
+                    style={{
+                      backgroundColor: "var(--accent)",
+                      color: "var(--accent-text)",
+                    }}
+                  >
+                    Criar
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                <ActionButton
+                  icon={<Plus size={16} />}
+                  label="Novo workspace local"
+                  onClick={() => setShowCreate(true)}
+                />
+                <ActionButton
+                  icon={<Cloud size={16} />}
+                  label="Conectar workspace na nuvem"
+                  disabled
+                  badge="Em breve"
+                />
+                <ActionButton
+                  icon={<FolderOpen size={16} />}
+                  label="Abrir pasta existente"
+                  onClick={() => {
+                    const path = prompt(
+                      "Caminho da pasta com workspace.json:",
+                    );
+                    if (path) handleOpen(path);
+                  }}
+                />
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ActionButton({
+  icon,
+  label,
+  onClick,
+  disabled = false,
+  badge,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  onClick?: () => void;
+  disabled?: boolean;
+  badge?: string;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+      style={{ color: "var(--text-primary)" }}
+      onMouseEnter={(e) => {
+        if (!disabled)
+          e.currentTarget.style.backgroundColor = "var(--bg-hover)";
+      }}
+      onMouseLeave={(e) =>
+        (e.currentTarget.style.backgroundColor = "transparent")
+      }
+    >
+      <span style={{ color: "var(--text-secondary)" }}>{icon}</span>
+      <span>{label}</span>
+      {badge && (
+        <span
+          className="ml-auto rounded-full px-2 py-0.5 text-[10px]"
+          style={{
+            backgroundColor: "var(--bg-tertiary)",
+            color: "var(--text-tertiary)",
+          }}
+        >
+          {badge}
+        </span>
+      )}
+    </button>
+  );
+}

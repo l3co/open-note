@@ -1,1 +1,138 @@
 @import "tailwindcss";
+
+/* ===== Camada 1: Base Themes ===== */
+
+:root,
+[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-secondary: #f8f9fa;
+  --bg-tertiary: #f1f3f5;
+  --bg-sidebar: #f6f6f7;
+  --bg-toolbar: #fafafa;
+  --bg-hover: rgba(0, 0, 0, 0.04);
+  --bg-active: rgba(0, 0, 0, 0.06);
+  --text-primary: #1a1a1a;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
+  --border: #e5e7eb;
+  --border-subtle: #f0f0f0;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --danger: #ef4444;
+  --danger-hover: #dc2626;
+  --success: #22c55e;
+  --warning: #f59e0b;
+  --info: #3b82f6;
+  --overlay: rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="paper"] {
+  --bg-primary: #faf8f5;
+  --bg-secondary: #f5f0ea;
+  --bg-tertiary: #ede6dd;
+  --bg-sidebar: #f0ebe4;
+  --bg-toolbar: #f5f0ea;
+  --bg-hover: rgba(139, 109, 71, 0.06);
+  --bg-active: rgba(139, 109, 71, 0.1);
+  --text-primary: #3d3329;
+  --text-secondary: #7a6e60;
+  --text-tertiary: #a89b8c;
+  --border: #e0d5c8;
+  --border-subtle: #ebe3d8;
+  --shadow: 0 1px 3px rgba(100, 70, 30, 0.06);
+  --shadow-lg: 0 4px 12px rgba(100, 70, 30, 0.1);
+  --danger: #c0392b;
+  --danger-hover: #a93226;
+  --success: #27ae60;
+  --warning: #d4a017;
+  --info: #2980b9;
+  --overlay: rgba(61, 51, 41, 0.4);
+}
+
+[data-theme="dark"] {
+  --bg-primary: #121218;
+  --bg-secondary: #1a1a24;
+  --bg-tertiary: #22222e;
+  --bg-sidebar: #0f0f17;
+  --bg-toolbar: #16161f;
+  --bg-hover: rgba(255, 255, 255, 0.06);
+  --bg-active: rgba(255, 255, 255, 0.1);
+  --text-primary: #e2e8f0;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
+  --border: #2d2d3a;
+  --border-subtle: #232330;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --danger: #f87171;
+  --danger-hover: #ef4444;
+  --success: #4ade80;
+  --warning: #fbbf24;
+  --info: #60a5fa;
+  --overlay: rgba(0, 0, 0, 0.6);
+}
+
+/* ===== Camada 2: Accent Color (default: Blue) ===== */
+
+:root {
+  --accent: #3b82f6;
+  --accent-hover: #2563eb;
+  --accent-subtle: rgba(59, 130, 246, 0.1);
+  --accent-text: #ffffff;
+}
+
+/* ===== Camada 3: Chrome Tint ===== */
+
+[data-chrome="tinted"] {
+  --bg-sidebar: color-mix(in srgb, var(--accent) 6%, var(--bg-sidebar));
+  --bg-toolbar: color-mix(in srgb, var(--accent) 4%, var(--bg-toolbar));
+}
+
+/* ===== Global Styles ===== */
+
+* {
+  transition:
+    background-color 200ms ease,
+    color 200ms ease,
+    border-color 200ms ease;
+}
+
+body {
+  margin: 0;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow: hidden;
+}
+
+::selection {
+  background-color: var(--accent-subtle);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--text-tertiary);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-secondary);
+}
