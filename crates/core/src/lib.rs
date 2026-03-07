@@ -1,9 +1,11 @@
+pub mod annotation;
+pub mod block;
+pub mod color;
 pub mod error;
-
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn core_crate_loads() {
-        assert!(true);
-    }
-}
+pub mod id;
+pub mod notebook;
+pub mod page;
+pub mod section;
+pub mod settings;
+pub mod trash;
+pub mod workspace;

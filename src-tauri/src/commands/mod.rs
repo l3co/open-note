@@ -1,3 +1,10 @@
+pub mod assets;
+pub mod notebook;
+pub mod page;
+pub mod section;
+pub mod trash;
+pub mod workspace;
+
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]
