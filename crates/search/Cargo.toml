@@ -1,0 +1,8 @@
+[package]
+name = "opennote-search"
+version = "0.1.0"
+edition = "2021"
+description = "Open Note full-text search engine (Tantivy)"
+
+[dependencies]
+opennote-core = { path = "../core" }

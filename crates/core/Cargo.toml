@@ -1,0 +1,13 @@
+[package]
+name = "opennote-core"
+version = "0.1.0"
+edition = "2021"
+description = "Open Note domain entities, rules, and validations"
+
+[dependencies]
+serde = { workspace = true }
+serde_json = { workspace = true }
+uuid = { workspace = true }
+chrono = { workspace = true }
+thiserror = { workspace = true }
+ts-rs = { workspace = true }

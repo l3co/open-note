@@ -1,0 +1,23 @@
+[package]
+name = "open-note"
+version = "0.1.0"
+edition = "2021"
+description = "Open Note — local-first note-taking app"
+
+[lib]
+name = "open_note_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+opennote-core = { path = "../crates/core" }
+opennote-storage = { path = "../crates/storage" }
+opennote-search = { path = "../crates/search" }
+opennote-sync = { path = "../crates/sync" }
+tauri = { version = "2", features = [] }
+tauri-plugin-shell = "2"
+serde = { workspace = true }
+serde_json = { workspace = true }
+tokio = { version = "1", features = ["full"] }

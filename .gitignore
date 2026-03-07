@@ -1,0 +1,36 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+target/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# Test / Coverage
+coverage/
+playwright-report/
+test-results/
+
+# Tauri
+src-tauri/gen/
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+*.log

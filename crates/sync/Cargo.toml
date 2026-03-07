@@ -1,0 +1,9 @@
+[package]
+name = "opennote-sync"
+version = "0.1.0"
+edition = "2021"
+description = "Open Note cloud sync engine"
+
+[dependencies]
+opennote-core = { path = "../core" }
+opennote-storage = { path = "../storage" }
