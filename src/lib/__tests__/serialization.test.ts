@@ -325,6 +325,72 @@ describe("tiptapToBlocks", () => {
     expect(tiptap.content![3].type).toBe("callout");
   });
 
+  it("handles inkBlock nodes in tiptap content", () => {
+    const doc: JSONContent = {
+      type: "doc",
+      content: [
+        {
+          type: "inkBlock",
+          attrs: { width: null, height: 300, strokes: [], svgCache: null },
+        },
+      ],
+    };
+
+    const blocks = tiptapToBlocks(doc, []);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("text");
+    if (blocks[0].type === "text") {
+      const node = blocks[0].content.tiptap_json.content[0];
+      expect(node.type).toBe("inkBlock");
+      expect(node.attrs.height).toBe(300);
+      expect(node.attrs.strokes).toEqual([]);
+    }
+  });
+
+  it("handles pdfBlock nodes in tiptap content", () => {
+    const doc: JSONContent = {
+      type: "doc",
+      content: [
+        {
+          type: "pdfBlock",
+          attrs: { src: "assets/doc.pdf", totalPages: 5, displayMode: "continuous", currentPage: 1, scale: 1.5 },
+        },
+      ],
+    };
+
+    const blocks = tiptapToBlocks(doc, []);
+    expect(blocks).toHaveLength(1);
+    expect(blocks[0].type).toBe("text");
+    if (blocks[0].type === "text") {
+      const node = blocks[0].content.tiptap_json.content[0];
+      expect(node.type).toBe("pdfBlock");
+      expect(node.attrs.src).toBe("assets/doc.pdf");
+      expect(node.attrs.totalPages).toBe(5);
+    }
+  });
+
+  it("roundtrips inkBlock and pdfBlock through serialization", () => {
+    const doc: JSONContent = {
+      type: "doc",
+      content: [
+        { type: "paragraph", content: [{ type: "text", text: "Before" }] },
+        { type: "inkBlock", attrs: { width: null, height: 400, strokes: [], svgCache: null } },
+        { type: "pdfBlock", attrs: { src: "assets/test.pdf", totalPages: 3, displayMode: "single", currentPage: 2, scale: 1.0 } },
+      ],
+    };
+
+    const blocks = tiptapToBlocks(doc, []);
+    expect(blocks).toHaveLength(1);
+
+    const tiptap = blocksToTiptap(blocks);
+    expect(tiptap.content).toHaveLength(3);
+    expect(tiptap.content![0].type).toBe("paragraph");
+    expect(tiptap.content![1].type).toBe("inkBlock");
+    expect(tiptap.content![1].attrs?.height).toBe(400);
+    expect(tiptap.content![2].type).toBe("pdfBlock");
+    expect(tiptap.content![2].attrs?.src).toBe("assets/test.pdf");
+  });
+
   it("roundtrips correctly: blocks -> tiptap -> blocks", () => {
     const original: Block[] = [
       {
