@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { FolderOpen, Plus, Cloud, X, AlertCircle } from "lucide-react";
+import { open } from "@tauri-apps/plugin-dialog";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 import { useUIStore } from "@/stores/useUIStore";
 import * as ipc from "@/lib/ipc";
@@ -200,20 +201,48 @@ export function WorkspacePicker() {
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                 />
-                <input
-                  className="mb-3 h-8 w-full rounded border bg-transparent px-3 text-sm outline-none"
-                  style={{
-                    borderColor: "var(--border)",
-                    color: "var(--text-primary)",
-                  }}
-                  placeholder={t("workspace.create_path_placeholder")}
-                  value={newPath}
-                  onChange={(e) => setNewPath(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") handleCreate();
-                    if (e.key === "Escape") setShowCreate(false);
-                  }}
-                />
+                <div className="mb-3 flex gap-1.5">
+                  <input
+                    className="h-8 flex-1 rounded border bg-transparent px-3 text-sm outline-none"
+                    style={{
+                      borderColor: "var(--border)",
+                      color: "var(--text-primary)",
+                    }}
+                    placeholder={t("workspace.create_path_placeholder")}
+                    value={newPath}
+                    onChange={(e) => setNewPath(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") handleCreate();
+                      if (e.key === "Escape") setShowCreate(false);
+                    }}
+                    readOnly
+                  />
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      const selected = await open({
+                        directory: true,
+                        multiple: false,
+                        title: t("workspace.choose_folder"),
+                      });
+                      if (selected) setNewPath(selected);
+                    }}
+                    className="flex h-8 items-center gap-1.5 rounded border px-3 text-xs font-medium whitespace-nowrap"
+                    style={{
+                      borderColor: "var(--border)",
+                      color: "var(--text-secondary)",
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.backgroundColor = "transparent")
+                    }
+                  >
+                    <FolderOpen size={14} />
+                    {t("workspace.choose_folder")}
+                  </button>
+                </div>
                 <div className="flex justify-end gap-2">
                   <button
                     onClick={() => setShowCreate(false)}

@@ -17,6 +17,7 @@ import type { PageSummary } from "@/types/bindings/PageSummary";
 export function NotebookTree() {
   const { t } = useTranslation();
   const {
+    notebooks,
     loadSections,
     sections,
     reorderNotebooks,
