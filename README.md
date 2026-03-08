@@ -4,15 +4,35 @@ Local-first note-taking app inspired by Microsoft OneNote. Rich text, Markdown, 
 
 [![CI](https://github.com/l3co/open-note/actions/workflows/ci.yml/badge.svg)](https://github.com/l3co/open-note/actions/workflows/ci.yml)
 
-## Features (planned)
+## Features
 
-- Rich text editing (TipTap/ProseMirror)
-- Native Markdown mode (CodeMirror 6)
-- Handwriting & ink annotations (Canvas + perfect-freehand)
-- PDF import & annotation
-- Full-text search (Tantivy)
-- Cloud sync (Google Drive, OneDrive, Dropbox) — opt-in
-- Open format (`.opn.json`) — no lock-in
+- **Rich text editor** — TipTap (ProseMirror) with headings, lists, blockquote, code blocks (syntax highlighting), tables, checklists, images, callouts, embeds, and a slash command menu
+- **Markdown mode** — CodeMirror 6 with live toggle (Cmd+Shift+M), bidirectional conversion RichText ↔ Markdown
+- **Handwriting & ink** — Canvas API + perfect-freehand with InkOverlay (annotate over text) and InkBlock (dedicated drawing area)
+- **PDF viewer** — pdfjs-dist with in-page rendering and pagination
+- **Full-text search** — Tantivy engine with QuickOpen (Cmd+P) and SearchPanel (Cmd+Shift+F), accent folding, snippet highlighting
+- **Cloud sync** — Google Drive, OneDrive, Dropbox (opt-in, stubs — OAuth not yet configured)
+- **Premium themes** — 3-layer system: base theme (Light/Paper/Dark/System) × 10 accent colors × chrome tint (Neutral/Tinted)
+- **i18n** — Portuguese (PT-BR) and English, switchable without restart
+- **Open format** — `.opn.json` files on your filesystem, no lock-in, no telemetry
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| **Runtime** | Tauri v2 (desktop; mobile future) |
+| **Frontend** | React 19 + TypeScript + TailwindCSS v4 |
+| **State** | Zustand |
+| **Rich Text** | TipTap v3 (ProseMirror) |
+| **Markdown** | CodeMirror 6 |
+| **Ink** | Canvas API + perfect-freehand |
+| **PDF** | pdfjs-dist |
+| **Backend** | Rust (Cargo workspace) |
+| **Storage** | Local filesystem (JSON), atomic writes |
+| **Search** | Tantivy 0.22 |
+| **Sync** | Google Drive, OneDrive, Dropbox (OAuth2, opt-in) |
+| **Tests** | Vitest, Testing Library, MSW, Playwright, cargo test, insta |
+| **Icons** | Lucide React |
 
 ## Prerequisites
 
@@ -41,10 +61,12 @@ cargo tauri dev
 
 | Command | Description |
 |---|---|
-| `npm run dev` | Start Vite dev server |
+| `npm run dev` | Start Vite dev server (port 1420) |
 | `npm run build` | TypeScript check + production build |
 | `npm run test` | Run frontend tests (Vitest) |
+| `npm run test:watch` | Frontend tests in watch mode |
 | `npm run test:coverage` | Frontend tests with coverage report |
+| `npm run test:e2e` | Run E2E tests (Playwright) |
 | `npm run test:rust` | Run Rust tests (`cargo test --workspace`) |
 | `npm run test:all` | Run all tests (Rust + frontend) |
 | `npm run lint` | ESLint (frontend) |
@@ -60,24 +82,76 @@ cargo tauri dev
 ```
 open-note/
 ├── crates/
-│   ├── core/       # Domain (entities, rules, validations)
-│   ├── storage/    # Filesystem, atomic writes, trash
-│   ├── search/     # Tantivy full-text search
-│   └── sync/       # Cloud sync engine
-├── src-tauri/      # Tauri v2 IPC layer (thin)
-├── src/            # React + TypeScript frontend
-├── e2e/            # Playwright E2E tests
-└── docs/           # Phase docs + ADRs
+│   ├── core/           # Domain — entities, rules, validations (pure Rust, no frameworks)
+│   ├── storage/        # Filesystem — atomic writes, lock, trash, assets, migrations
+│   ├── search/         # Tantivy — full-text indexing and search
+│   └── sync/           # Cloud sync — providers, manifest, conflict resolution
+├── src-tauri/          # Tauri v2 — thin IPC layer (46 commands), delegates to crates
+│   └── src/
+│       ├── commands/   # IPC handlers (workspace, notebook, section, page, search, sync, etc.)
+│       └── state.rs    # AppManagedState, SaveCoordinator
+├── src/                # Frontend — React + TypeScript
+│   ├── components/     # UI (editor, sidebar, settings, search, ink, pdf, sync, onboarding)
+│   ├── stores/         # Zustand (workspace, navigation, page, UI)
+│   ├── hooks/          # useAutoSave, useKeyboardShortcuts
+│   ├── lib/            # IPC wrapper, serialization, markdown conversion, theme utils
+│   ├── locales/        # i18n (pt-BR.json, en.json)
+│   └── types/          # TypeScript types + ts-rs bindings
+├── e2e/                # Playwright E2E tests
+├── docs/               # Phase specs (FASE_01–10) + ADRs
+├── retrofit_e2e/       # E2E test planning documents
+└── retrofit_test_rust/ # Rust test retrofit planning documents
 ```
 
-**Architecture:** Clean Architecture with DDD. Domain lives in `crates/core` (pure Rust, no framework dependencies). `src-tauri/` is a thin IPC layer that delegates to crates.
+### Architecture
+
+**Clean Architecture + DDD.** Dependencies point inward:
+
+```
+src (React) → src-tauri (IPC) → crates/storage → crates/core
+                               → crates/search  → crates/core
+                               → crates/sync    → crates/core
+```
+
+- **`crates/core`** — Pure domain. No Tauri, no filesystem, no frameworks.
+- **`crates/storage`** — Infrastructure. Atomic JSON writes, workspace lock (.lock + PID), soft-delete trash (.trash/), slug generation, schema migrations.
+- **`crates/search`** — Tantivy index with custom tokenizer (ASCII folding, lowercase).
+- **`crates/sync`** — Provider trait + stubs, SHA-256 manifest, file-level conflict resolution.
+- **`src-tauri`** — Thin IPC layer. 46 commands. Delegates all logic to crates.
+
+### Domain Model
+
+```
+Workspace → Notebook → Section → Page → Block[]
+```
+
+Block types: `text`, `code`, `checklist`, `table`, `image`, `ink`, `pdf`, `divider`, `callout`, `embed`
+
+Pages are stored as `{slug}.opn.json` with versioned schema.
+
+## Keyboard Shortcuts
+
+| Shortcut | Action |
+|---|---|
+| `Cmd+\` | Toggle sidebar |
+| `Cmd+P` | Quick Open (search by title) |
+| `Cmd+Shift+F` | Search Panel (full-text) |
+| `Cmd+Shift+M` | Toggle Rich Text / Markdown |
+| `Cmd+Shift+O` | Workspace Picker |
+| `Cmd+[` / `Cmd+]` | Navigate back / forward |
+| `Cmd+B` | Bold |
+| `Cmd+I` | Italic |
+| `Cmd+U` | Underline |
+| `/` | Slash command menu (13 commands) |
 
 ## Documentation
 
-- [ROADMAP.md](./ROADMAP.md) — Vision, domain model, phases, risks
+- [ROADMAP.md](./ROADMAP.md) — Vision, domain model, phases, risks, cross-cutting concerns
 - [Phase docs](./docs/) — Detailed specs for each phase (FASE_01–10)
 - [ADR-001](./docs/adr/001-tauri-v2.md) — Why Tauri v2
 - [ADR-002](./docs/adr/002-cargo-workspace.md) — Why Cargo workspace
+- [E2E Test Plan](./retrofit_e2e/) — Playwright E2E test scenarios by phase
+- [Rust Test Retrofit](./retrofit_test_rust/) — Rust test improvement plans
 
 ## License
 
