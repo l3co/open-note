@@ -92,13 +92,10 @@ export function NotebookTree() {
     dragItemRef.current = { type, id };
   }, []);
 
-  const handleDragOver = useCallback(
-    (e: React.DragEvent, targetId: string) => {
-      e.preventDefault();
-      setDragOverId(targetId);
-    },
-    [],
-  );
+  const handleDragOver = useCallback((e: React.DragEvent, targetId: string) => {
+    e.preventDefault();
+    setDragOverId(targetId);
+  }, []);
 
   const handleDrop = useCallback(
     async (targetId: string) => {
@@ -244,9 +241,7 @@ function SectionNode({
             isSelected={selectedPageId === page.id}
             depth={2}
             onClick={() => onPageClick(page.id)}
-            onContextMenu={(e) =>
-              onContextMenu(e, "page", page.id, notebookId)
-            }
+            onContextMenu={(e) => onContextMenu(e, "page", page.id, notebookId)}
           />
         ))}
     </div>

@@ -76,10 +76,7 @@ export function FloatingToolbar({ editor }: FloatingToolbarProps) {
   }, [editor]);
 
   return (
-    <BubbleMenu
-      editor={editor}
-      className="floating-toolbar"
-    >
+    <BubbleMenu editor={editor} className="floating-toolbar">
       <div
         className="flex items-center gap-0.5 rounded-lg border p-1 shadow-lg"
         style={{
@@ -202,12 +199,10 @@ function ToolbarButton({
         color: active ? "var(--accent)" : "var(--text-secondary)",
       }}
       onMouseEnter={(e) => {
-        if (!active)
-          e.currentTarget.style.backgroundColor = "var(--bg-hover)";
+        if (!active) e.currentTarget.style.backgroundColor = "var(--bg-hover)";
       }}
       onMouseLeave={(e) => {
-        if (!active)
-          e.currentTarget.style.backgroundColor = "transparent";
+        if (!active) e.currentTarget.style.backgroundColor = "transparent";
       }}
     >
       {children}

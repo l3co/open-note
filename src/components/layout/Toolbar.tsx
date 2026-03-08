@@ -1,5 +1,10 @@
 import { useTranslation } from "react-i18next";
-import { ChevronLeft, ChevronRight, PanelLeftClose, PanelLeft } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  PanelLeftClose,
+  PanelLeft,
+} from "lucide-react";
 import { useUIStore } from "@/stores/useUIStore";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { Breadcrumb } from "@/components/layout/Breadcrumb";

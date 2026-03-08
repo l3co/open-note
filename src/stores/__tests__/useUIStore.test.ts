@@ -6,7 +6,11 @@ describe("useUIStore", () => {
     useUIStore.setState({
       sidebarOpen: true,
       sidebarWidth: 260,
-      theme: { baseTheme: "system", accentColor: "Blue", chromeTint: "neutral" },
+      theme: {
+        baseTheme: "system",
+        accentColor: "Blue",
+        chromeTint: "neutral",
+      },
       showWorkspacePicker: false,
       showTrashPanel: false,
     });

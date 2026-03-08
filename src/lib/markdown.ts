@@ -272,7 +272,9 @@ export function markdownToTiptap(md: string): JSONContent {
           items.push({
             type: "taskItem",
             attrs: { checked: taskMatch[1] === "x" },
-            content: [{ type: "paragraph", content: parseInline(taskMatch[2]!) }],
+            content: [
+              { type: "paragraph", content: parseInline(taskMatch[2]!) },
+            ],
           });
         }
         i++;
@@ -451,9 +453,7 @@ function parseInline(text: string): JSONContent[] {
       }
     }
 
-    remaining = remaining.slice(
-      matchData.index + matchData[0].length,
-    );
+    remaining = remaining.slice(matchData.index + matchData[0].length);
   }
 
   return result.length > 0 ? result : [{ type: "text", text: "" }];
@@ -462,8 +462,7 @@ function parseInline(text: string): JSONContent[] {
 function parseTable(lines: string[]): JSONContent {
   const rows: string[][] = [];
   for (let i = 0; i < lines.length; i++) {
-    const cells = lines[i]!
-      .split("|")
+    const cells = lines[i]!.split("|")
       .slice(1, -1)
       .map((c) => c.trim());
     if (i === 1 && cells.every((c) => c.match(/^-+$/))) continue;

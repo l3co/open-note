@@ -1,5 +1,9 @@
 import { useEffect, useRef, useCallback } from "react";
-import { EditorView, keymap, placeholder as cmPlaceholder } from "@codemirror/view";
+import {
+  EditorView,
+  keymap,
+  placeholder as cmPlaceholder,
+} from "@codemirror/view";
 import { EditorState } from "@codemirror/state";
 import { markdown } from "@codemirror/lang-markdown";
 import { oneDark } from "@codemirror/theme-one-dark";

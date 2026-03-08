@@ -91,10 +91,7 @@ export function QuickOpen() {
 
   return (
     <div className="quick-open-backdrop" onClick={close}>
-      <div
-        className="quick-open-dialog"
-        onClick={(e) => e.stopPropagation()}
-      >
+      <div className="quick-open-dialog" onClick={(e) => e.stopPropagation()}>
         <div className="quick-open-input-wrapper">
           <Search size={18} className="quick-open-icon" />
           <input

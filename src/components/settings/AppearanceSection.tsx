@@ -6,7 +6,9 @@ export function AppearanceSection() {
   const { t } = useTranslation();
   const { theme, setTheme, applyThemeToDOM } = useUIStore();
 
-  const handleBaseTheme = (baseTheme: "light" | "dark" | "paper" | "system") => {
+  const handleBaseTheme = (
+    baseTheme: "light" | "dark" | "paper" | "system",
+  ) => {
     setTheme({ baseTheme });
     setTimeout(() => applyThemeToDOM(), 0);
   };
@@ -21,12 +23,13 @@ export function AppearanceSection() {
     setTimeout(() => applyThemeToDOM(), 0);
   };
 
-  const themes: { id: "light" | "dark" | "paper" | "system"; label: string }[] = [
-    { id: "light", label: t("settings.theme_light") },
-    { id: "dark", label: t("settings.theme_dark") },
-    { id: "paper", label: t("settings.theme_paper") },
-    { id: "system", label: t("settings.theme_system") },
-  ];
+  const themes: { id: "light" | "dark" | "paper" | "system"; label: string }[] =
+    [
+      { id: "light", label: t("settings.theme_light") },
+      { id: "dark", label: t("settings.theme_dark") },
+      { id: "paper", label: t("settings.theme_paper") },
+      { id: "system", label: t("settings.theme_system") },
+    ];
 
   return (
     <div className="space-y-6">
@@ -39,9 +42,16 @@ export function AppearanceSection() {
               onClick={() => handleBaseTheme(th.id)}
               className="rounded-md border px-3 py-1.5 text-xs font-medium transition-colors"
               style={{
-                borderColor: theme.baseTheme === th.id ? "var(--accent)" : "var(--border)",
-                backgroundColor: theme.baseTheme === th.id ? "var(--accent-subtle)" : "transparent",
-                color: theme.baseTheme === th.id ? "var(--accent)" : "var(--text-secondary)",
+                borderColor:
+                  theme.baseTheme === th.id ? "var(--accent)" : "var(--border)",
+                backgroundColor:
+                  theme.baseTheme === th.id
+                    ? "var(--accent-subtle)"
+                    : "transparent",
+                color:
+                  theme.baseTheme === th.id
+                    ? "var(--accent)"
+                    : "var(--text-secondary)",
               }}
               onMouseEnter={(e) => {
                 if (theme.baseTheme !== th.id)
@@ -87,9 +97,18 @@ export function AppearanceSection() {
             onClick={() => handleChromeTint("neutral")}
             className="rounded-md border px-3 py-1.5 text-xs font-medium transition-colors"
             style={{
-              borderColor: theme.chromeTint === "neutral" ? "var(--accent)" : "var(--border)",
-              backgroundColor: theme.chromeTint === "neutral" ? "var(--accent-subtle)" : "transparent",
-              color: theme.chromeTint === "neutral" ? "var(--accent)" : "var(--text-secondary)",
+              borderColor:
+                theme.chromeTint === "neutral"
+                  ? "var(--accent)"
+                  : "var(--border)",
+              backgroundColor:
+                theme.chromeTint === "neutral"
+                  ? "var(--accent-subtle)"
+                  : "transparent",
+              color:
+                theme.chromeTint === "neutral"
+                  ? "var(--accent)"
+                  : "var(--text-secondary)",
             }}
             onMouseEnter={(e) => {
               if (theme.chromeTint !== "neutral")
@@ -106,9 +125,18 @@ export function AppearanceSection() {
             onClick={() => handleChromeTint("tinted")}
             className="rounded-md border px-3 py-1.5 text-xs font-medium transition-colors"
             style={{
-              borderColor: theme.chromeTint === "tinted" ? "var(--accent)" : "var(--border)",
-              backgroundColor: theme.chromeTint === "tinted" ? "var(--accent-subtle)" : "transparent",
-              color: theme.chromeTint === "tinted" ? "var(--accent)" : "var(--text-secondary)",
+              borderColor:
+                theme.chromeTint === "tinted"
+                  ? "var(--accent)"
+                  : "var(--border)",
+              backgroundColor:
+                theme.chromeTint === "tinted"
+                  ? "var(--accent-subtle)"
+                  : "transparent",
+              color:
+                theme.chromeTint === "tinted"
+                  ? "var(--accent)"
+                  : "var(--text-secondary)",
             }}
             onMouseEnter={(e) => {
               if (theme.chromeTint !== "tinted")

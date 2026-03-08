@@ -82,10 +82,14 @@ describe("useAnnotationStore", () => {
     const hl = makeHighlight("h1");
 
     addHighlight(hl);
-    expect(useAnnotationStore.getState().annotations.highlights).toHaveLength(1);
+    expect(useAnnotationStore.getState().annotations.highlights).toHaveLength(
+      1,
+    );
 
     removeHighlight("h1");
-    expect(useAnnotationStore.getState().annotations.highlights).toHaveLength(0);
+    expect(useAnnotationStore.getState().annotations.highlights).toHaveLength(
+      0,
+    );
   });
 
   it("clears all annotations", () => {
@@ -95,7 +99,9 @@ describe("useAnnotationStore", () => {
 
     clearAll();
     expect(useAnnotationStore.getState().annotations.strokes).toHaveLength(0);
-    expect(useAnnotationStore.getState().annotations.highlights).toHaveLength(0);
+    expect(useAnnotationStore.getState().annotations.highlights).toHaveLength(
+      0,
+    );
   });
 
   it("undo reverses add_stroke", () => {
@@ -137,7 +143,9 @@ describe("useAnnotationStore", () => {
 
     undo();
     expect(useAnnotationStore.getState().annotations.strokes).toHaveLength(1);
-    expect(useAnnotationStore.getState().annotations.highlights).toHaveLength(1);
+    expect(useAnnotationStore.getState().annotations.highlights).toHaveLength(
+      1,
+    );
   });
 
   it("adding new action clears redo stack", () => {

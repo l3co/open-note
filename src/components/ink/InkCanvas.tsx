@@ -175,14 +175,10 @@ export function InkCanvas({
     onStrokeComplete,
   ]);
 
-  const cursorStyle =
-    activeTool === "eraser" ? "crosshair" : "default";
+  const cursorStyle = activeTool === "eraser" ? "crosshair" : "default";
 
   return (
-    <div
-      className={`relative ${className}`}
-      style={{ width, height }}
-    >
+    <div className={`relative ${className}`} style={{ width, height }}>
       <canvas
         ref={committedRef}
         width={canvasWidth}

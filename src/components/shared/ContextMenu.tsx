@@ -26,8 +26,13 @@ export function ContextMenu({
   const [renaming, setRenaming] = useState(false);
   const [renameDraft, setRenameDraft] = useState("");
   const { t } = useTranslation();
-  const { renameNotebook, deleteNotebook, createSection, renameSection, deleteSection } =
-    useWorkspaceStore();
+  const {
+    renameNotebook,
+    deleteNotebook,
+    createSection,
+    renameSection,
+    deleteSection,
+  } = useWorkspaceStore();
   const { createPage, deletePage } = usePageStore();
   const { selectPage } = useNavigationStore();
 
@@ -114,12 +119,20 @@ export function ContextMenu({
     );
   }
 
-  const items: { icon: React.ReactNode; label: string; onClick: () => void; danger?: boolean }[] = [];
+  const items: {
+    icon: React.ReactNode;
+    label: string;
+    onClick: () => void;
+    danger?: boolean;
+  }[] = [];
 
   if (type === "notebook" || type === "section") {
     items.push({
       icon: <Plus size={14} />,
-      label: type === "notebook" ? t("context_menu.new_section") : t("context_menu.new_page"),
+      label:
+        type === "notebook"
+          ? t("context_menu.new_section")
+          : t("context_menu.new_page"),
       onClick: handleAddChild,
     });
   }

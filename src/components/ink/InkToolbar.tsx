@@ -179,9 +179,6 @@ function ToolButton({
 
 function Divider() {
   return (
-    <div
-      className="h-6 w-px"
-      style={{ backgroundColor: "var(--border)" }}
-    />
+    <div className="h-6 w-px" style={{ backgroundColor: "var(--border)" }} />
   );
 }

@@ -36,10 +36,7 @@ export function ShortcutsSection() {
             (e.currentTarget.style.backgroundColor = "transparent")
           }
         >
-          <span
-            className="text-sm"
-            style={{ color: "var(--text-primary)" }}
-          >
+          <span className="text-sm" style={{ color: "var(--text-primary)" }}>
             {t(shortcut.labelKey)}
           </span>
           <kbd

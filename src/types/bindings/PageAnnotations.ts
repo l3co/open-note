@@ -2,4 +2,8 @@
 import type { AnchoredStroke } from "./AnchoredStroke";
 import type { HighlightAnnotation } from "./HighlightAnnotation";
 
-export type PageAnnotations = { strokes: Array<AnchoredStroke>, highlights: Array<HighlightAnnotation>, svg_cache: string | null, };
+export type PageAnnotations = {
+  strokes: Array<AnchoredStroke>;
+  highlights: Array<HighlightAnnotation>;
+  svg_cache: string | null;
+};

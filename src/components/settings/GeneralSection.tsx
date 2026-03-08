@@ -38,10 +38,7 @@ function SettingsField({
 }) {
   return (
     <div className="flex items-center justify-between">
-      <span
-        className="text-sm"
-        style={{ color: "var(--text-primary)" }}
-      >
+      <span className="text-sm" style={{ color: "var(--text-primary)" }}>
         {label}
       </span>
       <div>{children}</div>
@@ -68,12 +65,10 @@ function LangButton({
         color: active ? "var(--accent)" : "var(--text-secondary)",
       }}
       onMouseEnter={(e) => {
-        if (!active)
-          e.currentTarget.style.backgroundColor = "var(--bg-hover)";
+        if (!active) e.currentTarget.style.backgroundColor = "var(--bg-hover)";
       }}
       onMouseLeave={(e) => {
-        if (!active)
-          e.currentTarget.style.backgroundColor = "transparent";
+        if (!active) e.currentTarget.style.backgroundColor = "transparent";
       }}
     >
       {label}

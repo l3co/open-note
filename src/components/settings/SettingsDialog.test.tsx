@@ -30,8 +30,12 @@ describe("SettingsDialog", () => {
     expect(screen.getAllByText("Geral").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("Aparência").length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("Editor").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("Sincronização").length).toBeGreaterThanOrEqual(1);
-    expect(screen.getAllByText("Atalhos de Teclado").length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText("Sincronização").length).toBeGreaterThanOrEqual(
+      1,
+    );
+    expect(
+      screen.getAllByText("Atalhos de Teclado").length,
+    ).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText("Sobre").length).toBeGreaterThanOrEqual(1);
   });
 

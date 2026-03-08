@@ -43,8 +43,7 @@ export function InkOverlay({ contentRef }: InkOverlayProps) {
   );
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
-  const dpr =
-    typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
+  const dpr = typeof window !== "undefined" ? window.devicePixelRatio || 1 : 1;
 
   useEffect(() => {
     if (!contentRef.current) return;
@@ -89,10 +88,7 @@ export function InkOverlay({ contentRef }: InkOverlayProps) {
   }, [isAnnotationMode, annotations.strokes, dimensions, dpr]);
 
   const resolveAnchor = useCallback(
-    (
-      x: number,
-      y: number,
-    ): AnchoredStroke["anchor"] => {
+    (x: number, y: number): AnchoredStroke["anchor"] => {
       if (!contentRef.current) return null;
       const blocks = contentRef.current.querySelectorAll("[data-block-id]");
       for (const block of blocks) {
@@ -156,7 +152,14 @@ export function InkOverlay({ contentRef }: InkOverlayProps) {
         ctx.restore();
       }
     }
-  }, [dpr, dimensions, annotations.strokes, activeSize, activeColor, getOpacity]);
+  }, [
+    dpr,
+    dimensions,
+    annotations.strokes,
+    activeSize,
+    activeColor,
+    getOpacity,
+  ]);
 
   const handlePointerDown = useCallback(
     (e: React.PointerEvent) => {
@@ -170,8 +173,7 @@ export function InkOverlay({ contentRef }: InkOverlayProps) {
       const containerRect = contentRef.current?.getBoundingClientRect();
       const scrollTop = contentRef.current?.scrollTop ?? 0;
       const x = e.clientX - (containerRect?.left ?? rect.left);
-      const y =
-        e.clientY - (containerRect?.top ?? rect.top) + scrollTop;
+      const y = e.clientY - (containerRect?.top ?? rect.top) + scrollTop;
 
       if (activeTool === "eraser") {
         for (const stroke of annotations.strokes) {
@@ -206,10 +208,9 @@ export function InkOverlay({ contentRef }: InkOverlayProps) {
       const containerRect = contentRef.current?.getBoundingClientRect();
       const scrollTop = contentRef.current?.scrollTop ?? 0;
 
-      const events =
-        (e.nativeEvent as PointerEvent).getCoalescedEvents?.() ?? [
-          e.nativeEvent,
-        ];
+      const events = (e.nativeEvent as PointerEvent).getCoalescedEvents?.() ?? [
+        e.nativeEvent,
+      ];
       for (const ce of events) {
         const x = ce.clientX - (containerRect?.left ?? 0);
         const y = ce.clientY - (containerRect?.top ?? 0) + scrollTop;

@@ -21,13 +21,17 @@ export function SyncSettings() {
       ipc.getSyncProviders(),
       ipc.getSyncStatus(),
       ipc.getSyncConflicts(),
-    ]).then(([p, s, c]) => {
-      if (cancelled) return;
-      setProviders(p);
-      setStatus(s);
-      setConflicts(c);
-    }).catch(() => {});
-    return () => { cancelled = true; };
+    ])
+      .then(([p, s, c]) => {
+        if (cancelled) return;
+        setProviders(p);
+        setStatus(s);
+        setConflicts(c);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
   }, [show]);
 
   const formatTimeAgo = (dateStr: string | null) => {
@@ -38,9 +42,11 @@ export function SyncSettings() {
       const diffMs = now.getTime() - date.getTime();
       const diffMins = Math.floor(diffMs / 60000);
       if (diffMins < 1) return t("search.time_ago_now");
-      if (diffMins < 60) return t("search.time_ago_minutes", { count: diffMins });
+      if (diffMins < 60)
+        return t("search.time_ago_minutes", { count: diffMins });
       const diffHours = Math.floor(diffMins / 60);
-      if (diffHours < 24) return t("search.time_ago_hours", { count: diffHours });
+      if (diffHours < 24)
+        return t("search.time_ago_hours", { count: diffHours });
       const diffDays = Math.floor(diffHours / 24);
       return t("search.time_ago_days", { count: diffDays });
     } catch {
@@ -76,7 +82,8 @@ export function SyncSettings() {
                 <Cloud size={16} className="sync-icon connected" />
                 <span>
                   {t("sync.connected")} — {connectedProvider.display_name}
-                  {connectedProvider.user_email && ` (${connectedProvider.user_email})`}
+                  {connectedProvider.user_email &&
+                    ` (${connectedProvider.user_email})`}
                 </span>
               </div>
             ) : (
@@ -87,7 +94,9 @@ export function SyncSettings() {
             )}
             {status?.last_synced_at && (
               <div className="sync-meta">
-                {t("sync.last_sync", { time: formatTimeAgo(status.last_synced_at) })}
+                {t("sync.last_sync", {
+                  time: formatTimeAgo(status.last_synced_at),
+                })}
               </div>
             )}
             {status?.last_error && (
@@ -100,7 +109,9 @@ export function SyncSettings() {
 
           {/* Providers */}
           <div className="sync-settings-section">
-            <h4 className="sync-settings-section-title">{t("sync.providers")}</h4>
+            <h4 className="sync-settings-section-title">
+              {t("sync.providers")}
+            </h4>
             <div className="sync-providers-list">
               {providers.map((provider) => (
                 <div
@@ -108,16 +119,24 @@ export function SyncSettings() {
                   className={`sync-provider-card ${provider.connected ? "connected" : ""}`}
                 >
                   <div className="sync-provider-info">
-                    <span className="sync-provider-name">{provider.display_name}</span>
+                    <span className="sync-provider-name">
+                      {provider.display_name}
+                    </span>
                     {provider.connected ? (
-                      <span className="sync-provider-badge connected">{t("sync.connected")}</span>
+                      <span className="sync-provider-badge connected">
+                        {t("sync.connected")}
+                      </span>
                     ) : (
-                      <span className="sync-provider-badge">{t("sync.coming_soon")}</span>
+                      <span className="sync-provider-badge">
+                        {t("sync.coming_soon")}
+                      </span>
                     )}
                   </div>
                   {provider.last_synced_at && (
                     <span className="sync-provider-meta">
-                      {t("sync.last_sync", { time: formatTimeAgo(provider.last_synced_at) })}
+                      {t("sync.last_sync", {
+                        time: formatTimeAgo(provider.last_synced_at),
+                      })}
                     </span>
                   )}
                 </div>
@@ -135,11 +154,15 @@ export function SyncSettings() {
                 <div key={conflict.id} className="sync-conflict-item">
                   <AlertTriangle size={14} className="sync-conflict-icon" />
                   <div className="sync-conflict-info">
-                    <span className="sync-conflict-title">{conflict.page_title}</span>
+                    <span className="sync-conflict-title">
+                      {conflict.page_title}
+                    </span>
                     <span className="sync-conflict-meta">
-                      {t("sync.local_label")}: {new Date(conflict.local_modified_at).toLocaleString()}
+                      {t("sync.local_label")}:{" "}
+                      {new Date(conflict.local_modified_at).toLocaleString()}
                       {" • "}
-                      {t("sync.remote_label")}: {new Date(conflict.remote_modified_at).toLocaleString()}
+                      {t("sync.remote_label")}:{" "}
+                      {new Date(conflict.remote_modified_at).toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -149,9 +172,7 @@ export function SyncSettings() {
 
           {/* Info */}
           <div className="sync-settings-section">
-            <p className="sync-info-text">
-              {t("sync.info_text")}
-            </p>
+            <p className="sync-info-text">{t("sync.info_text")}</p>
           </div>
         </div>
       </div>

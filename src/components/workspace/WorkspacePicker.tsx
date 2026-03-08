@@ -125,7 +125,7 @@ export function WorkspacePicker() {
             {appState && appState.recent_workspaces.length > 0 && (
               <div className="mb-4">
                 <h2
-                  className="mb-2 text-xs font-medium uppercase tracking-wide"
+                  className="mb-2 text-xs font-medium tracking-wide uppercase"
                   style={{ color: "var(--text-tertiary)" }}
                 >
                   {t("workspace.recent")}
@@ -134,7 +134,7 @@ export function WorkspacePicker() {
                   {appState.recent_workspaces.map((rw) => (
                     <div
                       key={rw.path}
-                      className="group flex items-center rounded-lg px-3 py-2 cursor-pointer"
+                      className="group flex cursor-pointer items-center rounded-lg px-3 py-2"
                       onClick={() => handleOpen(rw.path)}
                       onMouseEnter={(e) =>
                         (e.currentTarget.style.backgroundColor =
@@ -244,7 +244,8 @@ export function WorkspacePicker() {
                       color: "var(--text-secondary)",
                     }}
                     onMouseEnter={(e) =>
-                      (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
+                      (e.currentTarget.style.backgroundColor =
+                        "var(--bg-hover)")
                     }
                     onMouseLeave={(e) =>
                       (e.currentTarget.style.backgroundColor = "transparent")

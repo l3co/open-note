@@ -2,4 +2,10 @@
 import type { BlockId } from "./BlockId";
 import type { ChecklistItem } from "./ChecklistItem";
 
-export type ChecklistBlock = { items: Array<ChecklistItem>, id: BlockId, order: number, created_at: string, updated_at: string, };
+export type ChecklistBlock = {
+  items: Array<ChecklistItem>;
+  id: BlockId;
+  order: number;
+  created_at: string;
+  updated_at: string;
+};

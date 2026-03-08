@@ -80,9 +80,7 @@ export const ACCENT_PALETTES: AccentPalette[] = [
 ];
 
 export function getAccentPalette(name: string): AccentPalette {
-  return (
-    ACCENT_PALETTES.find((p) => p.name === name) ?? ACCENT_PALETTES[0]!
-  );
+  return ACCENT_PALETTES.find((p) => p.name === name) ?? ACCENT_PALETTES[0]!;
 }
 
 export function applyAccentColor(palette: AccentPalette): void {
@@ -107,7 +105,9 @@ export function applyChromeTint(tint: string): void {
   document.documentElement.setAttribute("data-chrome", tint);
 }
 
-export function listenSystemTheme(callback: (isDark: boolean) => void): () => void {
+export function listenSystemTheme(
+  callback: (isDark: boolean) => void,
+): () => void {
   const mq = window.matchMedia("(prefers-color-scheme: dark)");
   const handler = (e: MediaQueryListEvent) => callback(e.matches);
   mq.addEventListener("change", handler);

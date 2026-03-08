@@ -161,7 +161,8 @@ export function InkBlockComponent({
         className="fixed inset-0 z-50 flex flex-col"
         style={{ backgroundColor: "var(--bg-primary)" }}
       >
-        <div className="flex items-center justify-center border-b px-4 py-2"
+        <div
+          className="flex items-center justify-center border-b px-4 py-2"
           style={{ borderColor: "var(--border)" }}
         >
           <InkToolbar
@@ -224,9 +225,7 @@ export function InkBlockComponent({
             </div>
           )}
 
-          <div
-            className="absolute right-2 top-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100"
-          >
+          <div className="absolute top-2 right-2 flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
             <button
               type="button"
               className="rounded p-1 transition-colors hover:bg-black/10"

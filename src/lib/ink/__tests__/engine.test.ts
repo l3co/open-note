@@ -44,10 +44,9 @@ describe("getStrokeOutline", () => {
   });
 
   it("handles single point", () => {
-    const outline = getStrokeOutline(
-      [{ x: 10, y: 10, pressure: 0.5 }],
-      { size: 5 },
-    );
+    const outline = getStrokeOutline([{ x: 10, y: 10, pressure: 0.5 }], {
+      size: 5,
+    });
     expect(outline.length).toBeGreaterThan(0);
   });
 });

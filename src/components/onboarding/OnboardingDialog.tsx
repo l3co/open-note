@@ -114,7 +114,10 @@ function WelcomeStep({
   const { t } = useTranslation();
 
   return (
-    <div className="relative z-10 flex flex-col items-center px-8 py-10" data-testid="onboarding-welcome">
+    <div
+      className="relative z-10 flex flex-col items-center px-8 py-10"
+      data-testid="onboarding-welcome"
+    >
       <div className="mb-6 flex h-16 w-16 items-center justify-center">
         <img src={logoSrc} alt="Open Note" className="h-14 w-14" />
       </div>
@@ -188,7 +191,10 @@ function TourStepView({
   const { t } = useTranslation();
 
   return (
-    <div className="relative z-10 flex flex-col px-8 py-10" data-testid="onboarding-tour-step">
+    <div
+      className="relative z-10 flex flex-col px-8 py-10"
+      data-testid="onboarding-tour-step"
+    >
       <div className="flex flex-col items-center">
         <div
           className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl"
@@ -215,7 +221,10 @@ function TourStepView({
       </div>
 
       {/* Progress dots */}
-      <div className="mt-6 flex justify-center gap-1.5" data-testid="onboarding-progress">
+      <div
+        className="mt-6 flex justify-center gap-1.5"
+        data-testid="onboarding-progress"
+      >
         {Array.from({ length: totalSteps }).map((_, i) => (
           <div
             key={i}

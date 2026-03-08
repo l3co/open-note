@@ -19,18 +19,14 @@ describe("useAutoSave", () => {
 
   it("does not save immediately when content changes", () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
-    renderHook(() =>
-      useAutoSave({ content: mockDoc, onSave, delayMs: 1000 }),
-    );
+    renderHook(() => useAutoSave({ content: mockDoc, onSave, delayMs: 1000 }));
 
     expect(onSave).not.toHaveBeenCalled();
   });
 
   it("saves after debounce delay", async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
-    renderHook(() =>
-      useAutoSave({ content: mockDoc, onSave, delayMs: 500 }),
-    );
+    renderHook(() => useAutoSave({ content: mockDoc, onSave, delayMs: 500 }));
 
     await act(async () => {
       vi.advanceTimersByTime(500);
@@ -74,9 +70,7 @@ describe("useAutoSave", () => {
 
   it("does not save when content is null", async () => {
     const onSave = vi.fn().mockResolvedValue(undefined);
-    renderHook(() =>
-      useAutoSave({ content: null, onSave, delayMs: 500 }),
-    );
+    renderHook(() => useAutoSave({ content: null, onSave, delayMs: 500 }));
 
     await act(async () => {
       vi.advanceTimersByTime(1000);

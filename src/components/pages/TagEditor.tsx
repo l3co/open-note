@@ -17,7 +17,10 @@ export function TagEditor({ tags }: TagEditorProps) {
 
   useEffect(() => {
     if (isAdding) {
-      ipc.listAllTags().then(setAllTags).catch(() => {});
+      ipc
+        .listAllTags()
+        .then(setAllTags)
+        .catch(() => {});
       inputRef.current?.focus();
     }
   }, [isAdding]);
@@ -117,7 +120,7 @@ export function TagEditor({ tags }: TagEditorProps) {
           />
           {suggestions.length > 0 && (
             <ul
-              className="absolute left-0 top-7 z-50 w-40 rounded border py-1 shadow-lg"
+              className="absolute top-7 left-0 z-50 w-40 rounded border py-1 shadow-lg"
               style={{
                 backgroundColor: "var(--bg-primary)",
                 borderColor: "var(--border)",

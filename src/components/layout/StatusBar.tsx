@@ -48,22 +48,31 @@ export function StatusBar() {
       <div className="flex items-center gap-4">
         {currentPage && (
           <span
-            style={{ color: isOverSoftLimit ? "#eab308" : "var(--text-tertiary)" }}
-            title={
-              isOverSoftLimit
-                ? t("page.blocks_warning")
-                : undefined
-            }
+            style={{
+              color: isOverSoftLimit ? "#eab308" : "var(--text-tertiary)",
+            }}
+            title={isOverSoftLimit ? t("page.blocks_warning") : undefined}
             data-testid="status-block-count"
           >
             {t("page.blocks", { count: blockCount })}
           </span>
         )}
-        {saveLabel && <span style={{ color: saveColor }} data-testid="status-save">{saveLabel}</span>}
+        {saveLabel && (
+          <span style={{ color: saveColor }} data-testid="status-save">
+            {saveLabel}
+          </span>
+        )}
         <button
           onClick={openSyncSettings}
           className="flex items-center gap-1 hover:opacity-80"
-          style={{ background: "none", border: "none", color: "var(--text-tertiary)", cursor: "pointer", padding: 0, fontSize: "11px" }}
+          style={{
+            background: "none",
+            border: "none",
+            color: "var(--text-tertiary)",
+            cursor: "pointer",
+            padding: 0,
+            fontSize: "11px",
+          }}
           title={t("sync.title")}
           data-testid="status-sync-btn"
         >

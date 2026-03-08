@@ -59,5 +59,13 @@ export function useKeyboardShortcuts() {
 
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [toggleSidebar, goBack, goForward, openWorkspacePicker, openQuickOpen, toggleSearchPanel, openSettings]);
+  }, [
+    toggleSidebar,
+    goBack,
+    goForward,
+    openWorkspacePicker,
+    openQuickOpen,
+    toggleSearchPanel,
+    openSettings,
+  ]);
 }

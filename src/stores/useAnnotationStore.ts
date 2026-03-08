@@ -130,10 +130,7 @@ export const useAnnotationStore = create<AnnotationStore>((set, get) => ({
 
   clearAll: () => {
     const { annotations, undoStack } = get();
-    if (
-      annotations.strokes.length === 0 &&
-      annotations.highlights.length === 0
-    )
+    if (annotations.strokes.length === 0 && annotations.highlights.length === 0)
       return;
     const action: InkAction = {
       type: "clear_all",

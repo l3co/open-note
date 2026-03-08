@@ -23,7 +23,10 @@ export function blocksToTiptap(blocks: Block[]): JSONContent {
   return { type: "doc", content };
 }
 
-export function tiptapToBlocks(doc: JSONContent, existingBlocks: Block[]): Block[] {
+export function tiptapToBlocks(
+  doc: JSONContent,
+  existingBlocks: Block[],
+): Block[] {
   const now = new Date().toISOString();
   const firstText = existingBlocks.find((b) => b.type === "text");
   const baseId = firstText?.id ?? crypto.randomUUID();

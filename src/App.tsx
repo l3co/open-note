@@ -87,10 +87,7 @@ export function App() {
           >
             Open Note
           </h1>
-          <p
-            className="mt-2 text-sm"
-            style={{ color: "var(--text-tertiary)" }}
-          >
+          <p className="mt-2 text-sm" style={{ color: "var(--text-tertiary)" }}>
             Loading...
           </p>
         </div>

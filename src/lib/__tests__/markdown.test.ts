@@ -22,8 +22,16 @@ describe("tiptapToMarkdown", () => {
     const doc: JSONContent = {
       type: "doc",
       content: [
-        { type: "heading", attrs: { level: 1 }, content: [{ type: "text", text: "Title" }] },
-        { type: "heading", attrs: { level: 3 }, content: [{ type: "text", text: "Sub" }] },
+        {
+          type: "heading",
+          attrs: { level: 1 },
+          content: [{ type: "text", text: "Title" }],
+        },
+        {
+          type: "heading",
+          attrs: { level: 3 },
+          content: [{ type: "text", text: "Sub" }],
+        },
       ],
     };
     expect(tiptapToMarkdown(doc)).toBe("# Title\n\n### Sub");
@@ -70,7 +78,11 @@ describe("tiptapToMarkdown", () => {
         {
           type: "paragraph",
           content: [
-            { type: "text", text: "click", marks: [{ type: "link", attrs: { href: "https://example.com" } }] },
+            {
+              type: "text",
+              text: "click",
+              marks: [{ type: "link", attrs: { href: "https://example.com" } }],
+            },
           ],
         },
       ],
@@ -85,12 +97,18 @@ describe("tiptapToMarkdown", () => {
         {
           type: "paragraph",
           content: [
-            { type: "text", text: "underlined", marks: [{ type: "underline" }] },
+            {
+              type: "text",
+              text: "underlined",
+              marks: [{ type: "underline" }],
+            },
           ],
         },
       ],
     };
-    expect(tiptapToMarkdown(doc)).toBe("<!-- opn:u -->underlined<!-- /opn:u -->");
+    expect(tiptapToMarkdown(doc)).toBe(
+      "<!-- opn:u -->underlined<!-- /opn:u -->",
+    );
   });
 
   it("serializes bullet list", () => {
@@ -100,8 +118,18 @@ describe("tiptapToMarkdown", () => {
         {
           type: "bulletList",
           content: [
-            { type: "listItem", content: [{ type: "paragraph", content: [{ type: "text", text: "one" }] }] },
-            { type: "listItem", content: [{ type: "paragraph", content: [{ type: "text", text: "two" }] }] },
+            {
+              type: "listItem",
+              content: [
+                { type: "paragraph", content: [{ type: "text", text: "one" }] },
+              ],
+            },
+            {
+              type: "listItem",
+              content: [
+                { type: "paragraph", content: [{ type: "text", text: "two" }] },
+              ],
+            },
           ],
         },
       ],
@@ -116,8 +144,24 @@ describe("tiptapToMarkdown", () => {
         {
           type: "orderedList",
           content: [
-            { type: "listItem", content: [{ type: "paragraph", content: [{ type: "text", text: "first" }] }] },
-            { type: "listItem", content: [{ type: "paragraph", content: [{ type: "text", text: "second" }] }] },
+            {
+              type: "listItem",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "first" }],
+                },
+              ],
+            },
+            {
+              type: "listItem",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "second" }],
+                },
+              ],
+            },
           ],
         },
       ],
@@ -132,8 +176,26 @@ describe("tiptapToMarkdown", () => {
         {
           type: "taskList",
           content: [
-            { type: "taskItem", attrs: { checked: true }, content: [{ type: "paragraph", content: [{ type: "text", text: "done" }] }] },
-            { type: "taskItem", attrs: { checked: false }, content: [{ type: "paragraph", content: [{ type: "text", text: "todo" }] }] },
+            {
+              type: "taskItem",
+              attrs: { checked: true },
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "done" }],
+                },
+              ],
+            },
+            {
+              type: "taskItem",
+              attrs: { checked: false },
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "todo" }],
+                },
+              ],
+            },
           ],
         },
       ],
@@ -148,7 +210,10 @@ describe("tiptapToMarkdown", () => {
         {
           type: "blockquote",
           content: [
-            { type: "paragraph", content: [{ type: "text", text: "quoted text" }] },
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "quoted text" }],
+            },
           ],
         },
       ],
@@ -198,15 +263,47 @@ describe("tiptapToMarkdown", () => {
             {
               type: "tableRow",
               content: [
-                { type: "tableHeader", content: [{ type: "paragraph", content: [{ type: "text", text: "A" }] }] },
-                { type: "tableHeader", content: [{ type: "paragraph", content: [{ type: "text", text: "B" }] }] },
+                {
+                  type: "tableHeader",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "A" }],
+                    },
+                  ],
+                },
+                {
+                  type: "tableHeader",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "B" }],
+                    },
+                  ],
+                },
               ],
             },
             {
               type: "tableRow",
               content: [
-                { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "1" }] }] },
-                { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "2" }] }] },
+                {
+                  type: "tableCell",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "1" }],
+                    },
+                  ],
+                },
+                {
+                  type: "tableCell",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "2" }],
+                    },
+                  ],
+                },
               ],
             },
           ],
@@ -227,7 +324,10 @@ describe("tiptapToMarkdown", () => {
           type: "callout",
           attrs: { variant: "warning" },
           content: [
-            { type: "paragraph", content: [{ type: "text", text: "Watch out!" }] },
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "Watch out!" }],
+            },
           ],
         },
       ],
@@ -265,8 +365,12 @@ describe("markdownToTiptap", () => {
   it("parses bold and italic", () => {
     const doc = markdownToTiptap("**bold** and *italic*");
     const content = doc.content![0]!.content!;
-    expect(content.some((n) => n.marks?.some((m) => m.type === "bold"))).toBe(true);
-    expect(content.some((n) => n.marks?.some((m) => m.type === "italic"))).toBe(true);
+    expect(content.some((n) => n.marks?.some((m) => m.type === "bold"))).toBe(
+      true,
+    );
+    expect(content.some((n) => n.marks?.some((m) => m.type === "italic"))).toBe(
+      true,
+    );
   });
 
   it("parses code block", () => {
@@ -327,7 +431,8 @@ describe("markdownToTiptap", () => {
   });
 
   it("parses callout HTML comments", () => {
-    const md = '<!-- opn:callout variant="info" -->\nImportant note\n<!-- /opn:callout -->';
+    const md =
+      '<!-- opn:callout variant="info" -->\nImportant note\n<!-- /opn:callout -->';
     const doc = markdownToTiptap(md);
     expect(doc.content).toHaveLength(1);
     expect(doc.content![0]!.type).toBe("callout");
@@ -337,7 +442,9 @@ describe("markdownToTiptap", () => {
   it("parses inline link", () => {
     const doc = markdownToTiptap("[click](https://example.com)");
     const content = doc.content![0]!.content!;
-    const linkNode = content.find((n) => n.marks?.some((m) => m.type === "link"));
+    const linkNode = content.find((n) =>
+      n.marks?.some((m) => m.type === "link"),
+    );
     expect(linkNode).toBeDefined();
     expect(linkNode!.marks![0]!.attrs!.href).toBe("https://example.com");
   });
@@ -345,13 +452,17 @@ describe("markdownToTiptap", () => {
   it("parses strikethrough", () => {
     const doc = markdownToTiptap("~~deleted~~");
     const content = doc.content![0]!.content!;
-    expect(content.some((n) => n.marks?.some((m) => m.type === "strike"))).toBe(true);
+    expect(content.some((n) => n.marks?.some((m) => m.type === "strike"))).toBe(
+      true,
+    );
   });
 
   it("parses inline code", () => {
     const doc = markdownToTiptap("`const x`");
     const content = doc.content![0]!.content!;
-    expect(content.some((n) => n.marks?.some((m) => m.type === "code"))).toBe(true);
+    expect(content.some((n) => n.marks?.some((m) => m.type === "code"))).toBe(
+      true,
+    );
   });
 });
 
@@ -360,7 +471,11 @@ describe("roundtrip: tiptap → markdown → tiptap", () => {
     const original: JSONContent = {
       type: "doc",
       content: [
-        { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "Title" }] },
+        {
+          type: "heading",
+          attrs: { level: 2 },
+          content: [{ type: "text", text: "Title" }],
+        },
       ],
     };
     const md = tiptapToMarkdown(original);
@@ -373,7 +488,11 @@ describe("roundtrip: tiptap → markdown → tiptap", () => {
     const original: JSONContent = {
       type: "doc",
       content: [
-        { type: "codeBlock", attrs: { language: "python" }, content: [{ type: "text", text: "print('hi')" }] },
+        {
+          type: "codeBlock",
+          attrs: { language: "python" },
+          content: [{ type: "text", text: "print('hi')" }],
+        },
       ],
     };
     const md = tiptapToMarkdown(original);
@@ -389,7 +508,12 @@ describe("roundtrip: tiptap → markdown → tiptap", () => {
         {
           type: "callout",
           attrs: { variant: "warning" },
-          content: [{ type: "paragraph", content: [{ type: "text", text: "Careful!" }] }],
+          content: [
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "Careful!" }],
+            },
+          ],
         },
       ],
     };
@@ -406,8 +530,26 @@ describe("roundtrip: tiptap → markdown → tiptap", () => {
         {
           type: "taskList",
           content: [
-            { type: "taskItem", attrs: { checked: true }, content: [{ type: "paragraph", content: [{ type: "text", text: "done" }] }] },
-            { type: "taskItem", attrs: { checked: false }, content: [{ type: "paragraph", content: [{ type: "text", text: "pending" }] }] },
+            {
+              type: "taskItem",
+              attrs: { checked: true },
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "done" }],
+                },
+              ],
+            },
+            {
+              type: "taskItem",
+              attrs: { checked: false },
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "pending" }],
+                },
+              ],
+            },
           ],
         },
       ],
@@ -422,13 +564,32 @@ describe("roundtrip: tiptap → markdown → tiptap", () => {
     const original: JSONContent = {
       type: "doc",
       content: [
-        { type: "heading", attrs: { level: 1 }, content: [{ type: "text", text: "Title" }] },
+        {
+          type: "heading",
+          attrs: { level: 1 },
+          content: [{ type: "text", text: "Title" }],
+        },
         { type: "paragraph", content: [{ type: "text", text: "Intro text" }] },
-        { type: "codeBlock", attrs: { language: "javascript" }, content: [{ type: "text", text: "const x = 1;" }] },
+        {
+          type: "codeBlock",
+          attrs: { language: "javascript" },
+          content: [{ type: "text", text: "const x = 1;" }],
+        },
         { type: "horizontalRule" },
-        { type: "bulletList", content: [
-          { type: "listItem", content: [{ type: "paragraph", content: [{ type: "text", text: "item" }] }] },
-        ]},
+        {
+          type: "bulletList",
+          content: [
+            {
+              type: "listItem",
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "item" }],
+                },
+              ],
+            },
+          ],
+        },
       ],
     };
     const md = tiptapToMarkdown(original);

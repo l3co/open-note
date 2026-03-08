@@ -23,15 +23,16 @@ export function WelcomePage() {
         >
           Open Note
         </h1>
-        <p
-          className="mt-2 text-sm"
-          style={{ color: "var(--text-secondary)" }}
-        >
+        <p className="mt-2 text-sm" style={{ color: "var(--text-secondary)" }}>
           {t("page.select_page")}
         </p>
 
         <div className="mt-8 space-y-3">
-          <ShortcutHint icon={<Plus size={14} />} label={t("page.new")} keys="Cmd+N" />
+          <ShortcutHint
+            icon={<Plus size={14} />}
+            label={t("page.new")}
+            keys="Cmd+N"
+          />
           <ShortcutHint
             icon={<Keyboard size={14} />}
             label={t("notebook.new")}

@@ -11,4 +11,15 @@ import type { PdfBlock } from "./PdfBlock";
 import type { TableBlock } from "./TableBlock";
 import type { TextBlock } from "./TextBlock";
 
-export type Block = { "type": "text" } & TextBlock | { "type": "markdown" } & MarkdownBlock | { "type": "code" } & CodeBlock | { "type": "checklist" } & ChecklistBlock | { "type": "table" } & TableBlock | { "type": "image" } & ImageBlock | { "type": "ink" } & InkBlock | { "type": "pdf" } & PdfBlock | { "type": "divider" } & DividerBlock | { "type": "callout" } & CalloutBlock | { "type": "embed" } & EmbedBlock;
+export type Block =
+  | ({ type: "text" } & TextBlock)
+  | ({ type: "markdown" } & MarkdownBlock)
+  | ({ type: "code" } & CodeBlock)
+  | ({ type: "checklist" } & ChecklistBlock)
+  | ({ type: "table" } & TableBlock)
+  | ({ type: "image" } & ImageBlock)
+  | ({ type: "ink" } & InkBlock)
+  | ({ type: "pdf" } & PdfBlock)
+  | ({ type: "divider" } & DividerBlock)
+  | ({ type: "callout" } & CalloutBlock)
+  | ({ type: "embed" } & EmbedBlock);

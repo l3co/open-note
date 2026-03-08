@@ -43,8 +43,16 @@ export type InkAction =
   | { type: "add_stroke"; stroke: AnchoredStroke }
   | { type: "remove_stroke"; strokeId: string; stroke: AnchoredStroke }
   | { type: "add_highlight"; highlight: HighlightAnnotation }
-  | { type: "remove_highlight"; highlightId: string; highlight: HighlightAnnotation }
-  | { type: "clear_all"; strokes: AnchoredStroke[]; highlights: HighlightAnnotation[] };
+  | {
+      type: "remove_highlight";
+      highlightId: string;
+      highlight: HighlightAnnotation;
+    }
+  | {
+      type: "clear_all";
+      strokes: AnchoredStroke[];
+      highlights: HighlightAnnotation[];
+    };
 
 export interface InkHistory {
   undoStack: InkAction[];

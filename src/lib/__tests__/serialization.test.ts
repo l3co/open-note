@@ -68,7 +68,11 @@ describe("blocksToTiptap", () => {
           tiptap_json: {
             type: "doc",
             content: [
-              { type: "heading", attrs: { level: 1 }, content: [{ type: "text", text: "Second" }] },
+              {
+                type: "heading",
+                attrs: { level: 1 },
+                content: [{ type: "text", text: "Second" }],
+              },
             ],
           },
         },
@@ -145,7 +149,9 @@ describe("tiptapToBlocks", () => {
         content: {
           tiptap_json: {
             type: "doc",
-            content: [{ type: "paragraph", content: [{ type: "text", text: "Old" }] }],
+            content: [
+              { type: "paragraph", content: [{ type: "text", text: "Old" }] },
+            ],
           },
         },
       },
@@ -222,15 +228,47 @@ describe("tiptapToBlocks", () => {
             {
               type: "tableRow",
               content: [
-                { type: "tableHeader", content: [{ type: "paragraph", content: [{ type: "text", text: "H1" }] }] },
-                { type: "tableHeader", content: [{ type: "paragraph", content: [{ type: "text", text: "H2" }] }] },
+                {
+                  type: "tableHeader",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "H1" }],
+                    },
+                  ],
+                },
+                {
+                  type: "tableHeader",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "H2" }],
+                    },
+                  ],
+                },
               ],
             },
             {
               type: "tableRow",
               content: [
-                { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "C1" }] }] },
-                { type: "tableCell", content: [{ type: "paragraph", content: [{ type: "text", text: "C2" }] }] },
+                {
+                  type: "tableCell",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "C1" }],
+                    },
+                  ],
+                },
+                {
+                  type: "tableCell",
+                  content: [
+                    {
+                      type: "paragraph",
+                      content: [{ type: "text", text: "C2" }],
+                    },
+                  ],
+                },
               ],
             },
           ],
@@ -256,12 +294,22 @@ describe("tiptapToBlocks", () => {
             {
               type: "taskItem",
               attrs: { checked: true },
-              content: [{ type: "paragraph", content: [{ type: "text", text: "Done" }] }],
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "Done" }],
+                },
+              ],
             },
             {
               type: "taskItem",
               attrs: { checked: false },
-              content: [{ type: "paragraph", content: [{ type: "text", text: "Todo" }] }],
+              content: [
+                {
+                  type: "paragraph",
+                  content: [{ type: "text", text: "Todo" }],
+                },
+              ],
             },
           ],
         },
@@ -285,7 +333,10 @@ describe("tiptapToBlocks", () => {
           type: "callout",
           attrs: { variant: "warning" },
           content: [
-            { type: "paragraph", content: [{ type: "text", text: "Be careful!" }] },
+            {
+              type: "paragraph",
+              content: [{ type: "text", text: "Be careful!" }],
+            },
           ],
         },
       ],
@@ -305,9 +356,19 @@ describe("tiptapToBlocks", () => {
       type: "doc",
       content: [
         { type: "paragraph", content: [{ type: "text", text: "intro" }] },
-        { type: "codeBlock", attrs: { language: "rust" }, content: [{ type: "text", text: "fn main() {}" }] },
+        {
+          type: "codeBlock",
+          attrs: { language: "rust" },
+          content: [{ type: "text", text: "fn main() {}" }],
+        },
         { type: "horizontalRule" },
-        { type: "callout", attrs: { variant: "info" }, content: [{ type: "paragraph", content: [{ type: "text", text: "Note" }] }] },
+        {
+          type: "callout",
+          attrs: { variant: "info" },
+          content: [
+            { type: "paragraph", content: [{ type: "text", text: "Note" }] },
+          ],
+        },
       ],
     };
 
@@ -353,7 +414,13 @@ describe("tiptapToBlocks", () => {
       content: [
         {
           type: "pdfBlock",
-          attrs: { src: "assets/doc.pdf", totalPages: 5, displayMode: "continuous", currentPage: 1, scale: 1.5 },
+          attrs: {
+            src: "assets/doc.pdf",
+            totalPages: 5,
+            displayMode: "continuous",
+            currentPage: 1,
+            scale: 1.5,
+          },
         },
       ],
     };
@@ -374,8 +441,20 @@ describe("tiptapToBlocks", () => {
       type: "doc",
       content: [
         { type: "paragraph", content: [{ type: "text", text: "Before" }] },
-        { type: "inkBlock", attrs: { width: null, height: 400, strokes: [], svgCache: null } },
-        { type: "pdfBlock", attrs: { src: "assets/test.pdf", totalPages: 3, displayMode: "single", currentPage: 2, scale: 1.0 } },
+        {
+          type: "inkBlock",
+          attrs: { width: null, height: 400, strokes: [], svgCache: null },
+        },
+        {
+          type: "pdfBlock",
+          attrs: {
+            src: "assets/test.pdf",
+            totalPages: 3,
+            displayMode: "single",
+            currentPage: 2,
+            scale: 1.0,
+          },
+        },
       ],
     };
 
@@ -404,7 +483,11 @@ describe("tiptapToBlocks", () => {
             type: "doc",
             content: [
               { type: "paragraph", content: [{ type: "text", text: "Hello" }] },
-              { type: "heading", attrs: { level: 2 }, content: [{ type: "text", text: "Title" }] },
+              {
+                type: "heading",
+                attrs: { level: 2 },
+                content: [{ type: "text", text: "Title" }],
+              },
             ],
           },
         },

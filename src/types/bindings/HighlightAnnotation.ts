@@ -2,4 +2,11 @@
 import type { AnnotationId } from "./AnnotationId";
 import type { BlockId } from "./BlockId";
 
-export type HighlightAnnotation = { id: AnnotationId, block_id: BlockId, start_offset: number, end_offset: number, color: string, opacity: number, };
+export type HighlightAnnotation = {
+  id: AnnotationId;
+  block_id: BlockId;
+  start_offset: number;
+  end_offset: number;
+  color: string;
+  opacity: number;
+};

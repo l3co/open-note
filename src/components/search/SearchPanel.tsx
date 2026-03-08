@@ -151,7 +151,10 @@ export function SearchPanel() {
                 {item.updated_at && (
                   <>
                     {" "}
-                    <Clock size={12} style={{ display: "inline", verticalAlign: "middle" }} />{" "}
+                    <Clock
+                      size={12}
+                      style={{ display: "inline", verticalAlign: "middle" }}
+                    />{" "}
                     {formatTimeAgo(item.updated_at)}
                   </>
                 )}

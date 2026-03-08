@@ -193,7 +193,13 @@ function buildCommands(t: TFunction): SlashCommand[] {
             .focus()
             .insertContent({
               type: "pdfBlock",
-              attrs: { src, totalPages: 0, displayMode: "continuous", currentPage: 1, scale: 1.5 },
+              attrs: {
+                src,
+                totalPages: 0,
+                displayMode: "continuous",
+                currentPage: 1,
+                scale: 1.5,
+              },
             })
             .run();
         }

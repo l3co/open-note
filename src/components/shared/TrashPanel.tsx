@@ -176,7 +176,12 @@ function TrashItemRow({
     (now.getTime() - deletedAt.getTime()) / (1000 * 60 * 60 * 24),
   );
 
-  const typeIcon = item.item_type === "page" ? "📄" : item.item_type === "section" ? "📑" : "📓";
+  const typeIcon =
+    item.item_type === "page"
+      ? "📄"
+      : item.item_type === "section"
+        ? "📑"
+        : "📓";
 
   return (
     <div
@@ -210,7 +215,8 @@ function TrashItemRow({
             className="mt-0.5 text-[11px]"
             style={{ color: "var(--text-tertiary)" }}
           >
-            {t("trash.deleted_days_ago", { days: daysSinceDelete })} • {t("trash.expires_in_days", { days: daysUntilExpiry })}
+            {t("trash.deleted_days_ago", { days: daysSinceDelete })} •{" "}
+            {t("trash.expires_in_days", { days: daysUntilExpiry })}
           </p>
         </div>
 
@@ -235,8 +241,7 @@ function TrashItemRow({
             className="flex h-6 w-6 items-center justify-center rounded"
             style={{ color: "var(--danger)" }}
             onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor =
-                "rgba(239, 68, 68, 0.1)")
+              (e.currentTarget.style.backgroundColor = "rgba(239, 68, 68, 0.1)")
             }
             onMouseLeave={(e) =>
               (e.currentTarget.style.backgroundColor = "transparent")

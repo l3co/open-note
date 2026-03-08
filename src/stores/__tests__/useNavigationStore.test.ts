@@ -23,9 +23,13 @@ describe("useNavigationStore", () => {
   it("toggles notebook expand/collapse", () => {
     const { toggleNotebook } = useNavigationStore.getState();
     toggleNotebook("nb-1");
-    expect(useNavigationStore.getState().expandedNotebooks.has("nb-1")).toBe(true);
+    expect(useNavigationStore.getState().expandedNotebooks.has("nb-1")).toBe(
+      true,
+    );
     toggleNotebook("nb-1");
-    expect(useNavigationStore.getState().expandedNotebooks.has("nb-1")).toBe(false);
+    expect(useNavigationStore.getState().expandedNotebooks.has("nb-1")).toBe(
+      false,
+    );
   });
 
   it("selects page and tracks history", () => {

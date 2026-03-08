@@ -64,14 +64,11 @@ export function PageEditor({ page }: PageEditorProps) {
     [mode, content, initialContent, markdownContent],
   );
 
-  const handleMarkdownChange = useCallback(
-    (md: string) => {
-      setMarkdownContent(md);
-      const doc = markdownToTiptap(md);
-      setContent(doc);
-    },
-    [],
-  );
+  const handleMarkdownChange = useCallback((md: string) => {
+    setMarkdownContent(md);
+    const doc = markdownToTiptap(md);
+    setContent(doc);
+  }, []);
 
   const handleTitleChange = useCallback(
     async (newTitle: string) => {

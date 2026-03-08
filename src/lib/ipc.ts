@@ -86,8 +86,7 @@ export const loadPage = (pageId: PageId) =>
 export const createPage = (sectionId: SectionId, title: string) =>
   invoke<Page>("create_page", { sectionId, title });
 
-export const updatePage = (page: Page) =>
-  invoke<void>("update_page", { page });
+export const updatePage = (page: Page) => invoke<void>("update_page", { page });
 
 export const updatePageBlocks = (pageId: PageId, blocks: Block[]) =>
   invoke<Page>("update_page_blocks", { pageId, blocks });
@@ -133,7 +132,10 @@ export const searchPages = (query: import("@/types/search").SearchQuery) =>
   invoke<import("@/types/search").SearchResults>("search_pages", { query });
 
 export const quickOpen = (query: string, limit?: number) =>
-  invoke<import("@/types/search").SearchResultItem[]>("quick_open", { query, limit });
+  invoke<import("@/types/search").SearchResultItem[]>("quick_open", {
+    query,
+    limit,
+  });
 
 export const reindexPage = (pageId: PageId) =>
   invoke<void>("reindex_page", { pageId });

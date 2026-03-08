@@ -34,11 +34,31 @@ export function SettingsDialog() {
   if (!show) return null;
 
   const tabs: { id: SettingsTab; label: string; icon: React.ReactNode }[] = [
-    { id: "general", label: t("settings.general"), icon: <Settings size={16} /> },
-    { id: "appearance", label: t("settings.appearance"), icon: <Palette size={16} /> },
-    { id: "editor", label: t("settings.editor_section"), icon: <Type size={16} /> },
-    { id: "sync", label: t("settings.sync_section"), icon: <Cloud size={16} /> },
-    { id: "shortcuts", label: t("settings.shortcuts"), icon: <Keyboard size={16} /> },
+    {
+      id: "general",
+      label: t("settings.general"),
+      icon: <Settings size={16} />,
+    },
+    {
+      id: "appearance",
+      label: t("settings.appearance"),
+      icon: <Palette size={16} />,
+    },
+    {
+      id: "editor",
+      label: t("settings.editor_section"),
+      icon: <Type size={16} />,
+    },
+    {
+      id: "sync",
+      label: t("settings.sync_section"),
+      icon: <Cloud size={16} />,
+    },
+    {
+      id: "shortcuts",
+      label: t("settings.shortcuts"),
+      icon: <Keyboard size={16} />,
+    },
     { id: "about", label: t("settings.about"), icon: <Info size={16} /> },
   ];
 
@@ -84,7 +104,9 @@ export function SettingsDialog() {
                 className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-[13px] transition-colors"
                 style={{
                   backgroundColor:
-                    activeTab === tab.id ? "var(--accent-subtle)" : "transparent",
+                    activeTab === tab.id
+                      ? "var(--accent-subtle)"
+                      : "transparent",
                   color:
                     activeTab === tab.id
                       ? "var(--accent)"
@@ -134,7 +156,10 @@ export function SettingsDialog() {
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-6 py-4" data-testid="settings-content">
+          <div
+            className="flex-1 overflow-y-auto px-6 py-4"
+            data-testid="settings-content"
+          >
             {activeTab === "general" && <GeneralSection />}
             {activeTab === "appearance" && <AppearanceSection />}
             {activeTab === "editor" && <EditorSection />}

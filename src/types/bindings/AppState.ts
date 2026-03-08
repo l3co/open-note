@@ -2,4 +2,8 @@
 import type { GlobalSettings } from "./GlobalSettings";
 import type { RecentWorkspace } from "./RecentWorkspace";
 
-export type AppState = { recent_workspaces: Array<RecentWorkspace>, last_opened_workspace: string | null, global_settings: GlobalSettings, };
+export type AppState = {
+  recent_workspaces: Array<RecentWorkspace>;
+  last_opened_workspace: string | null;
+  global_settings: GlobalSettings;
+};

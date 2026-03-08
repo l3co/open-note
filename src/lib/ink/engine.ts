@@ -137,7 +137,10 @@ function perpendicularDistance(
   }
 
   const num = Math.abs(
-    dy * point.x - dx * point.y + lineEnd.x * lineStart.y - lineEnd.y * lineStart.x,
+    dy * point.x -
+      dx * point.y +
+      lineEnd.x * lineStart.y -
+      lineEnd.y * lineStart.x,
   );
   return num / Math.sqrt(lenSq);
 }

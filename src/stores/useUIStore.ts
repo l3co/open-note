@@ -83,7 +83,8 @@ export const useUIStore = create<UIStore>((set, get) => ({
   closeQuickOpen: () => set({ showQuickOpen: false }),
   openSearchPanel: () => set({ showSearchPanel: true }),
   closeSearchPanel: () => set({ showSearchPanel: false }),
-  toggleSearchPanel: () => set((s) => ({ showSearchPanel: !s.showSearchPanel })),
+  toggleSearchPanel: () =>
+    set((s) => ({ showSearchPanel: !s.showSearchPanel })),
   openSyncSettings: () => set({ showSyncSettings: true }),
   closeSyncSettings: () => set({ showSyncSettings: false }),
   openSettings: () => set({ showSettings: true }),

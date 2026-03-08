@@ -28,5 +28,4 @@ export const InkBlock = Node.create({
       }),
     ];
   },
-
 });

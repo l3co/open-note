@@ -30,10 +30,7 @@ export function Breadcrumb() {
       {items.map((item, i) => (
         <span key={i} className="flex items-center gap-1">
           {i > 0 && (
-            <ChevronRight
-              size={12}
-              style={{ color: "var(--text-tertiary)" }}
-            />
+            <ChevronRight size={12} style={{ color: "var(--text-tertiary)" }} />
           )}
           <span
             className={i === items.length - 1 ? "font-medium" : ""}

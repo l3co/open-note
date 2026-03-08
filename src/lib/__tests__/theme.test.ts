@@ -41,13 +41,19 @@ describe("theme", () => {
     expect(document.documentElement.getAttribute("data-chrome")).toBe("tinted");
 
     applyChromeTint("neutral");
-    expect(document.documentElement.getAttribute("data-chrome")).toBe("neutral");
+    expect(document.documentElement.getAttribute("data-chrome")).toBe(
+      "neutral",
+    );
   });
 
   it("applyAccentColor sets CSS custom properties", () => {
     const palette = getAccentPalette("Red");
     applyAccentColor(palette);
-    expect(document.documentElement.style.getPropertyValue("--accent")).toBe("#ef4444");
-    expect(document.documentElement.style.getPropertyValue("--accent-hover")).toBe("#dc2626");
+    expect(document.documentElement.style.getPropertyValue("--accent")).toBe(
+      "#ef4444",
+    );
+    expect(
+      document.documentElement.style.getPropertyValue("--accent-hover"),
+    ).toBe("#dc2626");
   });
 });

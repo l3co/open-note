@@ -85,7 +85,11 @@ export function CreateDialog({
         />
 
         {error && (
-          <p className="mt-1 text-xs" style={{ color: "var(--danger)" }} data-testid="create-dialog-error">
+          <p
+            className="mt-1 text-xs"
+            style={{ color: "var(--danger)" }}
+            data-testid="create-dialog-error"
+          >
             {error}
           </p>
         )}
