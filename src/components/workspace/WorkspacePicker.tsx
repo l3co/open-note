@@ -279,11 +279,13 @@ export function WorkspacePicker() {
                 <ActionButton
                   icon={<FolderOpen size={16} />}
                   label={t("workspace.open")}
-                  onClick={() => {
-                    const path = prompt(
-                      t("workspace.create_path_placeholder"),
-                    );
-                    if (path) handleOpen(path);
+                  onClick={async () => {
+                    const selected = await open({
+                      directory: true,
+                      multiple: false,
+                      title: t("workspace.open"),
+                    });
+                    if (selected) handleOpen(selected);
                   }}
                 />
               </div>

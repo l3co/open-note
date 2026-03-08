@@ -1,3 +1,4 @@
+use log::{info, error};
 use tauri::State;
 
 use opennote_core::id::{NotebookId, SectionId};
@@ -21,8 +22,12 @@ pub fn create_section(
     notebook_id: NotebookId,
     name: String,
 ) -> Result<Section, String> {
+    info!("Creating section '{}' in notebook {}", name, notebook_id);
     let root = state.get_workspace_root()?;
-    FsStorageEngine::create_section(&root, notebook_id, &name).map_err(|e| e.to_string())
+    FsStorageEngine::create_section(&root, notebook_id, &name).map_err(|e| {
+        error!("Failed to create section: {}", e);
+        e.to_string()
+    })
 }
 
 #[tauri::command]

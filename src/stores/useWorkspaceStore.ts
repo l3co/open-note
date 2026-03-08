@@ -1,8 +1,16 @@
 import { create } from "zustand";
+import { toast } from "sonner";
 import type { Notebook } from "@/types/bindings/Notebook";
 import type { Section } from "@/types/bindings/Section";
 import type { Workspace } from "@/types/bindings/Workspace";
 import * as ipc from "@/lib/ipc";
+
+function handleError(e: unknown, set: (s: { error: string }) => void) {
+  const msg = String(e);
+  console.error("[WorkspaceStore]", msg);
+  set({ error: msg });
+  toast.error(msg);
+}
 
 interface WorkspaceStore {
   workspace: Workspace | null;
@@ -41,7 +49,8 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
       set({ workspace, isLoading: false });
       await get().loadNotebooks();
     } catch (e) {
-      set({ error: String(e), isLoading: false });
+      set({ isLoading: false });
+      handleError(e, set);
     }
   },
 
@@ -51,7 +60,8 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
       const workspace = await ipc.createWorkspace(path, name);
       set({ workspace, notebooks: [], sections: new Map(), isLoading: false });
     } catch (e) {
-      set({ error: String(e), isLoading: false });
+      set({ isLoading: false });
+      handleError(e, set);
     }
   },
 
@@ -69,7 +79,7 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
       const notebooks = await ipc.listNotebooks();
       set({ notebooks });
     } catch (e) {
-      set({ error: String(e) });
+      handleError(e, set);
     }
   },
 
@@ -78,7 +88,7 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
       await ipc.createNotebook(name);
       await get().loadNotebooks();
     } catch (e) {
-      set({ error: String(e) });
+      handleError(e, set);
     }
   },
 
@@ -87,7 +97,7 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
       await ipc.renameNotebook(id, name);
       await get().loadNotebooks();
     } catch (e) {
-      set({ error: String(e) });
+      handleError(e, set);
     }
   },
 
@@ -96,7 +106,7 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
       await ipc.deleteNotebook(id);
       await get().loadNotebooks();
     } catch (e) {
-      set({ error: String(e) });
+      handleError(e, set);
     }
   },
 
@@ -105,7 +115,7 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
       await ipc.reorderNotebooks(order);
       await get().loadNotebooks();
     } catch (e) {
-      set({ error: String(e) });
+      handleError(e, set);
     }
   },
 
@@ -118,7 +128,7 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
         return { sections: map };
       });
     } catch (e) {
-      set({ error: String(e) });
+      handleError(e, set);
     }
   },
 
@@ -127,7 +137,7 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
       await ipc.createSection(notebookId, name);
       await get().loadSections(notebookId);
     } catch (e) {
-      set({ error: String(e) });
+      handleError(e, set);
     }
   },
 
@@ -136,7 +146,7 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
       const section = await ipc.renameSection(id, name);
       await get().loadSections(section.notebook_id);
     } catch (e) {
-      set({ error: String(e) });
+      handleError(e, set);
     }
   },
 
@@ -153,7 +163,7 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
       await ipc.deleteSection(id);
       if (notebookId) await get().loadSections(notebookId);
     } catch (e) {
-      set({ error: String(e) });
+      handleError(e, set);
     }
   },
 
@@ -161,7 +171,7 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
     try {
       await ipc.reorderSections(order);
     } catch (e) {
-      set({ error: String(e) });
+      handleError(e, set);
     }
   },
 
