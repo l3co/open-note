@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { SlashCommandMenu } from "../SlashCommandMenu";
 
@@ -34,7 +34,6 @@ const mockChain = () => ({
   }),
 });
 
-let registeredHandler: ((props: { event: KeyboardEvent }) => boolean) | null = null;
 
 const mockEditor = {
   chain: mockChain,
@@ -52,9 +51,7 @@ const mockEditor = {
   },
   registerPlugin: vi.fn(),
   unregisterPlugin: vi.fn(),
-  on: vi.fn((_event: string, handler: () => void) => {
-    if (_event === "keyDown") registeredHandler = handler;
-  }),
+  on: vi.fn(),
   off: vi.fn(),
   state: {
     selection: {
@@ -67,7 +64,6 @@ const mockEditor = {
 describe("SlashCommandMenu", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    registeredHandler = null;
   });
 
   it("renders without crashing", () => {

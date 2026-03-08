@@ -121,7 +121,8 @@ describe("BlockEditor", () => {
   });
 
   it("renders without onEditorReady", () => {
-    const { onEditorReady: _, ...propsWithout } = defaultProps;
+    const { onEditorReady: _unused, ...propsWithout } = defaultProps;
+    void _unused;
     render(<BlockEditor {...propsWithout} />);
     expect(screen.getByTestId("editor-content")).toBeInTheDocument();
   });
