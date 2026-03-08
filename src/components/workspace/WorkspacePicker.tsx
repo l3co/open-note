@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { FolderOpen, Plus, Cloud, X, AlertCircle } from "lucide-react";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 import { useUIStore } from "@/stores/useUIStore";
@@ -15,6 +16,7 @@ export function WorkspacePicker() {
 
   const { openWorkspace, createWorkspace } = useWorkspaceStore();
   const { closeWorkspacePicker } = useUIStore();
+  const { t } = useTranslation();
 
   const loadAppState = useCallback(async () => {
     try {
@@ -76,13 +78,13 @@ export function WorkspacePicker() {
           className="mb-1 text-center text-2xl font-bold"
           style={{ color: "var(--text-primary)" }}
         >
-          Open Note
+          {t("workspace.picker_title")}
         </h1>
         <p
           className="mb-6 text-center text-sm"
           style={{ color: "var(--text-tertiary)" }}
         >
-          Local-first note-taking
+          {t("workspace.picker_subtitle")}
         </p>
 
         {error && (
@@ -106,7 +108,7 @@ export function WorkspacePicker() {
             className="py-8 text-center text-sm"
             style={{ color: "var(--text-tertiary)" }}
           >
-            Carregando...
+            {t("common.loading")}
           </div>
         ) : (
           <>
@@ -116,7 +118,7 @@ export function WorkspacePicker() {
                   className="mb-2 text-xs font-medium uppercase tracking-wide"
                   style={{ color: "var(--text-tertiary)" }}
                 >
-                  Workspaces recentes
+                  {t("workspace.recent")}
                 </h2>
                 <div className="space-y-1">
                   {appState.recent_workspaces.map((rw) => (
@@ -166,7 +168,7 @@ export function WorkspacePicker() {
                           (e.currentTarget.style.backgroundColor =
                             "transparent")
                         }
-                        aria-label="Remover dos recentes"
+                        aria-label={t("workspace.remove_recent")}
                       >
                         <X size={12} />
                       </button>
@@ -185,7 +187,7 @@ export function WorkspacePicker() {
                   className="mb-2 text-xs font-medium"
                   style={{ color: "var(--text-secondary)" }}
                 >
-                  Novo workspace
+                  {t("workspace.create_title")}
                 </h3>
                 <input
                   autoFocus
@@ -194,7 +196,7 @@ export function WorkspacePicker() {
                     borderColor: "var(--border)",
                     color: "var(--text-primary)",
                   }}
-                  placeholder="Nome do workspace"
+                  placeholder={t("workspace.create_name_placeholder")}
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
                 />
@@ -204,7 +206,7 @@ export function WorkspacePicker() {
                     borderColor: "var(--border)",
                     color: "var(--text-primary)",
                   }}
-                  placeholder="Caminho da pasta (ex: ~/Documents/notas)"
+                  placeholder={t("workspace.create_path_placeholder")}
                   value={newPath}
                   onChange={(e) => setNewPath(e.target.value)}
                   onKeyDown={(e) => {
@@ -218,7 +220,7 @@ export function WorkspacePicker() {
                     className="rounded px-3 py-1.5 text-xs"
                     style={{ color: "var(--text-secondary)" }}
                   >
-                    Cancelar
+                    {t("common.cancel")}
                   </button>
                   <button
                     onClick={handleCreate}
@@ -228,7 +230,7 @@ export function WorkspacePicker() {
                       color: "var(--accent-text)",
                     }}
                   >
-                    Criar
+                    {t("common.create")}
                   </button>
                 </div>
               </div>
@@ -236,21 +238,21 @@ export function WorkspacePicker() {
               <div className="space-y-1">
                 <ActionButton
                   icon={<Plus size={16} />}
-                  label="Novo workspace local"
+                  label={t("workspace.create")}
                   onClick={() => setShowCreate(true)}
                 />
                 <ActionButton
                   icon={<Cloud size={16} />}
-                  label="Conectar workspace na nuvem"
+                  label={t("workspace.cloud_connect")}
                   disabled
-                  badge="Em breve"
+                  badge={t("workspace.cloud_coming_soon")}
                 />
                 <ActionButton
                   icon={<FolderOpen size={16} />}
-                  label="Abrir pasta existente"
+                  label={t("workspace.open")}
                   onClick={() => {
                     const path = prompt(
-                      "Caminho da pasta com workspace.json:",
+                      t("workspace.create_path_placeholder"),
                     );
                     if (path) handleOpen(path);
                   }}

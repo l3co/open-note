@@ -1,4 +1,5 @@
 import { useCallback, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Bold,
   Italic,
@@ -21,6 +22,7 @@ interface FloatingToolbarProps {
 
 export function FloatingToolbar({ editor }: FloatingToolbarProps) {
   const [showLinkPopover, setShowLinkPopover] = useState(false);
+  const { t } = useTranslation();
 
   const toggleBold = useCallback(() => {
     editor.chain().focus().toggleBold().run();
@@ -88,35 +90,35 @@ export function FloatingToolbar({ editor }: FloatingToolbarProps) {
         <ToolbarButton
           onClick={toggleBold}
           active={editor.isActive("bold")}
-          title="Negrito (Cmd+B)"
+          title={`${t("editor.toolbar.bold")} (Cmd+B)`}
         >
           <Bold size={14} />
         </ToolbarButton>
         <ToolbarButton
           onClick={toggleItalic}
           active={editor.isActive("italic")}
-          title="Itálico (Cmd+I)"
+          title={`${t("editor.toolbar.italic")} (Cmd+I)`}
         >
           <Italic size={14} />
         </ToolbarButton>
         <ToolbarButton
           onClick={toggleUnderline}
           active={editor.isActive("underline")}
-          title="Sublinhado (Cmd+U)"
+          title={`${t("editor.toolbar.underline")} (Cmd+U)`}
         >
           <Underline size={14} />
         </ToolbarButton>
         <ToolbarButton
           onClick={toggleStrike}
           active={editor.isActive("strike")}
-          title="Tachado (Cmd+Shift+S)"
+          title={`${t("editor.toolbar.strike")} (Cmd+Shift+S)`}
         >
           <Strikethrough size={14} />
         </ToolbarButton>
         <ToolbarButton
           onClick={toggleCode}
           active={editor.isActive("code")}
-          title="Código inline (Cmd+E)"
+          title={`${t("editor.toolbar.code")} (Cmd+E)`}
         >
           <Code size={14} />
         </ToolbarButton>
@@ -126,7 +128,7 @@ export function FloatingToolbar({ editor }: FloatingToolbarProps) {
         <ToolbarButton
           onClick={() => setShowLinkPopover(!showLinkPopover)}
           active={editor.isActive("link")}
-          title="Link (Cmd+K)"
+          title={`${t("editor.toolbar.link")} (Cmd+K)`}
         >
           <Link size={14} />
         </ToolbarButton>
@@ -136,21 +138,21 @@ export function FloatingToolbar({ editor }: FloatingToolbarProps) {
         <ToolbarButton
           onClick={() => toggleHeading(1)}
           active={editor.isActive("heading", { level: 1 })}
-          title="Heading 1"
+          title={t("editor.toolbar.heading1")}
         >
           <Heading1 size={14} />
         </ToolbarButton>
         <ToolbarButton
           onClick={() => toggleHeading(2)}
           active={editor.isActive("heading", { level: 2 })}
-          title="Heading 2"
+          title={t("editor.toolbar.heading2")}
         >
           <Heading2 size={14} />
         </ToolbarButton>
         <ToolbarButton
           onClick={() => toggleHeading(3)}
           active={editor.isActive("heading", { level: 3 })}
-          title="Heading 3"
+          title={t("editor.toolbar.heading3")}
         >
           <Heading3 size={14} />
         </ToolbarButton>
@@ -160,7 +162,7 @@ export function FloatingToolbar({ editor }: FloatingToolbarProps) {
         <ToolbarButton
           onClick={toggleBlockquote}
           active={editor.isActive("blockquote")}
-          title="Citação"
+          title={t("editor.toolbar.blockquote")}
         >
           <Quote size={14} />
         </ToolbarButton>

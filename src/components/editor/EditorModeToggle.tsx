@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { Type, Code } from "lucide-react";
 
 export type EditorMode = "richtext" | "markdown";
@@ -8,6 +9,8 @@ interface EditorModeToggleProps {
 }
 
 export function EditorModeToggle({ mode, onChange }: EditorModeToggleProps) {
+  const { t } = useTranslation();
+
   return (
     <div
       className="inline-flex overflow-hidden rounded-md border"
@@ -25,7 +28,7 @@ export function EditorModeToggle({ mode, onChange }: EditorModeToggleProps) {
         onClick={() => onChange("richtext")}
       >
         <Type size={14} />
-        Rich Text
+        {t("editor.mode_richtext")}
       </button>
       <button
         type="button"
@@ -40,7 +43,7 @@ export function EditorModeToggle({ mode, onChange }: EditorModeToggleProps) {
         onClick={() => onChange("markdown")}
       >
         <Code size={14} />
-        Markdown
+        {t("editor.mode_markdown")}
       </button>
     </div>
   );

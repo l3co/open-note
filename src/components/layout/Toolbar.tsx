@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { ChevronLeft, ChevronRight, PanelLeftClose, PanelLeft } from "lucide-react";
 import { useUIStore } from "@/stores/useUIStore";
 import { useNavigationStore } from "@/stores/useNavigationStore";
@@ -6,6 +7,7 @@ import { Breadcrumb } from "@/components/layout/Breadcrumb";
 export function Toolbar() {
   const { sidebarOpen, toggleSidebar } = useUIStore();
   const { goBack, goForward, historyIndex, history } = useNavigationStore();
+  const { t } = useTranslation();
 
   const canGoBack = historyIndex > 0;
   const canGoForward = historyIndex < history.length - 1;
@@ -29,7 +31,7 @@ export function Toolbar() {
         onMouseLeave={(e) =>
           (e.currentTarget.style.backgroundColor = "transparent")
         }
-        aria-label={sidebarOpen ? "Fechar sidebar" : "Abrir sidebar"}
+        aria-label={t("toolbar.toggle_sidebar")}
       >
         {sidebarOpen ? <PanelLeftClose size={16} /> : <PanelLeft size={16} />}
       </button>
@@ -47,7 +49,7 @@ export function Toolbar() {
           onMouseLeave={(e) =>
             (e.currentTarget.style.backgroundColor = "transparent")
           }
-          aria-label="Voltar"
+          aria-label="Back"
         >
           <ChevronLeft size={16} />
         </button>
@@ -63,7 +65,7 @@ export function Toolbar() {
           onMouseLeave={(e) =>
             (e.currentTarget.style.backgroundColor = "transparent")
           }
-          aria-label="Avançar"
+          aria-label="Forward"
         >
           <ChevronRight size={16} />
         </button>

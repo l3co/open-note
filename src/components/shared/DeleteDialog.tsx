@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { AlertTriangle } from "lucide-react";
 
 interface DeleteDialogProps {
@@ -12,22 +13,26 @@ interface DeleteDialogProps {
 export function DeleteDialog({
   itemType,
   itemName,
-  hasChildren = false,
+  hasChildren: _hasChildren = false,
   onConfirm,
   onCancel,
 }: DeleteDialogProps) {
   const [submitting, setSubmitting] = useState(false);
+  const { t } = useTranslation();
 
-  const typeLabel =
+  const deleteKey =
     itemType === "notebook"
-      ? "notebook"
+      ? "notebook.delete"
       : itemType === "section"
-        ? "seção"
-        : "página";
+        ? "section.delete"
+        : "page.delete";
 
-  const childWarning = hasChildren
-    ? ` Todo o conteúdo dentro deste ${typeLabel} também será movido para a lixeira.`
-    : "";
+  const confirmKey =
+    itemType === "notebook"
+      ? "notebook.delete_confirm"
+      : itemType === "section"
+        ? "section.delete_confirm"
+        : "page.delete_confirm";
 
   const handleConfirm = async () => {
     setSubmitting(true);
@@ -54,7 +59,7 @@ export function DeleteDialog({
         onClick={(e) => e.stopPropagation()}
         role="alertdialog"
         aria-modal="true"
-        aria-label={`Excluir ${typeLabel}`}
+        aria-label={t(deleteKey)}
       >
         <div className="mb-3 flex items-center gap-2">
           <AlertTriangle size={16} style={{ color: "var(--danger)" }} />
@@ -62,20 +67,12 @@ export function DeleteDialog({
             className="text-sm font-semibold"
             style={{ color: "var(--text-primary)" }}
           >
-            Excluir {typeLabel}
+            {t(deleteKey)}
           </h2>
         </div>
 
         <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
-          Tem certeza que deseja excluir{" "}
-          <strong style={{ color: "var(--text-primary)" }}>{itemName}</strong>?
-          {childWarning}
-        </p>
-        <p
-          className="mt-2 text-xs"
-          style={{ color: "var(--text-tertiary)" }}
-        >
-          O item ficará na lixeira por 30 dias.
+          {t(confirmKey, { name: itemName })}
         </p>
 
         <div className="mt-4 flex justify-end gap-2">
@@ -90,7 +87,7 @@ export function DeleteDialog({
               (e.currentTarget.style.backgroundColor = "transparent")
             }
           >
-            Cancelar
+            {t("common.cancel")}
           </button>
           <button
             onClick={handleConfirm}
@@ -107,7 +104,7 @@ export function DeleteDialog({
               (e.currentTarget.style.backgroundColor = "var(--danger)")
             }
           >
-            Excluir
+            {t("common.delete")}
           </button>
         </div>
       </div>

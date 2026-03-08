@@ -1,4 +1,5 @@
 import { useRef, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import type { Editor } from "@tiptap/react";
 
 interface TitleEditorProps {
@@ -14,6 +15,7 @@ export function TitleEditor({
 }: TitleEditorProps) {
   const divRef = useRef<HTMLDivElement>(null);
   const isComposing = useRef(false);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (divRef.current && divRef.current.textContent !== title) {
@@ -50,8 +52,8 @@ export function TitleEditor({
       contentEditable
       suppressContentEditableWarning
       role="textbox"
-      aria-label="Título da página"
-      data-placeholder="Sem título"
+      aria-label={t("page.untitled")}
+      data-placeholder={t("page.untitled")}
       className="page-title w-full cursor-text border-none text-3xl font-bold outline-none"
       style={{
         color: "var(--text-primary)",

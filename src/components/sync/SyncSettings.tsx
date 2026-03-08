@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { Cloud, CloudOff, X, AlertTriangle } from "lucide-react";
 import { useUIStore } from "@/stores/useUIStore";
 import * as ipc from "@/lib/ipc";
@@ -11,6 +12,7 @@ export function SyncSettings() {
   const [providers, setProviders] = useState<ProviderInfo[]>([]);
   const [status, setStatus] = useState<SyncStatus | null>(null);
   const [conflicts, setConflicts] = useState<SyncConflict[]>([]);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!show) return;
@@ -29,20 +31,20 @@ export function SyncSettings() {
   }, [show]);
 
   const formatTimeAgo = (dateStr: string | null) => {
-    if (!dateStr) return "Nunca";
+    if (!dateStr) return t("sync.never");
     try {
       const date = new Date(dateStr);
       const now = new Date();
       const diffMs = now.getTime() - date.getTime();
       const diffMins = Math.floor(diffMs / 60000);
-      if (diffMins < 1) return "Agora";
-      if (diffMins < 60) return `${diffMins}min atrás`;
+      if (diffMins < 1) return t("search.time_ago_now");
+      if (diffMins < 60) return t("search.time_ago_minutes", { count: diffMins });
       const diffHours = Math.floor(diffMins / 60);
-      if (diffHours < 24) return `${diffHours}h atrás`;
+      if (diffHours < 24) return t("search.time_ago_hours", { count: diffHours });
       const diffDays = Math.floor(diffHours / 24);
-      return `${diffDays}d atrás`;
+      return t("search.time_ago_days", { count: diffDays });
     } catch {
-      return "Desconhecido";
+      return t("search.time_ago_unknown");
     }
   };
 
@@ -54,7 +56,7 @@ export function SyncSettings() {
     <div className="sync-settings-backdrop" onClick={close}>
       <div className="sync-settings-panel" onClick={(e) => e.stopPropagation()}>
         <div className="sync-settings-header">
-          <h3 className="sync-settings-title">Sincronização</h3>
+          <h3 className="sync-settings-title">{t("sync.title")}</h3>
           <button className="sync-settings-close" onClick={close}>
             <X size={16} />
           </button>
@@ -63,29 +65,29 @@ export function SyncSettings() {
         <div className="sync-settings-body">
           {/* Status */}
           <div className="sync-settings-section">
-            <h4 className="sync-settings-section-title">Status</h4>
+            <h4 className="sync-settings-section-title">{t("sync.status")}</h4>
             {status?.is_syncing ? (
               <div className="sync-status-row">
                 <Cloud size={16} className="sync-icon syncing" />
-                <span>Sincronizando...</span>
+                <span>{t("sync.syncing")}</span>
               </div>
             ) : connectedProvider ? (
               <div className="sync-status-row">
                 <Cloud size={16} className="sync-icon connected" />
                 <span>
-                  Conectado — {connectedProvider.display_name}
+                  {t("sync.connected")} — {connectedProvider.display_name}
                   {connectedProvider.user_email && ` (${connectedProvider.user_email})`}
                 </span>
               </div>
             ) : (
               <div className="sync-status-row">
                 <CloudOff size={16} className="sync-icon disconnected" />
-                <span>Não conectado</span>
+                <span>{t("sync.not_connected")}</span>
               </div>
             )}
             {status?.last_synced_at && (
               <div className="sync-meta">
-                Último sync: {formatTimeAgo(status.last_synced_at)}
+                {t("sync.last_sync", { time: formatTimeAgo(status.last_synced_at) })}
               </div>
             )}
             {status?.last_error && (
@@ -98,7 +100,7 @@ export function SyncSettings() {
 
           {/* Providers */}
           <div className="sync-settings-section">
-            <h4 className="sync-settings-section-title">Provedores</h4>
+            <h4 className="sync-settings-section-title">{t("sync.providers")}</h4>
             <div className="sync-providers-list">
               {providers.map((provider) => (
                 <div
@@ -108,14 +110,14 @@ export function SyncSettings() {
                   <div className="sync-provider-info">
                     <span className="sync-provider-name">{provider.display_name}</span>
                     {provider.connected ? (
-                      <span className="sync-provider-badge connected">Conectado</span>
+                      <span className="sync-provider-badge connected">{t("sync.connected")}</span>
                     ) : (
-                      <span className="sync-provider-badge">Em breve</span>
+                      <span className="sync-provider-badge">{t("sync.coming_soon")}</span>
                     )}
                   </div>
                   {provider.last_synced_at && (
                     <span className="sync-provider-meta">
-                      Último sync: {formatTimeAgo(provider.last_synced_at)}
+                      {t("sync.last_sync", { time: formatTimeAgo(provider.last_synced_at) })}
                     </span>
                   )}
                 </div>
@@ -127,7 +129,7 @@ export function SyncSettings() {
           {conflicts.length > 0 && (
             <div className="sync-settings-section">
               <h4 className="sync-settings-section-title">
-                Conflitos ({conflicts.length})
+                {t("sync.conflicts", { count: conflicts.length })}
               </h4>
               {conflicts.map((conflict) => (
                 <div key={conflict.id} className="sync-conflict-item">
@@ -135,9 +137,9 @@ export function SyncSettings() {
                   <div className="sync-conflict-info">
                     <span className="sync-conflict-title">{conflict.page_title}</span>
                     <span className="sync-conflict-meta">
-                      Local: {new Date(conflict.local_modified_at).toLocaleString()}
+                      {t("sync.local_label")}: {new Date(conflict.local_modified_at).toLocaleString()}
                       {" • "}
-                      Remoto: {new Date(conflict.remote_modified_at).toLocaleString()}
+                      {t("sync.remote_label")}: {new Date(conflict.remote_modified_at).toLocaleString()}
                     </span>
                   </div>
                 </div>
@@ -148,8 +150,7 @@ export function SyncSettings() {
           {/* Info */}
           <div className="sync-settings-section">
             <p className="sync-info-text">
-              A sincronização com provedores de nuvem será disponibilizada em breve.
-              Seus dados permanecem seguros localmente.
+              {t("sync.info_text")}
             </p>
           </div>
         </div>

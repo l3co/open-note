@@ -1,4 +1,5 @@
 import { useEffect, useState, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import { Trash2, RotateCcw, X } from "lucide-react";
 import { useUIStore } from "@/stores/useUIStore";
 import * as ipc from "@/lib/ipc";
@@ -8,6 +9,7 @@ export function TrashPanel() {
   const { showTrashPanel, closeTrashPanel } = useUIStore();
   const [items, setItems] = useState<TrashItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
 
   const loadItems = useCallback(async () => {
     setLoading(true);
@@ -60,7 +62,7 @@ export function TrashPanel() {
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
-        aria-label="Lixeira"
+        aria-label={t("trash.title")}
       >
         <div
           className="flex items-center justify-between border-b px-4 py-3"
@@ -72,7 +74,7 @@ export function TrashPanel() {
               className="text-sm font-semibold"
               style={{ color: "var(--text-primary)" }}
             >
-              Lixeira
+              {t("trash.title")}
             </h2>
             {items.length > 0 && (
               <span
@@ -99,7 +101,7 @@ export function TrashPanel() {
                   (e.currentTarget.style.backgroundColor = "transparent")
                 }
               >
-                Esvaziar
+                {t("trash.empty_trash")}
               </button>
             )}
             <button
@@ -112,7 +114,7 @@ export function TrashPanel() {
               onMouseLeave={(e) =>
                 (e.currentTarget.style.backgroundColor = "transparent")
               }
-              aria-label="Fechar"
+              aria-label={t("common.close")}
             >
               <X size={14} />
             </button>
@@ -125,7 +127,7 @@ export function TrashPanel() {
               className="flex h-full items-center justify-center text-sm"
               style={{ color: "var(--text-tertiary)" }}
             >
-              Carregando...
+              {t("common.loading")}
             </div>
           ) : items.length === 0 ? (
             <div
@@ -133,7 +135,7 @@ export function TrashPanel() {
               style={{ color: "var(--text-tertiary)" }}
             >
               <Trash2 size={32} className="opacity-30" />
-              <span className="text-sm">Nenhum item na lixeira</span>
+              <span className="text-sm">{t("trash.empty")}</span>
             </div>
           ) : (
             <div className="p-2">
@@ -162,6 +164,7 @@ function TrashItemRow({
   onRestore: () => void;
   onDelete: () => void;
 }) {
+  const { t } = useTranslation();
   const deletedAt = new Date(item.deleted_at);
   const expiresAt = new Date(item.expires_at);
   const now = new Date();
@@ -207,7 +210,7 @@ function TrashItemRow({
             className="mt-0.5 text-[11px]"
             style={{ color: "var(--text-tertiary)" }}
           >
-            Excluído há {daysSinceDelete}d • Expira em {daysUntilExpiry}d
+            {t("trash.deleted_days_ago", { days: daysSinceDelete })} • {t("trash.expires_in_days", { days: daysUntilExpiry })}
           </p>
         </div>
 
@@ -222,8 +225,8 @@ function TrashItemRow({
             onMouseLeave={(e) =>
               (e.currentTarget.style.backgroundColor = "transparent")
             }
-            aria-label="Restaurar"
-            title="Restaurar"
+            aria-label={t("trash.restore")}
+            title={t("trash.restore")}
           >
             <RotateCcw size={13} />
           </button>
@@ -238,8 +241,8 @@ function TrashItemRow({
             onMouseLeave={(e) =>
               (e.currentTarget.style.backgroundColor = "transparent")
             }
-            aria-label="Deletar permanentemente"
-            title="Deletar permanentemente"
+            aria-label={t("trash.delete_permanently")}
+            title={t("trash.delete_permanently")}
           >
             <Trash2 size={13} />
           </button>

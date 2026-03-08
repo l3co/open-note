@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { Search, FileText } from "lucide-react";
 import { useUIStore } from "@/stores/useUIStore";
 import { useNavigationStore } from "@/stores/useNavigationStore";
@@ -14,6 +15,7 @@ export function QuickOpen() {
   const [results, setResults] = useState<SearchResultItem[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [loading, setLoading] = useState(false);
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -99,7 +101,7 @@ export function QuickOpen() {
             ref={inputRef}
             type="text"
             className="quick-open-input"
-            placeholder="Buscar page..."
+            placeholder={t("search.quick_open_placeholder")}
             value={query}
             onChange={(e) => handleChange(e.target.value)}
             onKeyDown={handleKeyDown}
@@ -128,7 +130,7 @@ export function QuickOpen() {
         )}
 
         {query && !loading && results.length === 0 && (
-          <div className="quick-open-empty">Nenhum resultado encontrado</div>
+          <div className="quick-open-empty">{t("search.no_results")}</div>
         )}
       </div>
     </div>

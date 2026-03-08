@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import { CloudOff } from "lucide-react";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 import { usePageStore } from "@/stores/usePageStore";
@@ -9,17 +10,18 @@ export function StatusBar() {
   const workspace = useWorkspaceStore((s) => s.workspace);
   const { currentPage, saveStatus, lastSavedAt } = usePageStore();
   const openSyncSettings = useUIStore((s) => s.openSyncSettings);
+  const { t } = useTranslation();
 
   const blockCount = currentPage?.blocks?.length ?? 0;
   const isOverSoftLimit = blockCount > SOFT_BLOCK_LIMIT;
 
   const saveLabel =
     saveStatus === "saving"
-      ? "Salvando..."
+      ? t("save.saving")
       : saveStatus === "saved" && lastSavedAt
-        ? `Salvo às ${lastSavedAt.toLocaleTimeString()}`
+        ? t("save.saved", { time: lastSavedAt.toLocaleTimeString() })
         : saveStatus === "error"
-          ? "Erro ao salvar"
+          ? t("save.error")
           : "";
 
   const saveColor =
@@ -39,7 +41,7 @@ export function StatusBar() {
       }}
     >
       <span className="truncate">
-        {workspace?.root_path ?? "Nenhum workspace aberto"}
+        {workspace?.root_path ?? t("workspace.none_open")}
       </span>
 
       <div className="flex items-center gap-4">
@@ -48,11 +50,11 @@ export function StatusBar() {
             style={{ color: isOverSoftLimit ? "#eab308" : "var(--text-tertiary)" }}
             title={
               isOverSoftLimit
-                ? "Esta página está grande. Considere dividir o conteúdo."
+                ? t("page.blocks_warning")
                 : undefined
             }
           >
-            {blockCount} blocos
+            {t("page.blocks", { count: blockCount })}
           </span>
         )}
         {saveLabel && <span style={{ color: saveColor }}>{saveLabel}</span>}
@@ -60,7 +62,7 @@ export function StatusBar() {
           onClick={openSyncSettings}
           className="flex items-center gap-1 hover:opacity-80"
           style={{ background: "none", border: "none", color: "var(--text-tertiary)", cursor: "pointer", padding: 0, fontSize: "11px" }}
-          title="Sincronização"
+          title={t("sync.title")}
         >
           <CloudOff size={13} />
         </button>

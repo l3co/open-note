@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 interface CreateDialogProps {
   title: string;
@@ -17,6 +18,7 @@ export function CreateDialog({
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -25,7 +27,7 @@ export function CreateDialog({
   const handleSubmit = async () => {
     const trimmed = name.trim();
     if (!trimmed) {
-      setError("Nome não pode ser vazio");
+      setError(t("common.error"));
       return;
     }
     setSubmitting(true);
@@ -99,7 +101,7 @@ export function CreateDialog({
               (e.currentTarget.style.backgroundColor = "transparent")
             }
           >
-            Cancelar
+            {t("common.cancel")}
           </button>
           <button
             onClick={handleSubmit}
@@ -116,7 +118,7 @@ export function CreateDialog({
               (e.currentTarget.style.backgroundColor = "var(--accent)")
             }
           >
-            Criar
+            {t("common.create")}
           </button>
         </div>
       </div>

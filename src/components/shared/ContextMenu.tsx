@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { Pencil, Trash2, Plus } from "lucide-react";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 import { usePageStore } from "@/stores/usePageStore";
@@ -24,6 +25,7 @@ export function ContextMenu({
   const menuRef = useRef<HTMLDivElement>(null);
   const [renaming, setRenaming] = useState(false);
   const [renameDraft, setRenameDraft] = useState("");
+  const { t } = useTranslation();
   const { renameNotebook, deleteNotebook, createSection, renameSection, deleteSection } =
     useWorkspaceStore();
   const { createPage, deletePage } = usePageStore();
@@ -70,10 +72,10 @@ export function ContextMenu({
 
   const handleAddChild = async () => {
     if (type === "notebook") {
-      await createSection(id, "Nova Seção");
+      await createSection(id, t("section.new"));
     }
     if (type === "section") {
-      const page = await createPage(id, "Nova Página");
+      const page = await createPage(id, t("page.new"));
       selectPage(page.id);
     }
     onClose();
@@ -99,7 +101,7 @@ export function ContextMenu({
             borderColor: "var(--accent)",
             color: "var(--text-primary)",
           }}
-          placeholder="Novo nome..."
+          placeholder={t("common.rename")}
           value={renameDraft}
           onChange={(e) => setRenameDraft(e.target.value)}
           onKeyDown={(e) => {
@@ -117,7 +119,7 @@ export function ContextMenu({
   if (type === "notebook" || type === "section") {
     items.push({
       icon: <Plus size={14} />,
-      label: type === "notebook" ? "Nova seção" : "Nova página",
+      label: type === "notebook" ? t("context_menu.new_section") : t("context_menu.new_page"),
       onClick: handleAddChild,
     });
   }
@@ -125,14 +127,14 @@ export function ContextMenu({
   if (type !== "page") {
     items.push({
       icon: <Pencil size={14} />,
-      label: "Renomear",
+      label: t("context_menu.rename"),
       onClick: handleRenameStart,
     });
   }
 
   items.push({
     icon: <Trash2 size={14} />,
-    label: "Excluir",
+    label: t("context_menu.delete"),
     onClick: handleDelete,
     danger: true,
   });

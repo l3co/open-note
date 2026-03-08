@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { ExternalLink, Trash2 } from "lucide-react";
 
 interface LinkPopoverProps {
@@ -16,6 +17,7 @@ export function LinkPopover({
 }: LinkPopoverProps) {
   const [url, setUrl] = useState(initialUrl);
   const inputRef = useRef<HTMLInputElement>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     inputRef.current?.focus();
@@ -72,7 +74,7 @@ export function LinkPopover({
           <button
             type="button"
             onClick={onRemove}
-            title="Remover link"
+            title={t("editor.link.remove")}
             className="flex h-7 w-7 items-center justify-center rounded"
             style={{ color: "var(--text-tertiary)" }}
             onMouseEnter={(e) =>

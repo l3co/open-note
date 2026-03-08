@@ -12,11 +12,14 @@ import { TrashPanel } from "@/components/shared/TrashPanel";
 import { QuickOpen } from "@/components/search/QuickOpen";
 import { SearchPanel } from "@/components/search/SearchPanel";
 import { SyncSettings } from "@/components/sync/SyncSettings";
+import { SettingsDialog } from "@/components/settings/SettingsDialog";
+import { OnboardingDialog } from "@/components/onboarding/OnboardingDialog";
 import { listenSystemTheme } from "@/lib/theme";
 import * as ipc from "@/lib/ipc";
 
 export function App() {
   const [initializing, setInitializing] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const { showWorkspacePicker, openWorkspacePicker, applyThemeToDOM } =
     useUIStore();
   const { workspace, openWorkspace } = useWorkspaceStore();
@@ -60,6 +63,11 @@ export function App() {
       } catch {
         openWorkspacePicker();
       }
+
+      if (!localStorage.getItem("opennote_onboarding_done")) {
+        setShowOnboarding(true);
+      }
+
       setInitializing(false);
     };
     init();
@@ -82,7 +90,7 @@ export function App() {
             className="mt-2 text-sm"
             style={{ color: "var(--text-tertiary)" }}
           >
-            Carregando...
+            Loading...
           </p>
         </div>
       </div>
@@ -110,6 +118,15 @@ export function App() {
       <QuickOpen />
       <SearchPanel />
       <SyncSettings />
+      <SettingsDialog />
+      {showOnboarding && (
+        <OnboardingDialog
+          onComplete={() => {
+            localStorage.setItem("opennote_onboarding_done", "1");
+            setShowOnboarding(false);
+          }}
+        />
+      )}
       <Toaster position="top-right" />
     </div>
   );

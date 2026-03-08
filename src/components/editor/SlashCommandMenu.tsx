@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import {
   Heading1,
   Heading2,
@@ -17,6 +18,7 @@ import {
   FileText,
 } from "lucide-react";
 import type { Editor } from "@tiptap/react";
+import type { TFunction } from "i18next";
 
 interface SlashCommand {
   id: string;
@@ -27,197 +29,199 @@ interface SlashCommand {
   action: (editor: Editor) => void;
 }
 
-const COMMANDS: SlashCommand[] = [
-  {
-    id: "heading1",
-    label: "Heading 1",
-    description: "Título grande",
-    icon: <Heading1 size={18} />,
-    category: "text",
-    action: (editor) =>
-      editor.chain().focus().toggleHeading({ level: 1 }).run(),
-  },
-  {
-    id: "heading2",
-    label: "Heading 2",
-    description: "Subtítulo",
-    icon: <Heading2 size={18} />,
-    category: "text",
-    action: (editor) =>
-      editor.chain().focus().toggleHeading({ level: 2 }).run(),
-  },
-  {
-    id: "heading3",
-    label: "Heading 3",
-    description: "Subtítulo menor",
-    icon: <Heading3 size={18} />,
-    category: "text",
-    action: (editor) =>
-      editor.chain().focus().toggleHeading({ level: 3 }).run(),
-  },
-  {
-    id: "bulletList",
-    label: "Lista",
-    description: "Lista com marcadores",
-    icon: <List size={18} />,
-    category: "text",
-    action: (editor) => editor.chain().focus().toggleBulletList().run(),
-  },
-  {
-    id: "orderedList",
-    label: "Lista numerada",
-    description: "Lista ordenada",
-    icon: <ListOrdered size={18} />,
-    category: "text",
-    action: (editor) => editor.chain().focus().toggleOrderedList().run(),
-  },
-  {
-    id: "checklist",
-    label: "Checklist",
-    description: "Lista de tarefas",
-    icon: <CheckSquare size={18} />,
-    category: "text",
-    action: (editor) => editor.chain().focus().toggleTaskList().run(),
-  },
-  {
-    id: "blockquote",
-    label: "Citação",
-    description: "Bloco de citação",
-    icon: <Quote size={18} />,
-    category: "text",
-    action: (editor) => editor.chain().focus().toggleBlockquote().run(),
-  },
-  {
-    id: "code",
-    label: "Código",
-    description: "Bloco de código",
-    icon: <Code size={18} />,
-    category: "structure",
-    action: (editor) => editor.chain().focus().toggleCodeBlock().run(),
-  },
-  {
-    id: "table",
-    label: "Tabela",
-    description: "Tabela 3×3",
-    icon: <Table2 size={18} />,
-    category: "structure",
-    action: (editor) =>
-      editor
-        .chain()
-        .focus()
-        .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
-        .run(),
-  },
-  {
-    id: "callout",
-    label: "Callout",
-    description: "Bloco de destaque",
-    icon: <Info size={18} />,
-    category: "structure",
-    action: (editor) =>
-      editor.chain().focus().setCallout({ variant: "info" }).run(),
-  },
-  {
-    id: "image",
-    label: "Imagem",
-    description: "Inserir imagem",
-    icon: <ImageIcon size={18} />,
-    category: "media",
-    action: (editor) => {
-      const url = window.prompt("URL da imagem:");
-      if (url) {
-        editor.chain().focus().setImage({ src: url }).run();
-      }
+function buildCommands(t: TFunction): SlashCommand[] {
+  return [
+    {
+      id: "heading1",
+      label: t("editor.slash.heading1"),
+      description: t("editor.slash.heading1_desc"),
+      icon: <Heading1 size={18} />,
+      category: "text",
+      action: (editor) =>
+        editor.chain().focus().toggleHeading({ level: 1 }).run(),
     },
-  },
-  {
-    id: "embed",
-    label: "Embed",
-    description: "Conteúdo embarcado (URL)",
-    icon: <Link size={18} />,
-    category: "media",
-    action: (editor) => {
-      const url = window.prompt("URL para embed:");
-      if (url) {
-        const youtubeMatch = url.match(
-          /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/,
-        );
-        if (youtubeMatch?.[1]) {
-          editor
-            .chain()
-            .focus()
-            .insertContent({
-              type: "paragraph",
-              content: [
-                {
-                  type: "text",
-                  text: `[YouTube: ${url}]`,
-                  marks: [{ type: "link", attrs: { href: url } }],
-                },
-              ],
-            })
-            .run();
-        } else {
-          editor
-            .chain()
-            .focus()
-            .insertContent({
-              type: "paragraph",
-              content: [
-                {
-                  type: "text",
-                  text: url,
-                  marks: [{ type: "link", attrs: { href: url } }],
-                },
-              ],
-            })
-            .run();
-        }
-      }
+    {
+      id: "heading2",
+      label: t("editor.slash.heading2"),
+      description: t("editor.slash.heading2_desc"),
+      icon: <Heading2 size={18} />,
+      category: "text",
+      action: (editor) =>
+        editor.chain().focus().toggleHeading({ level: 2 }).run(),
     },
-  },
-  {
-    id: "pdf",
-    label: "PDF",
-    description: "Importar documento PDF",
-    icon: <FileText size={18} />,
-    category: "media",
-    action: (editor) => {
-      const src = window.prompt("Caminho do arquivo PDF:");
-      if (src) {
+    {
+      id: "heading3",
+      label: t("editor.slash.heading3"),
+      description: t("editor.slash.heading3_desc"),
+      icon: <Heading3 size={18} />,
+      category: "text",
+      action: (editor) =>
+        editor.chain().focus().toggleHeading({ level: 3 }).run(),
+    },
+    {
+      id: "bulletList",
+      label: t("editor.slash.bullet_list"),
+      description: t("editor.slash.bullet_list_desc"),
+      icon: <List size={18} />,
+      category: "text",
+      action: (editor) => editor.chain().focus().toggleBulletList().run(),
+    },
+    {
+      id: "orderedList",
+      label: t("editor.slash.ordered_list"),
+      description: t("editor.slash.ordered_list_desc"),
+      icon: <ListOrdered size={18} />,
+      category: "text",
+      action: (editor) => editor.chain().focus().toggleOrderedList().run(),
+    },
+    {
+      id: "checklist",
+      label: t("editor.slash.checklist"),
+      description: t("editor.slash.checklist_desc"),
+      icon: <CheckSquare size={18} />,
+      category: "text",
+      action: (editor) => editor.chain().focus().toggleTaskList().run(),
+    },
+    {
+      id: "blockquote",
+      label: t("editor.slash.blockquote"),
+      description: t("editor.slash.blockquote_desc"),
+      icon: <Quote size={18} />,
+      category: "text",
+      action: (editor) => editor.chain().focus().toggleBlockquote().run(),
+    },
+    {
+      id: "code",
+      label: t("editor.slash.code"),
+      description: t("editor.slash.code_desc"),
+      icon: <Code size={18} />,
+      category: "structure",
+      action: (editor) => editor.chain().focus().toggleCodeBlock().run(),
+    },
+    {
+      id: "table",
+      label: t("editor.slash.table"),
+      description: t("editor.slash.table_desc"),
+      icon: <Table2 size={18} />,
+      category: "structure",
+      action: (editor) =>
         editor
           .chain()
           .focus()
-          .insertContent({
-            type: "pdfBlock",
-            attrs: { src, totalPages: 0, displayMode: "continuous", currentPage: 1, scale: 1.5 },
-          })
-          .run();
-      }
+          .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
+          .run(),
     },
-  },
-  {
-    id: "draw",
-    label: "Desenho",
-    description: "Bloco de desenho livre",
-    icon: <Pencil size={18} />,
-    category: "media",
-    action: (editor) =>
-      editor
-        .chain()
-        .focus()
-        .insertContent({ type: "inkBlock", attrs: { height: 300 } })
-        .run(),
-  },
-  {
-    id: "divider",
-    label: "Divisor",
-    description: "Linha separadora",
-    icon: <Minus size={18} />,
-    category: "structure",
-    action: (editor) => editor.chain().focus().setHorizontalRule().run(),
-  },
-];
+    {
+      id: "callout",
+      label: t("editor.slash.callout"),
+      description: t("editor.slash.callout_desc"),
+      icon: <Info size={18} />,
+      category: "structure",
+      action: (editor) =>
+        editor.chain().focus().setCallout({ variant: "info" }).run(),
+    },
+    {
+      id: "image",
+      label: t("editor.slash.image"),
+      description: t("editor.slash.image_desc"),
+      icon: <ImageIcon size={18} />,
+      category: "media",
+      action: (editor) => {
+        const url = window.prompt(t("editor.image_url_prompt"));
+        if (url) {
+          editor.chain().focus().setImage({ src: url }).run();
+        }
+      },
+    },
+    {
+      id: "embed",
+      label: t("editor.slash.embed"),
+      description: t("editor.slash.embed_desc"),
+      icon: <Link size={18} />,
+      category: "media",
+      action: (editor) => {
+        const url = window.prompt(t("editor.slash.embed_desc"));
+        if (url) {
+          const youtubeMatch = url.match(
+            /(?:youtube\.com\/watch\?v=|youtu\.be\/)([a-zA-Z0-9_-]+)/,
+          );
+          if (youtubeMatch?.[1]) {
+            editor
+              .chain()
+              .focus()
+              .insertContent({
+                type: "paragraph",
+                content: [
+                  {
+                    type: "text",
+                    text: `[YouTube: ${url}]`,
+                    marks: [{ type: "link", attrs: { href: url } }],
+                  },
+                ],
+              })
+              .run();
+          } else {
+            editor
+              .chain()
+              .focus()
+              .insertContent({
+                type: "paragraph",
+                content: [
+                  {
+                    type: "text",
+                    text: url,
+                    marks: [{ type: "link", attrs: { href: url } }],
+                  },
+                ],
+              })
+              .run();
+          }
+        }
+      },
+    },
+    {
+      id: "pdf",
+      label: "PDF",
+      description: t("pdf.import"),
+      icon: <FileText size={18} />,
+      category: "media",
+      action: (editor) => {
+        const src = window.prompt(t("pdf.select_file"));
+        if (src) {
+          editor
+            .chain()
+            .focus()
+            .insertContent({
+              type: "pdfBlock",
+              attrs: { src, totalPages: 0, displayMode: "continuous", currentPage: 1, scale: 1.5 },
+            })
+            .run();
+        }
+      },
+    },
+    {
+      id: "draw",
+      label: "Ink",
+      description: "Freehand drawing block",
+      icon: <Pencil size={18} />,
+      category: "media",
+      action: (editor) =>
+        editor
+          .chain()
+          .focus()
+          .insertContent({ type: "inkBlock", attrs: { height: 300 } })
+          .run(),
+    },
+    {
+      id: "divider",
+      label: t("editor.slash.divider"),
+      description: t("editor.slash.divider_desc"),
+      icon: <Minus size={18} />,
+      category: "structure",
+      action: (editor) => editor.chain().focus().setHorizontalRule().run(),
+    },
+  ];
+}
 
 interface SlashCommandMenuProps {
   editor: Editor;
@@ -229,8 +233,10 @@ export function SlashCommandMenu({ editor }: SlashCommandMenuProps) {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const menuRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
+  const { t } = useTranslation();
+  const commands = useMemo(() => buildCommands(t), [t]);
 
-  const filtered = COMMANDS.filter(
+  const filtered = commands.filter(
     (cmd) =>
       cmd.label.toLowerCase().includes(query.toLowerCase()) ||
       cmd.description.toLowerCase().includes(query.toLowerCase()),

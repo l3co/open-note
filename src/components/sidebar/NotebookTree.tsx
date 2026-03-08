@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import {
   BookOpen,
   FileText,
@@ -14,8 +15,8 @@ import type { Section } from "@/types/bindings/Section";
 import type { PageSummary } from "@/types/bindings/PageSummary";
 
 export function NotebookTree() {
+  const { t } = useTranslation();
   const {
-    notebooks,
     loadSections,
     sections,
     reorderNotebooks,
@@ -132,7 +133,7 @@ export function NotebookTree() {
   );
 
   return (
-    <div role="tree" aria-label="Navegação de notas">
+    <div role="tree" aria-label={t("sidebar.notebooks")}>
       {notebooks.map((nb) => {
         const isExpanded = expandedNotebooks.has(nb.id);
         const nbSections = sections.get(nb.id) ?? [];

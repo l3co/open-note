@@ -1,6 +1,9 @@
+import { useTranslation } from "react-i18next";
 import { BookOpen, Plus, Keyboard } from "lucide-react";
 
 export function WelcomePage() {
+  const { t } = useTranslation();
+
   return (
     <div
       className="flex flex-1 items-center justify-center"
@@ -24,14 +27,14 @@ export function WelcomePage() {
           className="mt-2 text-sm"
           style={{ color: "var(--text-secondary)" }}
         >
-          Selecione uma página na sidebar ou crie uma nova para começar.
+          {t("page.select_page")}
         </p>
 
         <div className="mt-8 space-y-3">
-          <ShortcutHint icon={<Plus size={14} />} label="Nova página" keys="Cmd+N" />
+          <ShortcutHint icon={<Plus size={14} />} label={t("page.new")} keys="Cmd+N" />
           <ShortcutHint
             icon={<Keyboard size={14} />}
-            label="Novo notebook"
+            label={t("notebook.new")}
             keys="Cmd+Shift+N"
           />
         </div>

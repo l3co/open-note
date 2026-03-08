@@ -1,13 +1,15 @@
-import { Plus, Search, Trash2, FolderSync } from "lucide-react";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Plus, Search, Trash2, FolderSync, Settings } from "lucide-react";
 import { useUIStore } from "@/stores/useUIStore";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
-import { useState } from "react";
 import { CreateDialog } from "@/components/shared/CreateDialog";
 
 export function SidebarFooter() {
-  const { openWorkspacePicker, openTrashPanel } = useUIStore();
+  const { openWorkspacePicker, openTrashPanel, openSettings } = useUIStore();
   const { createNotebook } = useWorkspaceStore();
   const [showCreate, setShowCreate] = useState(false);
+  const { t } = useTranslation();
 
   return (
     <>
@@ -18,32 +20,37 @@ export function SidebarFooter() {
         <div className="flex items-center gap-1">
           <FooterButton
             icon={<Plus size={16} />}
-            label="Novo notebook"
+            label={t("notebook.new")}
             onClick={() => setShowCreate(true)}
           />
           <FooterButton
             icon={<Search size={16} />}
-            label="Buscar (em breve)"
+            label={t("sidebar.search")}
             onClick={() => {}}
             disabled
           />
           <FooterButton
             icon={<Trash2 size={16} />}
-            label="Lixeira"
+            label={t("sidebar.trash")}
             onClick={openTrashPanel}
+          />
+          <FooterButton
+            icon={<Settings size={16} />}
+            label={t("settings.title")}
+            onClick={openSettings}
           />
         </div>
         <FooterButton
           icon={<FolderSync size={16} />}
-          label="Trocar workspace"
+          label={t("workspace.open")}
           onClick={openWorkspacePicker}
         />
       </div>
 
       {showCreate && (
         <CreateDialog
-          title="Novo Notebook"
-          placeholder="Nome do notebook"
+          title={t("notebook.new")}
+          placeholder={t("notebook.name_placeholder")}
           onConfirm={async (name) => {
             await createNotebook(name);
             setShowCreate(false);

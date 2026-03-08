@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { useTranslation } from "react-i18next";
 import { Search, FileText, X, Clock } from "lucide-react";
 import { useUIStore } from "@/stores/useUIStore";
 import { useNavigationStore } from "@/stores/useNavigationStore";
@@ -16,6 +17,7 @@ export function SearchPanel() {
   const [queryTimeMs, setQueryTimeMs] = useState(0);
   const [loading, setLoading] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -105,7 +107,7 @@ export function SearchPanel() {
   return (
     <div className="search-panel">
       <div className="search-panel-header">
-        <h3 className="search-panel-title">Buscar</h3>
+        <h3 className="search-panel-title">{t("sidebar.search")}</h3>
         <button className="search-panel-close" onClick={close}>
           <X size={16} />
         </button>
@@ -117,7 +119,7 @@ export function SearchPanel() {
           ref={inputRef}
           type="text"
           className="search-panel-input"
-          placeholder="Buscar em todas as notas..."
+          placeholder={t("search.panel_placeholder")}
           value={query}
           onChange={(e) => handleChange(e.target.value)}
           onKeyDown={handleKeyDown}
@@ -126,7 +128,7 @@ export function SearchPanel() {
 
       {query && !loading && results.length > 0 && (
         <div className="search-panel-meta">
-          {total} resultado{total !== 1 ? "s" : ""} em {queryTimeMs}ms
+          {t("search.results_count", { count: total })} — {queryTimeMs}ms
         </div>
       )}
 
@@ -159,7 +161,7 @@ export function SearchPanel() {
         ))}
 
         {query && !loading && results.length === 0 && (
-          <div className="search-panel-empty">Nenhum resultado encontrado</div>
+          <div className="search-panel-empty">{t("search.no_results")}</div>
         )}
       </div>
     </div>

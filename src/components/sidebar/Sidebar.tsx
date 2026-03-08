@@ -1,10 +1,12 @@
 import { useCallback, useRef, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 import { useUIStore } from "@/stores/useUIStore";
 import { NotebookTree } from "@/components/sidebar/NotebookTree";
 import { SidebarFooter } from "@/components/sidebar/SidebarFooter";
 
 export function Sidebar() {
   const { sidebarOpen, sidebarWidth, setSidebarWidth } = useUIStore();
+  const { t } = useTranslation();
   const resizeRef = useRef<HTMLDivElement>(null);
   const isResizing = useRef(false);
 
@@ -50,7 +52,7 @@ export function Sidebar() {
     >
       <nav
         className="flex-1 overflow-y-auto px-2 py-2"
-        aria-label="Navegação de notas"
+        aria-label={t("sidebar.notebooks")}
       >
         <NotebookTree />
       </nav>
