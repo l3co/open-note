@@ -24,6 +24,7 @@
   --warning: #f59e0b;
   --info: #3b82f6;
   --overlay: rgba(0, 0, 0, 0.4);
+  --bg-pattern: rgba(0, 0, 0, 0.04);
 }
 
 [data-theme="paper"] {
@@ -47,6 +48,7 @@
   --warning: #d4a017;
   --info: #2980b9;
   --overlay: rgba(61, 51, 41, 0.4);
+  --bg-pattern: rgba(139, 109, 71, 0.07);
 }
 
 [data-theme="dark"] {
@@ -70,6 +72,7 @@
   --warning: #fbbf24;
   --info: #60a5fa;
   --overlay: rgba(0, 0, 0, 0.6);
+  --bg-pattern: rgba(255, 255, 255, 0.04);
 }
 
 /* ===== Camada 2: Accent Color (default: Blue) ===== */

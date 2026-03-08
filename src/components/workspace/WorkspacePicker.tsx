@@ -5,6 +5,8 @@ import { open } from "@tauri-apps/plugin-dialog";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 import { useUIStore } from "@/stores/useUIStore";
 import * as ipc from "@/lib/ipc";
+import { BackgroundPattern } from "@/components/shared/BackgroundPattern";
+import logoSrc from "@/assets/logo.png";
 import type { AppState } from "@/types/bindings/AppState";
 
 export function WorkspacePicker() {
@@ -64,17 +66,21 @@ export function WorkspacePicker() {
 
   return (
     <div
-      className="flex h-screen w-full items-center justify-center"
+      className="relative flex h-screen w-full items-center justify-center"
       style={{ backgroundColor: "var(--bg-secondary)" }}
     >
+      <BackgroundPattern />
       <div
-        className="w-[420px] rounded-xl border p-6 shadow-lg"
+        className="relative z-10 w-[420px] rounded-xl border p-6 shadow-lg"
         style={{
           backgroundColor: "var(--bg-primary)",
           borderColor: "var(--border)",
           boxShadow: "var(--shadow-lg)",
         }}
       >
+        <div className="mb-4 flex justify-center">
+          <img src={logoSrc} alt="Open Note" className="h-14 w-14" />
+        </div>
         <h1
           className="mb-1 text-center text-2xl font-bold"
           style={{ color: "var(--text-primary)" }}

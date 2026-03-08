@@ -1,20 +1,20 @@
 import { useTranslation } from "react-i18next";
-import { BookOpen, Plus, Keyboard } from "lucide-react";
+import { Plus, Keyboard } from "lucide-react";
+import { BackgroundPattern } from "@/components/shared/BackgroundPattern";
+import logoSrc from "@/assets/logo.png";
 
 export function WelcomePage() {
   const { t } = useTranslation();
 
   return (
     <div
-      className="flex flex-1 items-center justify-center"
+      className="relative flex flex-1 items-center justify-center"
       style={{ backgroundColor: "var(--bg-primary)" }}
     >
-      <div className="max-w-md text-center">
-        <div
-          className="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-2xl"
-          style={{ backgroundColor: "var(--accent-subtle)" }}
-        >
-          <BookOpen size={32} style={{ color: "var(--accent)" }} />
+      <BackgroundPattern />
+      <div className="relative z-10 max-w-md text-center">
+        <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center">
+          <img src={logoSrc} alt="Open Note" className="h-14 w-14" />
         </div>
 
         <h1

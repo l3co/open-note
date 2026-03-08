@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
-  BookOpen,
   PanelLeft,
   Slash,
   Code,
@@ -10,6 +9,8 @@ import {
   ArrowLeft,
   Check,
 } from "lucide-react";
+import { BackgroundPattern } from "@/components/shared/BackgroundPattern";
+import logoSrc from "@/assets/logo.png";
 
 interface OnboardingDialogProps {
   onComplete: () => void;
@@ -74,7 +75,7 @@ export function OnboardingDialog({ onComplete }: OnboardingDialogProps) {
       style={{ backgroundColor: "var(--overlay)" }}
     >
       <div
-        className="w-[480px] overflow-hidden rounded-xl border shadow-xl"
+        className="relative w-[480px] overflow-hidden rounded-xl border shadow-xl"
         style={{
           backgroundColor: "var(--bg-primary)",
           borderColor: "var(--border)",
@@ -84,6 +85,7 @@ export function OnboardingDialog({ onComplete }: OnboardingDialogProps) {
         aria-modal="true"
         aria-label={t("onboarding.welcome")}
       >
+        <BackgroundPattern />
         {step === "welcome" ? (
           <WelcomeStep onStart={handleStartTour} onSkip={onComplete} />
         ) : (
@@ -111,12 +113,9 @@ function WelcomeStep({
   const { t } = useTranslation();
 
   return (
-    <div className="flex flex-col items-center px-8 py-10">
-      <div
-        className="mb-6 flex h-16 w-16 items-center justify-center rounded-2xl"
-        style={{ backgroundColor: "var(--accent-subtle)" }}
-      >
-        <BookOpen size={32} style={{ color: "var(--accent)" }} />
+    <div className="relative z-10 flex flex-col items-center px-8 py-10">
+      <div className="mb-6 flex h-16 w-16 items-center justify-center">
+        <img src={logoSrc} alt="Open Note" className="h-14 w-14" />
       </div>
 
       <h1
@@ -186,7 +185,7 @@ function TourStepView({
   const { t } = useTranslation();
 
   return (
-    <div className="flex flex-col px-8 py-10">
+    <div className="relative z-10 flex flex-col px-8 py-10">
       <div className="flex flex-col items-center">
         <div
           className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl"
