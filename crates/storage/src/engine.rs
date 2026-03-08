@@ -640,7 +640,7 @@ impl FsStorageEngine {
         })
     }
 
-    fn find_section_dir(
+    pub fn find_section_dir(
         workspace_root: &Path,
         section_id: SectionId,
     ) -> StorageResult<(PathBuf, PathBuf)> {

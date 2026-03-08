@@ -511,3 +511,44 @@ body {
   pointer-events: auto;
   cursor: crosshair;
 }
+
+/* ─── PDF Block ─── */
+
+.pdf-block-wrapper {
+  margin: 0.75rem 0;
+}
+
+.pdf-block-container {
+  transition: box-shadow 0.15s ease;
+}
+
+.pdf-block-container:hover {
+  box-shadow: 0 0 0 2px var(--accent-subtle);
+}
+
+.pdf-page-container canvas {
+  display: block;
+}
+
+.pdf-text-layer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  opacity: 0.25;
+  line-height: 1;
+  z-index: 20;
+}
+
+.pdf-text-layer span {
+  position: absolute;
+  white-space: pre;
+  color: transparent;
+  pointer-events: all;
+}
+
+.pdf-text-layer ::selection {
+  background: rgba(0, 100, 200, 0.3);
+}

@@ -106,6 +106,11 @@ export const readFileContent = (path: string) =>
 export const saveFileContent = (path: string, content: string) =>
   invoke<void>("save_file_content", { path, content });
 
+// ─── PDF ───
+
+export const importPdf = (sectionId: SectionId, filePath: string) =>
+  invoke<[string, number]>("import_pdf", { sectionId, filePath });
+
 // ─── Tags ───
 
 export const listAllTags = () => invoke<string[]>("list_all_tags");

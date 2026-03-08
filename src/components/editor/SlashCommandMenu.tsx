@@ -14,6 +14,7 @@ import {
   Info,
   Link,
   Pencil,
+  FileText,
 } from "lucide-react";
 import type { Editor } from "@tiptap/react";
 
@@ -172,6 +173,26 @@ const COMMANDS: SlashCommand[] = [
             })
             .run();
         }
+      }
+    },
+  },
+  {
+    id: "pdf",
+    label: "PDF",
+    description: "Importar documento PDF",
+    icon: <FileText size={18} />,
+    category: "media",
+    action: (editor) => {
+      const src = window.prompt("Caminho do arquivo PDF:");
+      if (src) {
+        editor
+          .chain()
+          .focus()
+          .insertContent({
+            type: "pdfBlock",
+            attrs: { src, totalPages: 0, displayMode: "continuous", currentPage: 1, scale: 1.5 },
+          })
+          .run();
       }
     },
   },

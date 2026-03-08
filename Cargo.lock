@@ -2033,6 +2033,7 @@ dependencies = [
  "tauri-build",
  "tauri-plugin-shell",
  "tokio",
+ "uuid",
 ]
 
 [[package]]

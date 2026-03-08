@@ -20,6 +20,7 @@ import { FloatingToolbar } from "@/components/editor/FloatingToolbar";
 import { SlashCommandMenu } from "@/components/editor/SlashCommandMenu";
 import { Callout } from "@/components/editor/extensions/CalloutExtension";
 import { InkBlock } from "@/components/editor/extensions/InkBlockExtension";
+import { PdfBlock } from "@/components/editor/extensions/PdfBlockExtension";
 
 const lowlight = createLowlight(common);
 
@@ -64,6 +65,7 @@ export function BlockEditor({
       }),
       Callout,
       InkBlock,
+      PdfBlock,
       Placeholder.configure({
         placeholder: ({ node }) => {
           if (node.type.name === "heading") {

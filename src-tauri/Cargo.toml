@@ -21,4 +21,5 @@ tauri-plugin-shell = "2"
 serde = { workspace = true }
 serde_json = { workspace = true }
 chrono = { workspace = true }
+uuid = { workspace = true }
 tokio = { version = "1", features = ["full"] }
