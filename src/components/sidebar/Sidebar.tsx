@@ -49,10 +49,12 @@ export function Sidebar() {
         backgroundColor: "var(--bg-sidebar)",
         borderColor: "var(--border)",
       }}
+      data-testid="sidebar"
     >
       <nav
         className="flex-1 overflow-y-auto px-2 py-2"
         aria-label={t("sidebar.notebooks")}
+        data-testid="sidebar-nav"
       >
         <NotebookTree />
       </nav>
@@ -64,6 +66,7 @@ export function Sidebar() {
         onMouseDown={handleMouseDown}
         className="absolute right-0 top-0 h-full w-1 cursor-col-resize hover:bg-[var(--accent)]"
         style={{ opacity: 0.3 }}
+        data-testid="sidebar-resize-handle"
       />
     </aside>
   );

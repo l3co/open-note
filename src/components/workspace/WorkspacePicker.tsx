@@ -68,6 +68,7 @@ export function WorkspacePicker() {
     <div
       className="relative flex h-screen w-full items-center justify-center"
       style={{ backgroundColor: "var(--bg-secondary)" }}
+      data-testid="workspace-picker"
     >
       <BackgroundPattern />
       <div
@@ -84,6 +85,7 @@ export function WorkspacePicker() {
         <h1
           className="mb-1 text-center text-2xl font-bold"
           style={{ color: "var(--text-primary)" }}
+          data-testid="workspace-picker-title"
         >
           {t("workspace.picker_title")}
         </h1>
@@ -101,6 +103,7 @@ export function WorkspacePicker() {
               backgroundColor: "rgba(239, 68, 68, 0.1)",
               color: "var(--danger)",
             }}
+            data-testid="workspace-error"
           >
             <AlertCircle size={14} />
             <span className="flex-1">{error}</span>
@@ -189,6 +192,7 @@ export function WorkspacePicker() {
               <div
                 className="rounded-lg border p-3"
                 style={{ borderColor: "var(--border)" }}
+                data-testid="workspace-create-form"
               >
                 <h3
                   className="mb-2 text-xs font-medium"
@@ -206,6 +210,7 @@ export function WorkspacePicker() {
                   placeholder={t("workspace.create_name_placeholder")}
                   value={newName}
                   onChange={(e) => setNewName(e.target.value)}
+                  data-testid="workspace-name-input"
                 />
                 <div className="mb-3 flex gap-1.5">
                   <input
@@ -264,6 +269,7 @@ export function WorkspacePicker() {
                       backgroundColor: "var(--accent)",
                       color: "var(--accent-text)",
                     }}
+                    data-testid="workspace-confirm-create"
                   >
                     {t("common.create")}
                   </button>
@@ -275,16 +281,19 @@ export function WorkspacePicker() {
                   icon={<Plus size={16} />}
                   label={t("workspace.create")}
                   onClick={() => setShowCreate(true)}
+                  testId="workspace-create-btn"
                 />
                 <ActionButton
                   icon={<Cloud size={16} />}
                   label={t("workspace.cloud_connect")}
                   disabled
                   badge={t("workspace.cloud_coming_soon")}
+                  testId="workspace-cloud-btn"
                 />
                 <ActionButton
                   icon={<FolderOpen size={16} />}
                   label={t("workspace.open")}
+                  testId="workspace-open-btn"
                   onClick={async () => {
                     const selected = await open({
                       directory: true,
@@ -309,17 +318,20 @@ function ActionButton({
   onClick,
   disabled = false,
   badge,
+  testId,
 }: {
   icon: React.ReactNode;
   label: string;
   onClick?: () => void;
   disabled?: boolean;
   badge?: string;
+  testId?: string;
 }) {
   return (
     <button
       onClick={onClick}
       disabled={disabled}
+      data-testid={testId}
       className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-50"
       style={{ color: "var(--text-primary)" }}
       onMouseEnter={(e) => {

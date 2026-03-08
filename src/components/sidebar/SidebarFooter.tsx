@@ -16,6 +16,7 @@ export function SidebarFooter() {
       <div
         className="flex items-center justify-between border-t px-2 py-2"
         style={{ borderColor: "var(--border)" }}
+        data-testid="sidebar-footer"
       >
         <div className="flex items-center gap-1">
           <FooterButton

@@ -59,6 +59,7 @@ export function SettingsDialog() {
         role="dialog"
         aria-modal="true"
         aria-label={t("settings.title")}
+        data-testid="settings-dialog"
       >
         {/* Sidebar */}
         <div
@@ -79,6 +80,7 @@ export function SettingsDialog() {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
+                data-testid={`settings-tab-${tab.id}`}
                 className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-[13px] transition-colors"
                 style={{
                   backgroundColor:
@@ -132,7 +134,7 @@ export function SettingsDialog() {
             </button>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-6 py-4">
+          <div className="flex-1 overflow-y-auto px-6 py-4" data-testid="settings-content">
             {activeTab === "general" && <GeneralSection />}
             {activeTab === "appearance" && <AppearanceSection />}
             {activeTab === "editor" && <EditorSection />}

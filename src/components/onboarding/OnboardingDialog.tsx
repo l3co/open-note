@@ -84,6 +84,7 @@ export function OnboardingDialog({ onComplete }: OnboardingDialogProps) {
         role="dialog"
         aria-modal="true"
         aria-label={t("onboarding.welcome")}
+        data-testid="onboarding-dialog"
       >
         <BackgroundPattern />
         {step === "welcome" ? (
@@ -113,7 +114,7 @@ function WelcomeStep({
   const { t } = useTranslation();
 
   return (
-    <div className="relative z-10 flex flex-col items-center px-8 py-10">
+    <div className="relative z-10 flex flex-col items-center px-8 py-10" data-testid="onboarding-welcome">
       <div className="mb-6 flex h-16 w-16 items-center justify-center">
         <img src={logoSrc} alt="Open Note" className="h-14 w-14" />
       </div>
@@ -134,6 +135,7 @@ function WelcomeStep({
       <div className="mt-8 flex w-full flex-col gap-3">
         <button
           onClick={onStart}
+          data-testid="onboarding-start"
           className="flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors"
           style={{
             backgroundColor: "var(--accent)",
@@ -151,6 +153,7 @@ function WelcomeStep({
         </button>
         <button
           onClick={onSkip}
+          data-testid="onboarding-skip"
           className="rounded-lg px-4 py-2 text-sm transition-colors"
           style={{ color: "var(--text-tertiary)" }}
           onMouseEnter={(e) =>
@@ -185,7 +188,7 @@ function TourStepView({
   const { t } = useTranslation();
 
   return (
-    <div className="relative z-10 flex flex-col px-8 py-10">
+    <div className="relative z-10 flex flex-col px-8 py-10" data-testid="onboarding-tour-step">
       <div className="flex flex-col items-center">
         <div
           className="mb-6 flex h-14 w-14 items-center justify-center rounded-xl"
@@ -212,7 +215,7 @@ function TourStepView({
       </div>
 
       {/* Progress dots */}
-      <div className="mt-6 flex justify-center gap-1.5">
+      <div className="mt-6 flex justify-center gap-1.5" data-testid="onboarding-progress">
         {Array.from({ length: totalSteps }).map((_, i) => (
           <div
             key={i}
@@ -230,6 +233,7 @@ function TourStepView({
       <div className="mt-6 flex items-center justify-between">
         <button
           onClick={onBack}
+          data-testid="onboarding-back"
           className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm transition-colors"
           style={{ color: "var(--text-secondary)" }}
           onMouseEnter={(e) =>
@@ -244,6 +248,7 @@ function TourStepView({
         </button>
         <button
           onClick={onNext}
+          data-testid="onboarding-next"
           className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
           style={{
             backgroundColor: "var(--accent)",

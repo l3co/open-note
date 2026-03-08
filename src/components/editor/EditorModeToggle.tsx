@@ -15,6 +15,7 @@ export function EditorModeToggle({ mode, onChange }: EditorModeToggleProps) {
     <div
       className="inline-flex overflow-hidden rounded-md border"
       style={{ borderColor: "var(--border)" }}
+      data-testid="editor-mode-toggle"
     >
       <button
         type="button"
@@ -26,6 +27,7 @@ export function EditorModeToggle({ mode, onChange }: EditorModeToggleProps) {
             mode === "richtext" ? "var(--accent)" : "var(--text-secondary)",
         }}
         onClick={() => onChange("richtext")}
+        data-testid="mode-richtext"
       >
         <Type size={14} />
         {t("editor.mode_richtext")}
@@ -41,6 +43,7 @@ export function EditorModeToggle({ mode, onChange }: EditorModeToggleProps) {
             mode === "markdown" ? "var(--accent)" : "var(--text-secondary)",
         }}
         onClick={() => onChange("markdown")}
+        data-testid="mode-markdown"
       >
         <Code size={14} />
         {t("editor.mode_markdown")}

@@ -66,6 +66,7 @@ export function CreateDialog({
 
         <input
           ref={inputRef}
+          data-testid="create-dialog-input"
           className="h-8 w-full rounded border bg-transparent px-3 text-sm outline-none"
           style={{
             borderColor: error ? "var(--danger)" : "var(--border)",
@@ -84,7 +85,7 @@ export function CreateDialog({
         />
 
         {error && (
-          <p className="mt-1 text-xs" style={{ color: "var(--danger)" }}>
+          <p className="mt-1 text-xs" style={{ color: "var(--danger)" }} data-testid="create-dialog-error">
             {error}
           </p>
         )}
@@ -92,6 +93,7 @@ export function CreateDialog({
         <div className="mt-4 flex justify-end gap-2">
           <button
             onClick={onCancel}
+            data-testid="create-dialog-cancel"
             className="rounded px-3 py-1.5 text-xs"
             style={{ color: "var(--text-secondary)" }}
             onMouseEnter={(e) =>
@@ -106,6 +108,7 @@ export function CreateDialog({
           <button
             onClick={handleSubmit}
             disabled={submitting}
+            data-testid="create-dialog-confirm"
             className="rounded px-3 py-1.5 text-xs font-medium disabled:opacity-50"
             style={{
               backgroundColor: "var(--accent)",

@@ -54,6 +54,7 @@ export function TitleEditor({
       role="textbox"
       aria-label={t("page.untitled")}
       data-placeholder={t("page.untitled")}
+      data-testid="title-editor"
       className="page-title w-full cursor-text border-none text-3xl font-bold outline-none"
       style={{
         color: "var(--text-primary)",

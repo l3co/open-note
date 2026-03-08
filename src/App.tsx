@@ -78,6 +78,7 @@ export function App() {
       <div
         className="flex h-screen items-center justify-center"
         style={{ backgroundColor: "var(--bg-primary)" }}
+        data-testid="app-loading"
       >
         <div className="text-center">
           <h1
@@ -107,7 +108,7 @@ export function App() {
   }
 
   return (
-    <div className="flex h-screen flex-col">
+    <div className="flex h-screen flex-col" data-testid="app-main">
       <Toolbar />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar />

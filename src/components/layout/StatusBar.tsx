@@ -39,8 +39,9 @@ export function StatusBar() {
         borderColor: "var(--border)",
         color: "var(--text-tertiary)",
       }}
+      data-testid="status-bar"
     >
-      <span className="truncate">
+      <span className="truncate" data-testid="status-workspace-path">
         {workspace?.root_path ?? t("workspace.none_open")}
       </span>
 
@@ -53,16 +54,18 @@ export function StatusBar() {
                 ? t("page.blocks_warning")
                 : undefined
             }
+            data-testid="status-block-count"
           >
             {t("page.blocks", { count: blockCount })}
           </span>
         )}
-        {saveLabel && <span style={{ color: saveColor }}>{saveLabel}</span>}
+        {saveLabel && <span style={{ color: saveColor }} data-testid="status-save">{saveLabel}</span>}
         <button
           onClick={openSyncSettings}
           className="flex items-center gap-1 hover:opacity-80"
           style={{ background: "none", border: "none", color: "var(--text-tertiary)", cursor: "pointer", padding: 0, fontSize: "11px" }}
           title={t("sync.title")}
+          data-testid="status-sync-btn"
         >
           <CloudOff size={13} />
         </button>

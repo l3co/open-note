@@ -13,6 +13,7 @@ export function ContentArea() {
       <div
         className="flex flex-1 items-center justify-center"
         style={{ backgroundColor: "var(--bg-primary)" }}
+        data-testid="content-loading"
       >
         <Loader2
           size={24}

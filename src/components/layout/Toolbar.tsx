@@ -20,6 +20,7 @@ export function Toolbar() {
         backgroundColor: "var(--bg-toolbar)",
         borderColor: "var(--border)",
       }}
+      data-testid="toolbar"
     >
       <button
         onClick={toggleSidebar}
@@ -71,7 +72,7 @@ export function Toolbar() {
         </button>
       </div>
 
-      <div className="ml-3 flex-1">
+      <div className="ml-3 flex-1" data-testid="breadcrumb">
         <Breadcrumb />
       </div>
     </header>

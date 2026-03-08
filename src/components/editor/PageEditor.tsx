@@ -106,6 +106,7 @@ export function PageEditor({ page }: PageEditorProps) {
   return (
     <div
       className="page-editor mx-auto max-w-3xl px-8 py-6"
+      data-testid="page-editor"
       onBlur={() => {
         forceSave();
       }}

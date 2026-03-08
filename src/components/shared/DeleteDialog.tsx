@@ -78,6 +78,7 @@ export function DeleteDialog({
         <div className="mt-4 flex justify-end gap-2">
           <button
             onClick={onCancel}
+            data-testid="delete-dialog-cancel"
             className="rounded px-3 py-1.5 text-xs"
             style={{ color: "var(--text-secondary)" }}
             onMouseEnter={(e) =>
@@ -92,6 +93,7 @@ export function DeleteDialog({
           <button
             onClick={handleConfirm}
             disabled={submitting}
+            data-testid="delete-dialog-confirm"
             className="rounded px-3 py-1.5 text-xs font-medium disabled:opacity-50"
             style={{
               backgroundColor: "var(--danger)",
