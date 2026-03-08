@@ -86,4 +86,28 @@ mod tests {
         assert!(json.starts_with('"'));
         assert!(json.ends_with('"'));
     }
+
+    #[test]
+    fn test_id_type_safety_across_newtypes() {
+        use std::any::TypeId;
+        assert_ne!(TypeId::of::<PageId>(), TypeId::of::<NotebookId>());
+        assert_ne!(TypeId::of::<PageId>(), TypeId::of::<SectionId>());
+        assert_ne!(TypeId::of::<NotebookId>(), TypeId::of::<SectionId>());
+        assert_ne!(TypeId::of::<BlockId>(), TypeId::of::<StrokeId>());
+    }
+
+    #[test]
+    fn test_id_parse_from_string() {
+        let uuid = Uuid::parse_str("550e8400-e29b-41d4-a716-446655440000").unwrap();
+        let page_id = PageId::from_uuid(uuid);
+        assert_eq!(page_id.to_string(), "550e8400-e29b-41d4-a716-446655440000");
+
+        let json_valid = r#""550e8400-e29b-41d4-a716-446655440000""#;
+        let parsed: PageId = serde_json::from_str(json_valid).unwrap();
+        assert_eq!(parsed, page_id);
+
+        let json_invalid = r#""not-a-uuid""#;
+        let result: Result<PageId, _> = serde_json::from_str(json_invalid);
+        assert!(result.is_err());
+    }
 }

@@ -297,4 +297,84 @@ mod tests {
         assert_eq!(loaded.files.len(), 1);
         assert!(loaded.get_entry("test.json").is_some());
     }
+
+    // ─── Phase 4 Retrofit: Additional Change Detection ───
+
+    #[test]
+    fn detect_remote_modified() {
+        let now = Utc::now();
+        let mut local = HashMap::new();
+        local.insert("page.json".to_string(), ("hash_old".to_string(), now));
+        let mut remote = HashMap::new();
+        remote.insert(
+            "page.json".to_string(),
+            ("hash_new_remote".to_string(), now),
+        );
+
+        let mut manifest = SyncManifest::default();
+        manifest.update_entry(
+            "page.json",
+            SyncFileEntry {
+                local_hash: "hash_old".to_string(),
+                remote_hash: "hash_old".to_string(),
+                local_modified_at: now,
+                remote_modified_at: now,
+                synced_at: now,
+            },
+        );
+
+        let changes = detect_changes(&local, &remote, &manifest);
+        assert_eq!(changes.len(), 1);
+        assert_eq!(changes[0].kind, FileChangeKind::RemoteModified);
+    }
+
+    #[test]
+    fn detect_local_deleted() {
+        let now = Utc::now();
+        let local = HashMap::new();
+        let mut remote = HashMap::new();
+        remote.insert("page.json".to_string(), ("hash_old".to_string(), now));
+
+        let mut manifest = SyncManifest::default();
+        manifest.update_entry(
+            "page.json",
+            SyncFileEntry {
+                local_hash: "hash_old".to_string(),
+                remote_hash: "hash_old".to_string(),
+                local_modified_at: now,
+                remote_modified_at: now,
+                synced_at: now,
+            },
+        );
+
+        let changes = detect_changes(&local, &remote, &manifest);
+        assert_eq!(changes.len(), 1);
+        assert_eq!(changes[0].kind, FileChangeKind::LocalDeleted);
+    }
+
+    #[test]
+    fn manifest_remove_entry() {
+        let mut manifest = SyncManifest::default();
+        manifest.update_entry(
+            "file.json",
+            SyncFileEntry {
+                local_hash: "h1".to_string(),
+                remote_hash: "h1".to_string(),
+                local_modified_at: Utc::now(),
+                remote_modified_at: Utc::now(),
+                synced_at: Utc::now(),
+            },
+        );
+        assert!(manifest.get_entry("file.json").is_some());
+
+        manifest.remove_entry("file.json");
+        assert!(manifest.get_entry("file.json").is_none());
+    }
+
+    #[test]
+    fn manifest_load_nonexistent_returns_default() {
+        let path = std::path::Path::new("/tmp/nonexistent_sync_manifest_xyz.json");
+        let manifest = SyncManifest::load(path).unwrap();
+        assert!(manifest.files.is_empty());
+    }
 }

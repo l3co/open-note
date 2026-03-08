@@ -1,4 +1,4 @@
-use log::{debug, info, error};
+use log::{debug, error, info};
 use tauri::State;
 
 use opennote_core::settings::{AppState, GlobalSettings};

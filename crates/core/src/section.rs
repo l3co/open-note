@@ -75,4 +75,13 @@ mod tests {
         sec.rename("New").unwrap();
         assert_eq!(sec.name, "New");
     }
+
+    #[test]
+    fn test_section_validation_empty_name() {
+        let err = Section::new(NotebookId::new(), "", 0).unwrap_err();
+        assert!(matches!(err, CoreError::Validation { .. }));
+
+        let err = Section::new(NotebookId::new(), "   ", 0).unwrap_err();
+        assert!(matches!(err, CoreError::Validation { .. }));
+    }
 }

@@ -186,4 +186,38 @@ mod tests {
         assert_eq!(manifest.items.len(), 1);
         assert_eq!(manifest.items[0].original_title, "Fresh");
     }
+
+    #[test]
+    fn test_trash_expiration_boundary_exact() {
+        let now = Utc::now();
+        let mut manifest = TrashManifest::new();
+
+        let mut item_a = TrashItem::new(
+            TrashItemType::Page,
+            "Expired".to_string(),
+            "path_a".to_string(),
+            "NB".to_string(),
+            None,
+            0,
+        );
+        item_a.expires_at = now - Duration::seconds(1);
+        manifest.add_item(item_a);
+
+        let mut item_b = TrashItem::new(
+            TrashItemType::Page,
+            "Retained".to_string(),
+            "path_b".to_string(),
+            "NB".to_string(),
+            None,
+            0,
+        );
+        item_b.expires_at = now + Duration::seconds(1);
+        manifest.add_item(item_b);
+
+        let expired = manifest.remove_expired(now);
+        assert_eq!(expired.len(), 1);
+        assert_eq!(expired[0].original_title, "Expired");
+        assert_eq!(manifest.items.len(), 1);
+        assert_eq!(manifest.items[0].original_title, "Retained");
+    }
 }

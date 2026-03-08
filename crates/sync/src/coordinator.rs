@@ -57,6 +57,11 @@ impl SyncCoordinator {
         &self.conflicts
     }
 
+    pub fn add_conflict(&mut self, conflict: SyncConflict) {
+        self.conflicts.push(conflict);
+        self.status.pending_conflicts = self.conflicts.len() as u32;
+    }
+
     pub fn get_provider_info(&self) -> Option<ProviderInfo> {
         self.provider.as_ref().map(|p| ProviderInfo {
             name: p.name().to_string(),
@@ -220,5 +225,123 @@ mod tests {
             coord.manifest_path(),
             PathBuf::from("/workspace/.opennote/sync_manifest.json")
         );
+    }
+
+    // ─── Phase 4 Retrofit: Conflict Resolution ───
+
+    fn make_conflict(dir: &Path, id: &str) -> SyncConflict {
+        let local_path = format!("pages/{id}.opn.json");
+        let conflict_path = format!("pages/{id}.conflict.opn.json");
+
+        let local_file = dir.join(&local_path);
+        let conflict_file = dir.join(&conflict_path);
+
+        std::fs::create_dir_all(local_file.parent().unwrap()).unwrap();
+        std::fs::write(&local_file, b"{\"local\": true}").unwrap();
+        std::fs::write(&conflict_file, b"{\"remote\": true}").unwrap();
+
+        SyncConflict {
+            id: id.to_string(),
+            page_title: format!("Page {id}"),
+            local_modified_at: Utc::now(),
+            remote_modified_at: Utc::now(),
+            local_path,
+            conflict_path,
+        }
+    }
+
+    #[test]
+    fn test_resolve_conflict_keep_local() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut coord = SyncCoordinator::new(dir.path().to_path_buf());
+
+        let conflict = make_conflict(dir.path(), "c1");
+        let conflict_file = dir.path().join(&conflict.conflict_path);
+        let local_file = dir.path().join(&conflict.local_path);
+        coord.add_conflict(conflict);
+
+        coord
+            .resolve_conflict("c1", ConflictResolution::KeepLocal)
+            .unwrap();
+
+        assert!(!conflict_file.exists(), "Conflict file should be deleted");
+        assert!(local_file.exists(), "Local file should remain");
+        assert!(coord.get_conflicts().is_empty());
+    }
+
+    #[test]
+    fn test_resolve_conflict_keep_remote() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut coord = SyncCoordinator::new(dir.path().to_path_buf());
+
+        let conflict = make_conflict(dir.path(), "c2");
+        let local_file = dir.path().join(&conflict.local_path);
+        coord.add_conflict(conflict);
+
+        coord
+            .resolve_conflict("c2", ConflictResolution::KeepRemote)
+            .unwrap();
+
+        assert!(
+            local_file.exists(),
+            "Local file should be replaced by remote"
+        );
+        let content = std::fs::read_to_string(&local_file).unwrap();
+        assert!(
+            content.contains("remote"),
+            "Content should be from conflict (remote) file"
+        );
+        assert!(coord.get_conflicts().is_empty());
+    }
+
+    #[test]
+    fn test_resolve_conflict_keep_both() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut coord = SyncCoordinator::new(dir.path().to_path_buf());
+
+        let conflict = make_conflict(dir.path(), "c3");
+        let local_file = dir.path().join(&conflict.local_path);
+        let conflict_file = dir.path().join(&conflict.conflict_path);
+        coord.add_conflict(conflict);
+
+        coord
+            .resolve_conflict("c3", ConflictResolution::KeepBoth)
+            .unwrap();
+
+        assert!(local_file.exists(), "Local file should remain");
+        assert!(conflict_file.exists(), "Conflict file should remain");
+        assert!(coord.get_conflicts().is_empty());
+    }
+
+    #[test]
+    fn test_resolve_conflict_nonexistent_id_returns_error() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut coord = SyncCoordinator::new(dir.path().to_path_buf());
+
+        let result = coord.resolve_conflict("fake-id", ConflictResolution::KeepLocal);
+        assert!(result.is_err());
+        let err = result.unwrap_err();
+        let msg = err.to_string();
+        assert!(
+            msg.contains("Conflict not found"),
+            "Error should mention 'Conflict not found', got: {msg}"
+        );
+    }
+
+    #[test]
+    fn test_resolve_conflict_updates_pending_count() {
+        let dir = tempfile::tempdir().unwrap();
+        let mut coord = SyncCoordinator::new(dir.path().to_path_buf());
+
+        coord.add_conflict(make_conflict(dir.path(), "a"));
+        coord.add_conflict(make_conflict(dir.path(), "b"));
+        coord.add_conflict(make_conflict(dir.path(), "c"));
+        assert_eq!(coord.get_status().pending_conflicts, 3);
+
+        coord
+            .resolve_conflict("b", ConflictResolution::KeepBoth)
+            .unwrap();
+        assert_eq!(coord.get_status().pending_conflicts, 2);
+        assert_eq!(coord.get_conflicts().len(), 2);
     }
 }

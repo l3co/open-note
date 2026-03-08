@@ -252,4 +252,80 @@ mod tests {
         assert_eq!(prefs.mode, EditorMode::RichText);
         assert!(!prefs.split_view);
     }
+
+    #[test]
+    fn test_rename_page_validation() {
+        let mut page = Page::new(SectionId::new(), "Original").unwrap();
+        let err = page.rename("").unwrap_err();
+        assert!(matches!(err, CoreError::Validation { .. }));
+
+        let err = page.rename("   ").unwrap_err();
+        assert!(matches!(err, CoreError::Validation { .. }));
+
+        assert_eq!(page.title, "Original");
+    }
+
+    #[test]
+    fn test_rename_updates_timestamp() {
+        let mut page = Page::new(SectionId::new(), "Old Title").unwrap();
+        let created = page.created_at;
+        std::thread::sleep(std::time::Duration::from_millis(2));
+
+        page.rename("New Title").unwrap();
+        assert!(page.updated_at > created);
+        assert_eq!(page.title, "New Title");
+    }
+
+    #[test]
+    fn test_add_tag_updates_timestamp() {
+        let mut page = Page::new(SectionId::new(), "Test").unwrap();
+        let before = page.updated_at;
+        std::thread::sleep(std::time::Duration::from_millis(2));
+
+        page.add_tag("estudo");
+        assert!(page.updated_at > before);
+    }
+
+    #[test]
+    fn test_add_tag_duplicate_does_not_update_timestamp() {
+        let mut page = Page::new(SectionId::new(), "Test").unwrap();
+        page.add_tag("rust");
+        let after_first = page.updated_at;
+        std::thread::sleep(std::time::Duration::from_millis(2));
+
+        page.add_tag("RUST");
+        assert_eq!(page.updated_at, after_first);
+    }
+
+    #[test]
+    fn test_add_tag_empty_string_is_noop() {
+        let mut page = Page::new(SectionId::new(), "Test").unwrap();
+        let before = page.updated_at;
+
+        page.add_tag("");
+        page.add_tag("   ");
+
+        assert_eq!(page.tags.len(), 0);
+        assert_eq!(page.updated_at, before);
+    }
+
+    #[test]
+    fn test_remove_tag_nonexistent_does_not_update_timestamp() {
+        let mut page = Page::new(SectionId::new(), "Test").unwrap();
+        let before = page.updated_at;
+
+        let removed = page.remove_tag("inexistente");
+        assert!(!removed);
+        assert_eq!(page.updated_at, before);
+    }
+
+    #[test]
+    fn test_add_block_updates_timestamp() {
+        let mut page = Page::new(SectionId::new(), "Test").unwrap();
+        let created = page.created_at;
+        std::thread::sleep(std::time::Duration::from_millis(2));
+
+        page.add_block(Block::new_divider(0)).unwrap();
+        assert!(page.updated_at > created);
+    }
 }

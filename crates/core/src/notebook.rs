@@ -82,4 +82,11 @@ mod tests {
         let mut nb = Notebook::new("Valid", 0).unwrap();
         assert!(nb.rename("").is_err());
     }
+
+    #[test]
+    fn test_notebook_rename_trims_whitespace() {
+        let mut nb = Notebook::new("Old", 0).unwrap();
+        nb.rename("  Novo  ").unwrap();
+        assert_eq!(nb.name, "Novo");
+    }
 }

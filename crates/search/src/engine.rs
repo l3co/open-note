@@ -1,10 +1,14 @@
 use std::path::Path;
+use std::sync::Mutex;
 
 use serde::{Deserialize, Serialize};
 use tantivy::collector::TopDocs;
 use tantivy::query::{BooleanQuery, Occur, QueryParser, TermQuery};
 use tantivy::schema::IndexRecordOption;
 use tantivy::schema::Value;
+use tantivy::tokenizer::{
+    AsciiFoldingFilter, LowerCaser, RemoveLongFilter, SimpleTokenizer, TextAnalyzer,
+};
 use tantivy::{doc, Index, IndexReader, IndexWriter, ReloadPolicy, TantivyDocument, Term};
 
 use opennote_core::page::Page;
@@ -13,9 +17,12 @@ use crate::error::SearchResult;
 use crate::extract::extract_text_from_page;
 use crate::schema::SearchSchema;
 
+const TOKENIZER_NAME: &str = "opennote";
+
 pub struct SearchEngine {
     index: Index,
     reader: IndexReader,
+    writer: Mutex<IndexWriter<TantivyDocument>>,
     schema: SearchSchema,
     #[allow(dead_code)]
     index_path: std::path::PathBuf,
@@ -83,21 +90,31 @@ impl SearchEngine {
             Index::create_in_dir(index_dir, schema_def.schema.clone())?
         };
 
+        let tokenizer = TextAnalyzer::builder(SimpleTokenizer::default())
+            .filter(RemoveLongFilter::limit(40))
+            .filter(LowerCaser)
+            .filter(AsciiFoldingFilter)
+            .build();
+        index.tokenizers().register(TOKENIZER_NAME, tokenizer);
+
         let reader = index
             .reader_builder()
             .reload_policy(ReloadPolicy::OnCommitWithDelay)
             .try_into()?;
 
+        let writer = index.writer(15_000_000)?;
+
         Ok(Self {
             index,
             reader,
+            writer: Mutex::new(writer),
             schema: schema_def,
             index_path: index_dir.to_path_buf(),
         })
     }
 
     pub fn index_page(&self, data: &PageIndexData) -> SearchResult<()> {
-        let mut writer: IndexWriter<TantivyDocument> = self.index.writer(15_000_000)?;
+        let mut writer = self.writer.lock().unwrap();
         let s = &self.schema;
 
         let page_id_str = data.page.id.to_string();
@@ -126,7 +143,7 @@ impl SearchEngine {
     }
 
     pub fn remove_page(&self, page_id: &str) -> SearchResult<()> {
-        let mut writer: IndexWriter<TantivyDocument> = self.index.writer(15_000_000)?;
+        let mut writer = self.writer.lock().unwrap();
         let term = Term::from_field_text(self.schema.page_id, page_id);
         writer.delete_term(term);
         writer.commit()?;
@@ -135,7 +152,7 @@ impl SearchEngine {
     }
 
     pub fn rebuild(&self, pages: &[PageIndexData]) -> SearchResult<()> {
-        let mut writer: IndexWriter<TantivyDocument> = self.index.writer(50_000_000)?;
+        let mut writer = self.writer.lock().unwrap();
         writer.delete_all_documents()?;
         writer.commit()?;
 
@@ -172,7 +189,7 @@ impl SearchEngine {
         parser.set_field_boost(s.title, 2.0);
         parser.set_field_boost(s.tags, 1.5);
 
-        let text_query = parser.parse_query(&query.text)?;
+        let (text_query, _errors) = parser.parse_query_lenient(&query.text);
 
         let final_query: Box<dyn tantivy::query::Query> = if let Some(ref nb_id) = query.notebook_id
         {

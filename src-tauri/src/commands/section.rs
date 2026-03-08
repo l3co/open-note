@@ -1,4 +1,4 @@
-use log::{info, error};
+use log::{error, info};
 use tauri::State;
 
 use opennote_core::id::{NotebookId, SectionId};

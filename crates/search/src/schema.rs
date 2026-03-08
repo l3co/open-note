@@ -25,7 +25,7 @@ impl SearchSchema {
         let title_options = TextOptions::default()
             .set_indexing_options(
                 TextFieldIndexing::default()
-                    .set_tokenizer("default")
+                    .set_tokenizer("opennote")
                     .set_index_option(IndexRecordOption::WithFreqsAndPositions),
             )
             .set_stored();
@@ -34,7 +34,7 @@ impl SearchSchema {
         let content_options = TextOptions::default()
             .set_indexing_options(
                 TextFieldIndexing::default()
-                    .set_tokenizer("default")
+                    .set_tokenizer("opennote")
                     .set_index_option(IndexRecordOption::WithFreqsAndPositions),
             )
             .set_stored();
@@ -43,7 +43,7 @@ impl SearchSchema {
         let tags_options = TextOptions::default()
             .set_indexing_options(
                 TextFieldIndexing::default()
-                    .set_tokenizer("default")
+                    .set_tokenizer("opennote")
                     .set_index_option(IndexRecordOption::WithFreqsAndPositions),
             )
             .set_stored();
