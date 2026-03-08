@@ -1,3 +1,4 @@
+use log::{debug, info, error};
 use tauri::State;
 
 use opennote_core::settings::{AppState, GlobalSettings};
@@ -8,7 +9,11 @@ use crate::state::AppManagedState;
 
 #[tauri::command]
 pub fn get_app_state() -> Result<AppState, String> {
-    FsStorageEngine::load_app_state().map_err(|e| e.to_string())
+    debug!("Loading app state");
+    FsStorageEngine::load_app_state().map_err(|e| {
+        error!("Failed to load app state: {}", e);
+        e.to_string()
+    })
 }
 
 #[tauri::command]
@@ -17,6 +22,7 @@ pub fn create_workspace(
     path: String,
     name: String,
 ) -> Result<Workspace, String> {
+    info!("Creating workspace '{}' at {}", name, path);
     let root = std::path::PathBuf::from(&path);
     let workspace = FsStorageEngine::create_workspace(&root, &name).map_err(|e| e.to_string())?;
 
@@ -32,6 +38,7 @@ pub fn create_workspace(
 
 #[tauri::command]
 pub fn open_workspace(state: State<AppManagedState>, path: String) -> Result<Workspace, String> {
+    info!("Opening workspace at {}", path);
     let root = std::path::PathBuf::from(&path);
     let workspace = FsStorageEngine::open_workspace(&root).map_err(|e| e.to_string())?;
 
@@ -47,6 +54,7 @@ pub fn open_workspace(state: State<AppManagedState>, path: String) -> Result<Wor
 
 #[tauri::command]
 pub fn close_workspace(state: State<AppManagedState>) -> Result<(), String> {
+    info!("Closing workspace");
     let root = state.get_workspace_root()?;
     FsStorageEngine::close_workspace(&root).map_err(|e| e.to_string())?;
     state.set_workspace_root(None)?;
