@@ -11,6 +11,7 @@ import { StatusBar } from "@/components/layout/StatusBar";
 import { TrashPanel } from "@/components/shared/TrashPanel";
 import { QuickOpen } from "@/components/search/QuickOpen";
 import { SearchPanel } from "@/components/search/SearchPanel";
+import { SyncSettings } from "@/components/sync/SyncSettings";
 import { listenSystemTheme } from "@/lib/theme";
 import * as ipc from "@/lib/ipc";
 
@@ -108,6 +109,7 @@ export function App() {
       <TrashPanel />
       <QuickOpen />
       <SearchPanel />
+      <SyncSettings />
       <Toaster position="top-right" />
     </div>
   );

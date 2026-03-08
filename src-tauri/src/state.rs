@@ -4,11 +4,13 @@ use std::sync::Mutex;
 
 use opennote_core::id::PageId;
 use opennote_search::engine::SearchEngine;
+use opennote_sync::coordinator::SyncCoordinator;
 
 pub struct AppManagedState {
     pub workspace_root: Mutex<Option<PathBuf>>,
     pub save_coordinator: SaveCoordinator,
     pub search_engine: Mutex<Option<SearchEngine>>,
+    pub sync_coordinator: Mutex<Option<SyncCoordinator>>,
 }
 
 impl AppManagedState {
@@ -17,6 +19,7 @@ impl AppManagedState {
             workspace_root: Mutex::new(None),
             save_coordinator: SaveCoordinator::new(),
             search_engine: Mutex::new(None),
+            sync_coordinator: Mutex::new(None),
         }
     }
 
@@ -34,6 +37,16 @@ impl AppManagedState {
             .lock()
             .map_err(|e| format!("Lock error: {e}"))?;
         *root = path;
+        Ok(())
+    }
+
+    pub fn init_sync_coordinator(&self, workspace_root: &std::path::Path) -> Result<(), String> {
+        let coordinator = SyncCoordinator::new(workspace_root.to_path_buf());
+        let mut guard = self
+            .sync_coordinator
+            .lock()
+            .map_err(|e| format!("Lock error: {e}"))?;
+        *guard = Some(coordinator);
         Ok(())
     }
 

@@ -1,7 +1,6 @@
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn sync_crate_loads() {
-        assert!(true);
-    }
-}
+pub mod coordinator;
+pub mod error;
+pub mod manifest;
+pub mod provider;
+pub mod providers;
+pub mod types;

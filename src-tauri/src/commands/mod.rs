@@ -3,6 +3,7 @@ pub mod notebook;
 pub mod page;
 pub mod search;
 pub mod section;
+pub mod sync;
 pub mod tags;
 pub mod trash;
 pub mod workspace;

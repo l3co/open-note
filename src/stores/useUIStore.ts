@@ -20,6 +20,7 @@ interface UIStore {
   showTrashPanel: boolean;
   showQuickOpen: boolean;
   showSearchPanel: boolean;
+  showSyncSettings: boolean;
 
   toggleSidebar: () => void;
   setSidebarWidth: (width: number) => void;
@@ -34,6 +35,8 @@ interface UIStore {
   openSearchPanel: () => void;
   closeSearchPanel: () => void;
   toggleSearchPanel: () => void;
+  openSyncSettings: () => void;
+  closeSyncSettings: () => void;
 }
 
 export const useUIStore = create<UIStore>((set, get) => ({
@@ -48,6 +51,7 @@ export const useUIStore = create<UIStore>((set, get) => ({
   showTrashPanel: false,
   showQuickOpen: false,
   showSearchPanel: false,
+  showSyncSettings: false,
 
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
 
@@ -76,4 +80,6 @@ export const useUIStore = create<UIStore>((set, get) => ({
   openSearchPanel: () => set({ showSearchPanel: true }),
   closeSearchPanel: () => set({ showSearchPanel: false }),
   toggleSearchPanel: () => set((s) => ({ showSearchPanel: !s.showSearchPanel })),
+  openSyncSettings: () => set({ showSyncSettings: true }),
+  closeSyncSettings: () => set({ showSyncSettings: false }),
 }));

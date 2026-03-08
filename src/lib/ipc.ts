@@ -142,3 +142,25 @@ export const rebuildIndex = () => invoke<number>("rebuild_index");
 
 export const getIndexStatus = () =>
   invoke<import("@/types/search").IndexStatus>("get_index_status");
+
+// ─── Sync ───
+
+export const getSyncProviders = () =>
+  invoke<import("@/types/sync").ProviderInfo[]>("get_sync_providers");
+
+export const getSyncStatus = () =>
+  invoke<import("@/types/sync").SyncStatus>("get_sync_status");
+
+export const getSyncConfig = () =>
+  invoke<import("@/types/sync").SyncPreferences>("get_sync_config");
+
+export const setSyncConfig = (config: import("@/types/sync").SyncPreferences) =>
+  invoke<void>("set_sync_config", { config });
+
+export const getSyncConflicts = () =>
+  invoke<import("@/types/sync").SyncConflict[]>("get_sync_conflicts");
+
+export const resolveSyncConflict = (
+  conflictId: string,
+  resolution: import("@/types/sync").ConflictResolution,
+) => invoke<void>("resolve_sync_conflict", { conflictId, resolution });

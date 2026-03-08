@@ -1,11 +1,14 @@
+import { CloudOff } from "lucide-react";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 import { usePageStore } from "@/stores/usePageStore";
+import { useUIStore } from "@/stores/useUIStore";
 
 const SOFT_BLOCK_LIMIT = 200;
 
 export function StatusBar() {
   const workspace = useWorkspaceStore((s) => s.workspace);
   const { currentPage, saveStatus, lastSavedAt } = usePageStore();
+  const openSyncSettings = useUIStore((s) => s.openSyncSettings);
 
   const blockCount = currentPage?.blocks?.length ?? 0;
   const isOverSoftLimit = blockCount > SOFT_BLOCK_LIMIT;
@@ -53,6 +56,14 @@ export function StatusBar() {
           </span>
         )}
         {saveLabel && <span style={{ color: saveColor }}>{saveLabel}</span>}
+        <button
+          onClick={openSyncSettings}
+          className="flex items-center gap-1 hover:opacity-80"
+          style={{ background: "none", border: "none", color: "var(--text-tertiary)", cursor: "pointer", padding: 0, fontSize: "11px" }}
+          title="Sincronização"
+        >
+          <CloudOff size={13} />
+        </button>
       </div>
     </footer>
   );

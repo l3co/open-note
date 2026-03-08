@@ -14,6 +14,10 @@ use commands::search::{get_index_status, quick_open, rebuild_index, reindex_page
 use commands::section::{
     create_section, delete_section, list_sections, rename_section, reorder_sections,
 };
+use commands::sync::{
+    get_sync_config, get_sync_conflicts, get_sync_providers, get_sync_status,
+    resolve_sync_conflict, set_sync_config,
+};
 use commands::tags::list_all_tags;
 use commands::trash::{empty_trash, list_trash_items, permanently_delete, restore_from_trash};
 use commands::workspace::{
@@ -81,6 +85,13 @@ pub fn run() {
             reindex_page,
             rebuild_index,
             get_index_status,
+            // Sync
+            get_sync_providers,
+            get_sync_status,
+            get_sync_config,
+            set_sync_config,
+            get_sync_conflicts,
+            resolve_sync_conflict,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

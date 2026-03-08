@@ -25,8 +25,8 @@ pub fn create_workspace(
     FsStorageEngine::save_app_state(&app_state).map_err(|e| e.to_string())?;
 
     state.set_workspace_root(Some(root.clone()))?;
-    // Best-effort search engine init (non-fatal if it fails)
     let _ = state.init_search_engine(&root);
+    let _ = state.init_sync_coordinator(&root);
     Ok(workspace)
 }
 
@@ -40,8 +40,8 @@ pub fn open_workspace(state: State<AppManagedState>, path: String) -> Result<Wor
     FsStorageEngine::save_app_state(&app_state).map_err(|e| e.to_string())?;
 
     state.set_workspace_root(Some(root.clone()))?;
-    // Best-effort search engine init (non-fatal if it fails)
     let _ = state.init_search_engine(&root);
+    let _ = state.init_sync_coordinator(&root);
     Ok(workspace)
 }
 
