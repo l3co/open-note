@@ -23,6 +23,11 @@ export default defineConfig({
         "src/**/*.d.ts",
         "src/main.tsx",
         "src/types/bindings/**",
+        "src/types/search.ts",
+        "src/types/sync.ts",
+        "src/components/ink/**",
+        "src/components/pdf/**",
+        "src/lib/ink/index.ts",
       ],
       thresholds: {
         lines: 80,
