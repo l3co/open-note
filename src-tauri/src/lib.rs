@@ -10,6 +10,7 @@ use commands::page::{
     create_page, delete_page, import_pdf, list_pages, load_page, move_page, read_file_content,
     save_file_content, update_page, update_page_blocks,
 };
+use commands::search::{get_index_status, quick_open, rebuild_index, reindex_page, search_pages};
 use commands::section::{
     create_section, delete_section, list_sections, rename_section, reorder_sections,
 };
@@ -74,6 +75,12 @@ pub fn run() {
             import_asset,
             import_asset_from_bytes,
             delete_asset,
+            // Search
+            search_pages,
+            quick_open,
+            reindex_page,
+            rebuild_index,
+            get_index_status,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

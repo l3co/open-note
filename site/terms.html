@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Terms of Service — Open Note</title>
+  <meta name="description" content="Open Note Terms of Service.">
+  <meta name="theme-color" content="#1e3a6e">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="assets/images/logo.svg">
+  <link rel="icon" type="image/png" href="assets/images/logo.png">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="index.html" class="navbar-brand">
+        <img src="assets/images/logo.svg" alt="Open Note" width="36" height="36">
+        Open Note
+      </a>
+      <ul class="navbar-nav">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="privacy.html">Privacy</a></li>
+        <li><a href="https://github.com/l3co/open-note" target="_blank" rel="noopener">GitHub</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- Hero -->
+  <section class="legal-hero">
+    <div class="container">
+      <h1>Terms of Service</h1>
+      <p class="date">Last updated: March 7, 2026</p>
+    </div>
+  </section>
+
+  <!-- Content -->
+  <section class="legal-content">
+    <div class="container">
+
+      <nav class="legal-toc">
+        <h4>Table of Contents</h4>
+        <ol>
+          <li><a href="#acceptance">Acceptance of Terms</a></li>
+          <li><a href="#description">Service Description</a></li>
+          <li><a href="#license">License</a></li>
+          <li><a href="#data">Your Data</a></li>
+          <li><a href="#sync">Synchronization Services</a></li>
+          <li><a href="#oauth">Third-Party Authentication (OAuth)</a></li>
+          <li><a href="#responsibilities">User Responsibilities</a></li>
+          <li><a href="#disclaimer">Disclaimer of Warranties</a></li>
+          <li><a href="#limitation">Limitation of Liability</a></li>
+          <li><a href="#changes">Changes to Terms</a></li>
+          <li><a href="#contact">Contact</a></li>
+        </ol>
+      </nav>
+
+      <h2 id="acceptance">1. Acceptance of Terms</h2>
+      <p>
+        By downloading, installing or using the Open Note application ("Application"), you agree to these Terms of Service ("Terms"). If you do not agree with these Terms, do not use the Application.
+      </p>
+      <p>
+        Open Note is open source software distributed under the <strong>MIT License</strong>. These Terms apply to the use of the Application and any complementary services provided (such as web pages and OAuth authentication for cloud provider integration).
+      </p>
+
+      <h2 id="description">2. Service Description</h2>
+      <p>
+        Open Note is a <strong>local-first</strong> note-taking application designed to work entirely on the user's device, without requiring an internet connection, account creation or any dependency on external servers.
+      </p>
+      <p>The Application allows you to:</p>
+      <ul>
+        <li>Create, edit and organize notes in an open format (<code>.opn.json</code>)</li>
+        <li>Use rich text, markdown, ink (freehand annotations), code, tables and other block types</li>
+        <li>Organize notes in hierarchies of Workspace, Notebook, Section and Page</li>
+        <li>Export and import notes in Markdown format</li>
+        <li>Optionally sync data with cloud storage providers (Google Drive, OneDrive, Dropbox)</li>
+      </ul>
+
+      <h2 id="license">3. License</h2>
+      <p>
+        Open Note is licensed under the <strong>MIT License</strong>, which means you are free to use, copy, modify, merge, publish, distribute, sublicense and/or sell copies of the software, subject to the conditions of the license.
+      </p>
+      <p>
+        The source code is publicly available at <a href="https://github.com/l3co/open-note" target="_blank" rel="noopener">github.com/l3co/open-note</a>.
+      </p>
+
+      <h2 id="data">4. Your Data</h2>
+      <p>
+        <strong>Your data is entirely yours.</strong> Open Note follows a local-first philosophy:
+      </p>
+      <ul>
+        <li>All data is stored locally on your device's filesystem</li>
+        <li>The Application <strong>does not collect, transmit or store</strong> any data on its own servers</li>
+        <li>There is no telemetry, analytics or tracking of any kind</li>
+        <li>The file format is open and human-readable — JSON files you can read, edit and process with any tool</li>
+        <li>Backup is as simple as copying the workspace folder</li>
+      </ul>
+      <p>
+        You are solely responsible for maintaining backups of your data. Open Note does not offer a remote backup service.
+      </p>
+
+      <h2 id="sync">5. Synchronization Services</h2>
+      <p>
+        Open Note offers, on a <strong>fully optional</strong> basis, data synchronization with third-party cloud storage providers:
+      </p>
+      <ul>
+        <li><strong>Google Drive</strong> (Google LLC)</li>
+        <li><strong>OneDrive</strong> (Microsoft Corporation)</li>
+        <li><strong>Dropbox</strong> (Dropbox, Inc.)</li>
+      </ul>
+      <p>
+        When you enable synchronization:
+      </p>
+      <ul>
+        <li>The Application will access <strong>only files created by it</strong> on the cloud provider (using minimal permissions such as <code>drive.file</code> or <code>AppFolder</code>)</li>
+        <li>Your data is transmitted directly from your device to the chosen provider, without passing through Open Note intermediary servers</li>
+        <li>The cloud provider's terms of service and privacy policies also apply to the use of synchronization</li>
+        <li>You can disconnect synchronization at any time — your local and remote data remain intact</li>
+      </ul>
+
+      <h2 id="oauth">6. Third-Party Authentication (OAuth)</h2>
+      <p>
+        To use the synchronization services, the Application uses the <strong>OAuth 2.0</strong> protocol for secure authentication with cloud providers.
+      </p>
+      <ul>
+        <li>Open Note <strong>never</strong> has access to your provider passwords</li>
+        <li>Authentication occurs directly on the provider's website (Google, Microsoft or Dropbox)</li>
+        <li>Access tokens are securely stored in the <strong>operating system's keychain/keyring</strong> (Keychain on macOS, Credential Manager on Windows, Secret Service on Linux)</li>
+        <li>Tokens are <strong>never</strong> stored in plain text on the filesystem</li>
+        <li>When you disconnect a provider, tokens are revoked and removed</li>
+      </ul>
+
+      <h2 id="responsibilities">7. User Responsibilities</h2>
+      <p>By using Open Note, you agree to:</p>
+      <ul>
+        <li>Maintain regular backups of your data</li>
+        <li>Use the Application in compliance with applicable laws</li>
+        <li>Not use the Application to store or transmit illegal content</li>
+        <li>Be responsible for the security of your device and cloud provider access credentials</li>
+      </ul>
+
+      <h2 id="disclaimer">8. Disclaimer of Warranties</h2>
+      <p>
+        Open Note is provided <strong>"as is"</strong>, without warranties of any kind, express or implied, including but not limited to warranties of merchantability, fitness for a particular purpose and non-infringement.
+      </p>
+      <p>
+        In no event shall the authors or copyright holders be liable for any claim, damages or other liability, whether in an action of contract, tort or otherwise, arising from, out of or in connection with the software or the use or other dealings in the software.
+      </p>
+
+      <h2 id="limitation">9. Limitation of Liability</h2>
+      <p>
+        To the maximum extent permitted by applicable law, in no event shall the developers of Open Note be liable for:
+      </p>
+      <ul>
+        <li>Data loss resulting from device, filesystem or synchronization failures</li>
+        <li>Indirect, incidental, special, consequential or punitive damages</li>
+        <li>Interruption of third-party services (Google Drive, OneDrive, Dropbox)</li>
+        <li>Unauthorized access to your data resulting from compromise of your device</li>
+      </ul>
+
+      <h2 id="changes">10. Changes to Terms</h2>
+      <p>
+        We reserve the right to modify these Terms at any time. Changes will be posted on this page with the updated date. Continued use of the Application after the publication of changes constitutes acceptance of the new Terms.
+      </p>
+      <p>
+        Since Open Note is open source, the complete change history of this document is available in the <a href="https://github.com/l3co/open-note" target="_blank" rel="noopener">project repository</a>.
+      </p>
+
+      <h2 id="contact">11. Contact</h2>
+      <p>
+        For questions about these Terms of Service, please contact us through:
+      </p>
+      <ul>
+        <li><strong>GitHub Issues:</strong> <a href="https://github.com/l3co/open-note/issues" target="_blank" rel="noopener">github.com/l3co/open-note/issues</a></li>
+        <li><strong>Repository:</strong> <a href="https://github.com/l3co/open-note" target="_blank" rel="noopener">github.com/l3co/open-note</a></li>
+      </ul>
+
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-brand">
+        <img src="assets/images/logo.svg" alt="Open Note" width="28" height="28">
+        Open Note
+      </div>
+      <ul class="footer-links">
+        <li><a href="terms.html">Terms of Service</a></li>
+        <li><a href="privacy.html">Privacy Policy</a></li>
+        <li><a href="https://github.com/l3co/open-note" target="_blank" rel="noopener">GitHub</a></li>
+      </ul>
+      <div class="footer-copy">
+        &copy; 2025 Open Note. MIT License.
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

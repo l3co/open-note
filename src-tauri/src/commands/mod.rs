@@ -1,6 +1,7 @@
 pub mod assets;
 pub mod notebook;
 pub mod page;
+pub mod search;
 pub mod section;
 pub mod tags;
 pub mod trash;

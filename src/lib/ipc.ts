@@ -126,3 +126,19 @@ export const permanentlyDelete = (trashItemId: string) =>
   invoke<void>("permanently_delete", { trashItemId });
 
 export const emptyTrash = () => invoke<void>("empty_trash");
+
+// ─── Search ───
+
+export const searchPages = (query: import("@/types/search").SearchQuery) =>
+  invoke<import("@/types/search").SearchResults>("search_pages", { query });
+
+export const quickOpen = (query: string, limit?: number) =>
+  invoke<import("@/types/search").SearchResultItem[]>("quick_open", { query, limit });
+
+export const reindexPage = (pageId: PageId) =>
+  invoke<void>("reindex_page", { pageId });
+
+export const rebuildIndex = () => invoke<number>("rebuild_index");
+
+export const getIndexStatus = () =>
+  invoke<import("@/types/search").IndexStatus>("get_index_status");

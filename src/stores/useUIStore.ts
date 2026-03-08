@@ -18,6 +18,8 @@ interface UIStore {
   theme: ThemeConfig;
   showWorkspacePicker: boolean;
   showTrashPanel: boolean;
+  showQuickOpen: boolean;
+  showSearchPanel: boolean;
 
   toggleSidebar: () => void;
   setSidebarWidth: (width: number) => void;
@@ -27,6 +29,11 @@ interface UIStore {
   closeWorkspacePicker: () => void;
   openTrashPanel: () => void;
   closeTrashPanel: () => void;
+  openQuickOpen: () => void;
+  closeQuickOpen: () => void;
+  openSearchPanel: () => void;
+  closeSearchPanel: () => void;
+  toggleSearchPanel: () => void;
 }
 
 export const useUIStore = create<UIStore>((set, get) => ({
@@ -39,6 +46,8 @@ export const useUIStore = create<UIStore>((set, get) => ({
   },
   showWorkspacePicker: false,
   showTrashPanel: false,
+  showQuickOpen: false,
+  showSearchPanel: false,
 
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
 
@@ -62,4 +71,9 @@ export const useUIStore = create<UIStore>((set, get) => ({
   closeWorkspacePicker: () => set({ showWorkspacePicker: false }),
   openTrashPanel: () => set({ showTrashPanel: true }),
   closeTrashPanel: () => set({ showTrashPanel: false }),
+  openQuickOpen: () => set({ showQuickOpen: true }),
+  closeQuickOpen: () => set({ showQuickOpen: false }),
+  openSearchPanel: () => set({ showSearchPanel: true }),
+  closeSearchPanel: () => set({ showSearchPanel: false }),
+  toggleSearchPanel: () => set((s) => ({ showSearchPanel: !s.showSearchPanel })),
 }));

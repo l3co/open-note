@@ -3,10 +3,12 @@ use std::path::PathBuf;
 use std::sync::Mutex;
 
 use opennote_core::id::PageId;
+use opennote_search::engine::SearchEngine;
 
 pub struct AppManagedState {
     pub workspace_root: Mutex<Option<PathBuf>>,
     pub save_coordinator: SaveCoordinator,
+    pub search_engine: Mutex<Option<SearchEngine>>,
 }
 
 impl AppManagedState {
@@ -14,6 +16,7 @@ impl AppManagedState {
         Self {
             workspace_root: Mutex::new(None),
             save_coordinator: SaveCoordinator::new(),
+            search_engine: Mutex::new(None),
         }
     }
 
@@ -32,6 +35,32 @@ impl AppManagedState {
             .map_err(|e| format!("Lock error: {e}"))?;
         *root = path;
         Ok(())
+    }
+
+    pub fn init_search_engine(&self, workspace_root: &std::path::Path) -> Result<(), String> {
+        let index_dir = workspace_root.join(".opennote").join("index");
+        let engine = SearchEngine::open_or_create(&index_dir)
+            .map_err(|e| format!("Failed to init search engine: {e}"))?;
+        let mut guard = self
+            .search_engine
+            .lock()
+            .map_err(|e| format!("Lock error: {e}"))?;
+        *guard = Some(engine);
+        Ok(())
+    }
+
+    pub fn with_search_engine<F, R>(&self, f: F) -> Result<R, String>
+    where
+        F: FnOnce(&SearchEngine) -> Result<R, String>,
+    {
+        let guard = self
+            .search_engine
+            .lock()
+            .map_err(|e| format!("Lock error: {e}"))?;
+        let engine = guard
+            .as_ref()
+            .ok_or_else(|| "Search engine not initialized".to_string())?;
+        f(engine)
     }
 }
 

@@ -5,6 +5,8 @@ import { useNavigationStore } from "@/stores/useNavigationStore";
 export function useKeyboardShortcuts() {
   const toggleSidebar = useUIStore((s) => s.toggleSidebar);
   const openWorkspacePicker = useUIStore((s) => s.openWorkspacePicker);
+  const openQuickOpen = useUIStore((s) => s.openQuickOpen);
+  const toggleSearchPanel = useUIStore((s) => s.toggleSearchPanel);
   const { goBack, goForward } = useNavigationStore();
 
   useEffect(() => {
@@ -34,9 +36,21 @@ export function useKeyboardShortcuts() {
         openWorkspacePicker();
         return;
       }
+
+      if (mod && e.key === "p") {
+        e.preventDefault();
+        openQuickOpen();
+        return;
+      }
+
+      if (mod && e.shiftKey && e.key === "F") {
+        e.preventDefault();
+        toggleSearchPanel();
+        return;
+      }
     };
 
     document.addEventListener("keydown", handler);
     return () => document.removeEventListener("keydown", handler);
-  }, [toggleSidebar, goBack, goForward, openWorkspacePicker]);
+  }, [toggleSidebar, goBack, goForward, openWorkspacePicker, openQuickOpen, toggleSearchPanel]);
 }

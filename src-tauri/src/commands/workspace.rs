@@ -24,7 +24,9 @@ pub fn create_workspace(
     app_state.add_recent_workspace(root.clone(), name);
     FsStorageEngine::save_app_state(&app_state).map_err(|e| e.to_string())?;
 
-    state.set_workspace_root(Some(root))?;
+    state.set_workspace_root(Some(root.clone()))?;
+    // Best-effort search engine init (non-fatal if it fails)
+    let _ = state.init_search_engine(&root);
     Ok(workspace)
 }
 
@@ -37,7 +39,9 @@ pub fn open_workspace(state: State<AppManagedState>, path: String) -> Result<Wor
     app_state.add_recent_workspace(root.clone(), workspace.name.clone());
     FsStorageEngine::save_app_state(&app_state).map_err(|e| e.to_string())?;
 
-    state.set_workspace_root(Some(root))?;
+    state.set_workspace_root(Some(root.clone()))?;
+    // Best-effort search engine init (non-fatal if it fails)
+    let _ = state.init_search_engine(&root);
     Ok(workspace)
 }
 
