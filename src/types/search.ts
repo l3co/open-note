@@ -27,3 +27,8 @@ export interface IndexStatus {
   total_documents: number;
   is_indexing: boolean;
 }
+
+export interface CrossWorkspaceResult extends SearchResultItem {
+  workspace_id: string;
+  workspace_name: string;
+}

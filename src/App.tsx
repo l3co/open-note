@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Toaster } from "sonner";
 import { useUIStore } from "@/stores/useUIStore";
-import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
+import { useMultiWorkspaceStore } from "@/stores/useMultiWorkspaceStore";
 import { useKeyboardShortcuts } from "@/hooks/useKeyboardShortcuts";
 import { WorkspacePicker } from "@/components/workspace/WorkspacePicker";
 import { Sidebar } from "@/components/sidebar/Sidebar";
@@ -22,7 +22,8 @@ export function App() {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const { showWorkspacePicker, openWorkspacePicker, applyThemeToDOM } =
     useUIStore();
-  const { workspace, openWorkspace } = useWorkspaceStore();
+  const workspaceCount = useMultiWorkspaceStore((s) => s.workspaces.size);
+  const multiStore = useMultiWorkspaceStore.getState();
 
   useKeyboardShortcuts();
 
@@ -51,10 +52,32 @@ export function App() {
         });
         uiStore.applyThemeToDOM();
 
-        if (appState.last_opened_workspace) {
-          try {
-            await openWorkspace(appState.last_opened_workspace);
-          } catch {
+        // Restore all previously active workspaces
+        const activeWorkspaces = appState.active_workspaces ?? [];
+        const focusedId = appState.focused_workspace_id ?? null;
+
+        if (activeWorkspaces.length > 0) {
+          for (const aw of activeWorkspaces) {
+            await multiStore.openWorkspace(aw.path).catch(() => null);
+          }
+          // Focus the previously focused workspace if still open
+          if (focusedId) {
+            const openedIds = Array.from(
+              useMultiWorkspaceStore.getState().workspaces.keys(),
+            );
+            if (openedIds.includes(focusedId)) {
+              multiStore.focusWorkspace(focusedId);
+            }
+          }
+          if (useMultiWorkspaceStore.getState().workspaces.size === 0) {
+            openWorkspacePicker();
+          }
+        } else if (appState.last_opened_workspace) {
+          // Backward compat: single workspace from legacy field
+          await multiStore
+            .openWorkspace(appState.last_opened_workspace)
+            .catch(() => openWorkspacePicker());
+          if (useMultiWorkspaceStore.getState().workspaces.size === 0) {
             openWorkspacePicker();
           }
         } else {
@@ -95,7 +118,7 @@ export function App() {
     );
   }
 
-  if (showWorkspacePicker || !workspace) {
+  if (showWorkspacePicker || workspaceCount === 0) {
     return (
       <>
         <WorkspacePicker />

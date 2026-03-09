@@ -1,16 +1,8 @@
 import { create } from "zustand";
-import { toast } from "sonner";
 import type { Notebook } from "@/types/bindings/Notebook";
 import type { Section } from "@/types/bindings/Section";
 import type { Workspace } from "@/types/bindings/Workspace";
-import * as ipc from "@/lib/ipc";
-
-function handleError(e: unknown, set: (s: { error: string }) => void) {
-  const msg = String(e);
-  console.error("[WorkspaceStore]", msg);
-  set({ error: msg });
-  toast.error(msg);
-}
+import { useMultiWorkspaceStore } from "./useMultiWorkspaceStore";
 
 interface WorkspaceStore {
   workspace: Workspace | null;
@@ -38,155 +30,93 @@ interface WorkspaceStore {
   clearError: () => void;
 }
 
-export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
-  workspace: null,
-  notebooks: [],
-  sections: new Map(),
-  isLoading: false,
-  error: null,
+// Facade: delegates all operations to useMultiWorkspaceStore.
+// Existing components keep the same API without any changes.
+export const useWorkspaceStore = create<WorkspaceStore>((set) => {
+  // Mirror focused slice into this store whenever multi-store changes
+  useMultiWorkspaceStore.subscribe((multiState) => {
+    const slice = multiState.focusedSlice();
+    set({
+      workspace: slice?.workspace ?? null,
+      notebooks: slice?.notebooks ?? [],
+      sections: slice?.sections ?? new Map(),
+    });
+  });
 
-  openWorkspace: async (path) => {
-    set({ isLoading: true, error: null });
-    try {
-      const workspace = await ipc.openWorkspace(path);
-      set({ workspace, isLoading: false });
-      await get().loadNotebooks();
-      // Rebuild index whenever a workspace is opened to sync physical files to tantivy db
-      await ipc
-        .rebuildIndex()
-        .catch((err) => console.warn("[Search] failed to rebuild index:", err));
-    } catch (e) {
-      set({ isLoading: false });
-      handleError(e, set);
-    }
-  },
+  return {
+    workspace: null,
+    notebooks: [],
+    sections: new Map(),
+    isLoading: false,
+    error: null,
 
-  createWorkspace: async (path, name) => {
-    set({ isLoading: true, error: null });
-    try {
-      const workspace = await ipc.createWorkspace(path, name);
-      set({ workspace, notebooks: [], sections: new Map(), isLoading: false });
-      // Rebuild index for the newly created empty workspace
-      await ipc
-        .rebuildIndex()
-        .catch((err) => console.warn("[Search] failed to rebuild index:", err));
-    } catch (e) {
-      set({ isLoading: false });
-      handleError(e, set);
-    }
-  },
-
-  closeWorkspace: async () => {
-    try {
-      await ipc.closeWorkspace();
-    } catch {
-      /* workspace may already be closed */
-    }
-    set({ workspace: null, notebooks: [], sections: new Map() });
-  },
-
-  loadNotebooks: async () => {
-    try {
-      const notebooks = await ipc.listNotebooks();
-      set({ notebooks });
-    } catch (e) {
-      handleError(e, set);
-    }
-  },
-
-  createNotebook: async (name) => {
-    try {
-      await ipc.createNotebook(name);
-      await get().loadNotebooks();
-    } catch (e) {
-      handleError(e, set);
-    }
-  },
-
-  renameNotebook: async (id, name) => {
-    try {
-      await ipc.renameNotebook(id, name);
-      await get().loadNotebooks();
-    } catch (e) {
-      handleError(e, set);
-    }
-  },
-
-  deleteNotebook: async (id) => {
-    try {
-      await ipc.deleteNotebook(id);
-      await get().loadNotebooks();
-    } catch (e) {
-      handleError(e, set);
-    }
-  },
-
-  reorderNotebooks: async (order) => {
-    try {
-      await ipc.reorderNotebooks(order);
-      await get().loadNotebooks();
-    } catch (e) {
-      handleError(e, set);
-    }
-  },
-
-  loadSections: async (notebookId) => {
-    try {
-      const sections = await ipc.listSections(notebookId);
-      set((s) => {
-        const map = new Map(s.sections);
-        map.set(notebookId, sections);
-        return { sections: map };
-      });
-    } catch (e) {
-      handleError(e, set);
-    }
-  },
-
-  createSection: async (notebookId, name) => {
-    try {
-      const section = await ipc.createSection(notebookId, name);
-      await get().loadSections(notebookId);
-      return section;
-    } catch (e) {
-      handleError(e, set);
-      return undefined;
-    }
-  },
-
-  renameSection: async (id, name) => {
-    try {
-      const section = await ipc.renameSection(id, name);
-      await get().loadSections(section.notebook_id);
-    } catch (e) {
-      handleError(e, set);
-    }
-  },
-
-  deleteSection: async (id) => {
-    try {
-      const { sections } = get();
-      let notebookId: string | null = null;
-      for (const [nbId, secs] of sections) {
-        if (secs.some((s) => s.id === id)) {
-          notebookId = nbId;
-          break;
-        }
+    openWorkspace: async (path) => {
+      set({ isLoading: true, error: null });
+      try {
+        await useMultiWorkspaceStore.getState().openWorkspace(path);
+        set({ isLoading: false });
+      } catch (e) {
+        set({ isLoading: false, error: String(e) });
       }
-      await ipc.deleteSection(id);
-      if (notebookId) await get().loadSections(notebookId);
-    } catch (e) {
-      handleError(e, set);
-    }
-  },
+    },
 
-  reorderSections: async (order) => {
-    try {
-      await ipc.reorderSections(order);
-    } catch (e) {
-      handleError(e, set);
-    }
-  },
+    createWorkspace: async (path, name) => {
+      set({ isLoading: true, error: null });
+      try {
+        await useMultiWorkspaceStore.getState().createWorkspace(path, name);
+        set({ isLoading: false });
+      } catch (e) {
+        set({ isLoading: false, error: String(e) });
+      }
+    },
 
-  clearError: () => set({ error: null }),
-}));
+    closeWorkspace: async () => {
+      const focusedId = useMultiWorkspaceStore.getState().focusedWorkspaceId;
+      if (focusedId) {
+        await useMultiWorkspaceStore.getState().closeWorkspace(focusedId);
+      }
+    },
+
+    loadNotebooks: async () => {
+      await useMultiWorkspaceStore.getState().loadNotebooks();
+    },
+
+    createNotebook: async (name) => {
+      await useMultiWorkspaceStore.getState().createNotebook(name);
+    },
+
+    renameNotebook: async (id, name) => {
+      await useMultiWorkspaceStore.getState().renameNotebook(id, name);
+    },
+
+    deleteNotebook: async (id) => {
+      await useMultiWorkspaceStore.getState().deleteNotebook(id);
+    },
+
+    reorderNotebooks: async (order) => {
+      await useMultiWorkspaceStore.getState().reorderNotebooks(order);
+    },
+
+    loadSections: async (notebookId) => {
+      await useMultiWorkspaceStore.getState().loadSections(notebookId);
+    },
+
+    createSection: async (notebookId, name) => {
+      return useMultiWorkspaceStore.getState().createSection(notebookId, name);
+    },
+
+    renameSection: async (id, name) => {
+      await useMultiWorkspaceStore.getState().renameSection(id, name);
+    },
+
+    deleteSection: async (id) => {
+      await useMultiWorkspaceStore.getState().deleteSection(id);
+    },
+
+    reorderSections: async (order) => {
+      await useMultiWorkspaceStore.getState().reorderSections(order);
+    },
+
+    clearError: () => set({ error: null }),
+  };
+});

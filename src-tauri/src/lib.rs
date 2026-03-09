@@ -11,7 +11,9 @@ use commands::page::{
     create_page, delete_page, import_pdf, list_pages, load_page, move_page, read_file_content,
     save_file_content, update_page, update_page_blocks,
 };
-use commands::search::{get_index_status, quick_open, rebuild_index, reindex_page, search_pages};
+use commands::search::{
+    get_index_status, quick_open, rebuild_index, reindex_page, search_all_workspaces, search_pages,
+};
 use commands::section::{
     create_section, delete_section, list_sections, rename_section, reorder_sections,
 };
@@ -23,8 +25,9 @@ use commands::sync::{
 use commands::tags::list_all_tags;
 use commands::trash::{empty_trash, list_trash_items, permanently_delete, restore_from_trash};
 use commands::workspace::{
-    close_workspace, create_workspace, get_app_state, get_global_settings, get_workspace_settings,
-    open_workspace, remove_recent_workspace, update_global_settings, update_workspace_settings,
+    close_workspace, create_workspace, focus_workspace, get_app_state, get_global_settings,
+    get_workspace_settings, list_open_workspaces, open_workspace, remove_recent_workspace,
+    switch_workspace, update_global_settings, update_workspace_settings,
 };
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -52,6 +55,9 @@ pub fn run() {
             create_workspace,
             open_workspace,
             close_workspace,
+            list_open_workspaces,
+            focus_workspace,
+            switch_workspace,
             remove_recent_workspace,
             get_workspace_settings,
             update_workspace_settings,
@@ -100,6 +106,7 @@ pub fn run() {
             reindex_page,
             rebuild_index,
             get_index_status,
+            search_all_workspaces,
             // Sync
             get_sync_providers,
             get_sync_status,

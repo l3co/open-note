@@ -16,8 +16,12 @@ pub fn import_asset(
     state: State<AppManagedState>,
     section_id: SectionId,
     file_path: String,
+    workspace_id: Option<String>,
 ) -> Result<AssetResult, String> {
-    let root = state.get_workspace_root().map_err(|e| e.to_string())?;
+    let id = super::resolve_workspace_id(&state, workspace_id).map_err(|e| e.to_string())?;
+    let root = state
+        .get_workspace_root_by_id(&id)
+        .map_err(|e| e.to_string())?;
     let source = std::path::PathBuf::from(&file_path);
     let asset_path =
         FsStorageEngine::import_asset(&root, section_id, &source).map_err(|e| e.to_string())?;
@@ -34,8 +38,12 @@ pub fn import_asset_from_bytes(
     section_id: SectionId,
     bytes: Vec<u8>,
     extension: String,
+    workspace_id: Option<String>,
 ) -> Result<AssetResult, String> {
-    let root = state.get_workspace_root().map_err(|e| e.to_string())?;
+    let id = super::resolve_workspace_id(&state, workspace_id).map_err(|e| e.to_string())?;
+    let root = state
+        .get_workspace_root_by_id(&id)
+        .map_err(|e| e.to_string())?;
     let asset_path =
         FsStorageEngine::import_asset_from_bytes(&root, section_id, &bytes, &extension)
             .map_err(|e| e.to_string())?;
@@ -67,7 +75,14 @@ pub fn read_asset_base64(file_path: String) -> Result<String, String> {
 }
 
 #[tauri::command]
-pub fn delete_asset(state: State<AppManagedState>, asset_path: String) -> Result<(), String> {
-    let root = state.get_workspace_root().map_err(|e| e.to_string())?;
+pub fn delete_asset(
+    state: State<AppManagedState>,
+    asset_path: String,
+    workspace_id: Option<String>,
+) -> Result<(), String> {
+    let id = super::resolve_workspace_id(&state, workspace_id).map_err(|e| e.to_string())?;
+    let root = state
+        .get_workspace_root_by_id(&id)
+        .map_err(|e| e.to_string())?;
     FsStorageEngine::delete_asset(&root, &asset_path).map_err(|e| e.to_string())
 }

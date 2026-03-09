@@ -1,12 +1,14 @@
 import { useCallback, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useUIStore } from "@/stores/useUIStore";
+import { WorkspaceSwitcher } from "@/components/sidebar/WorkspaceSwitcher";
 import { SidebarQuickNav } from "@/components/sidebar/SidebarQuickNav";
 import { NotebookTree } from "@/components/sidebar/NotebookTree";
 import { SidebarFooter } from "@/components/sidebar/SidebarFooter";
 
 export function Sidebar() {
-  const { sidebarOpen, sidebarWidth, setSidebarWidth } = useUIStore();
+  const { sidebarOpen, sidebarWidth, setSidebarWidth, openWorkspacePicker } =
+    useUIStore();
   const { t } = useTranslation();
   const resizeRef = useRef<HTMLDivElement>(null);
   const isResizing = useRef(false);
@@ -52,8 +54,10 @@ export function Sidebar() {
       }}
       data-testid="sidebar"
     >
+      <WorkspaceSwitcher onOpenWorkspacePicker={openWorkspacePicker} />
+
       <nav
-        className="flex-1 overflow-y-auto px-3 pt-3"
+        className="flex-1 overflow-y-auto px-3 pt-2"
         aria-label={t("sidebar.notebooks")}
         data-testid="sidebar-nav"
       >

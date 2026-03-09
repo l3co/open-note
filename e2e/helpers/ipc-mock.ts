@@ -80,6 +80,9 @@ function buildDefaultHandlers(overrides: MockOverrides = {}): MockOverrides {
     create_workspace: (_path: unknown, _name: unknown) => DEFAULT_WORKSPACE,
     open_workspace: () => DEFAULT_WORKSPACE,
     close_workspace: () => null,
+    focus_workspace: () => null,
+    switch_workspace: () => null,
+    list_open_workspaces: () => [{ id: DEFAULT_WORKSPACE.id, name: DEFAULT_WORKSPACE.name, root_path: DEFAULT_WORKSPACE.root_path }],
     remove_recent_workspace: () => null,
     get_workspace_settings: () => ({}),
     update_workspace_settings: () => null,
@@ -143,6 +146,10 @@ function buildDefaultHandlers(overrides: MockOverrides = {}): MockOverrides {
     reindex_page: () => null,
     rebuild_index: () => 0,
     get_index_status: () => ({ total_documents: 0, index_size_bytes: 0 }),
+    search_all_workspaces: () => [],
+
+    // Spell check
+    check_spelling: () => ({ corrections: [] }),
 
     // Sync
     get_sync_providers: () => [

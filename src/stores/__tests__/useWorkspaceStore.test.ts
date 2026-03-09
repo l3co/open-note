@@ -1,18 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { useWorkspaceStore } from "../useWorkspaceStore";
+import { useMultiWorkspaceStore } from "../useMultiWorkspaceStore";
 
 vi.mock("@tauri-apps/api/core", () => ({
   invoke: vi.fn(),
 }));
 
-vi.mock("sonner", () => ({
-  toast: { error: vi.fn(), success: vi.fn() },
-}));
+const mockToast = vi.hoisted(() => ({ error: vi.fn(), success: vi.fn() }));
+vi.mock("sonner", () => ({ toast: mockToast }));
 
 const mockIpc = vi.hoisted(() => ({
   openWorkspace: vi.fn(),
   createWorkspace: vi.fn(),
   closeWorkspace: vi.fn(),
+  focusWorkspace: vi.fn(),
   listNotebooks: vi.fn(),
   createNotebook: vi.fn(),
   renameNotebook: vi.fn(),
@@ -23,6 +24,7 @@ const mockIpc = vi.hoisted(() => ({
   renameSection: vi.fn(),
   deleteSection: vi.fn(),
   reorderSections: vi.fn(),
+  rebuildIndex: vi.fn(),
 }));
 
 vi.mock("@/lib/ipc", () => mockIpc);
@@ -30,9 +32,11 @@ vi.mock("@/lib/ipc", () => mockIpc);
 import type { Workspace } from "@/types/bindings/Workspace";
 import type { Section } from "@/types/bindings/Section";
 
+const WS_ID = "ws-1";
+
 const makeWorkspace = (): Workspace =>
   ({
-    id: "ws-1",
+    id: WS_ID,
     name: "Test Workspace",
     root_path: "/tmp/test-ws",
     created_at: "2024-01-01T00:00:00Z",
@@ -57,11 +61,43 @@ const makeSection = (id: string, nbId: string): Section =>
     updated_at: "2024-01-01T00:00:00Z",
   }) as Section;
 
+const defaultNav = () => ({
+  activeView: "home" as const,
+  selectedNotebookId: null,
+  selectedSectionId: null,
+  selectedPageId: null,
+  expandedNotebooks: new Set<string>(),
+  expandedSections: new Set<string>(),
+  history: [] as string[],
+  historyIndex: -1,
+});
+
 describe("useWorkspaceStore", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockIpc.rebuildIndex.mockResolvedValue(0);
+    mockIpc.focusWorkspace.mockResolvedValue(undefined);
+    mockIpc.closeWorkspace.mockResolvedValue(undefined);
+
+    const ws = makeWorkspace();
+    // Seed multi-workspace store with a focused workspace so facade operations work
+    useMultiWorkspaceStore.setState({
+      workspaces: new Map([
+        [
+          WS_ID,
+          {
+            workspace: ws,
+            notebooks: [],
+            sections: new Map(),
+            navigation: defaultNav(),
+          },
+        ],
+      ]),
+      focusedWorkspaceId: WS_ID,
+    });
+
     useWorkspaceStore.setState({
-      workspace: null,
+      workspace: ws,
       notebooks: [],
       sections: new Map(),
       isLoading: false,
@@ -69,7 +105,19 @@ describe("useWorkspaceStore", () => {
     });
   });
 
-  it("has correct initial state", () => {
+  it("has correct initial state when no workspace open", () => {
+    useMultiWorkspaceStore.setState({
+      workspaces: new Map(),
+      focusedWorkspaceId: null,
+    });
+    useWorkspaceStore.setState({
+      workspace: null,
+      notebooks: [],
+      sections: new Map(),
+      isLoading: false,
+      error: null,
+    });
+
     const state = useWorkspaceStore.getState();
     expect(state.workspace).toBeNull();
     expect(state.notebooks).toEqual([]);
@@ -79,6 +127,10 @@ describe("useWorkspaceStore", () => {
   });
 
   it("openWorkspace sets workspace and loads notebooks", async () => {
+    useMultiWorkspaceStore.setState({
+      workspaces: new Map(),
+      focusedWorkspaceId: null,
+    });
     const ws = makeWorkspace();
     mockIpc.openWorkspace.mockResolvedValue(ws);
     mockIpc.listNotebooks.mockResolvedValue([]);
@@ -87,10 +139,14 @@ describe("useWorkspaceStore", () => {
 
     expect(useWorkspaceStore.getState().workspace).toEqual(ws);
     expect(useWorkspaceStore.getState().isLoading).toBe(false);
-    expect(mockIpc.listNotebooks).toHaveBeenCalled();
+    expect(mockIpc.listNotebooks).toHaveBeenCalledWith(WS_ID);
   });
 
   it("openWorkspace sets error on failure", async () => {
+    useMultiWorkspaceStore.setState({
+      workspaces: new Map(),
+      focusedWorkspaceId: null,
+    });
     mockIpc.openWorkspace.mockRejectedValue(new Error("not found"));
 
     await useWorkspaceStore.getState().openWorkspace("/invalid");
@@ -100,6 +156,10 @@ describe("useWorkspaceStore", () => {
   });
 
   it("createWorkspace sets workspace", async () => {
+    useMultiWorkspaceStore.setState({
+      workspaces: new Map(),
+      focusedWorkspaceId: null,
+    });
     const ws = makeWorkspace();
     mockIpc.createWorkspace.mockResolvedValue(ws);
 
@@ -111,6 +171,10 @@ describe("useWorkspaceStore", () => {
   });
 
   it("createWorkspace sets error on failure", async () => {
+    useMultiWorkspaceStore.setState({
+      workspaces: new Map(),
+      focusedWorkspaceId: null,
+    });
     mockIpc.createWorkspace.mockRejectedValue(new Error("exists"));
 
     await useWorkspaceStore.getState().createWorkspace("/tmp/new", "New WS");
@@ -119,9 +183,6 @@ describe("useWorkspaceStore", () => {
   });
 
   it("closeWorkspace clears state", async () => {
-    useWorkspaceStore.setState({ workspace: makeWorkspace(), notebooks: [] });
-    mockIpc.closeWorkspace.mockResolvedValue(undefined);
-
     await useWorkspaceStore.getState().closeWorkspace();
 
     expect(useWorkspaceStore.getState().workspace).toBeNull();
@@ -151,7 +212,7 @@ describe("useWorkspaceStore", () => {
 
     await useWorkspaceStore.getState().createNotebook("New NB");
 
-    expect(mockIpc.createNotebook).toHaveBeenCalledWith("New NB");
+    expect(mockIpc.createNotebook).toHaveBeenCalledWith("New NB", WS_ID);
     expect(mockIpc.listNotebooks).toHaveBeenCalled();
   });
 
@@ -161,7 +222,11 @@ describe("useWorkspaceStore", () => {
 
     await useWorkspaceStore.getState().renameNotebook("nb-1", "Renamed");
 
-    expect(mockIpc.renameNotebook).toHaveBeenCalledWith("nb-1", "Renamed");
+    expect(mockIpc.renameNotebook).toHaveBeenCalledWith(
+      "nb-1",
+      "Renamed",
+      WS_ID,
+    );
   });
 
   it("deleteNotebook deletes and reloads", async () => {
@@ -170,7 +235,7 @@ describe("useWorkspaceStore", () => {
 
     await useWorkspaceStore.getState().deleteNotebook("nb-1");
 
-    expect(mockIpc.deleteNotebook).toHaveBeenCalledWith("nb-1");
+    expect(mockIpc.deleteNotebook).toHaveBeenCalledWith("nb-1", WS_ID);
   });
 
   it("reorderNotebooks sends order and reloads", async () => {
@@ -183,7 +248,7 @@ describe("useWorkspaceStore", () => {
 
     await useWorkspaceStore.getState().reorderNotebooks(order);
 
-    expect(mockIpc.reorderNotebooks).toHaveBeenCalledWith(order);
+    expect(mockIpc.reorderNotebooks).toHaveBeenCalledWith(order, WS_ID);
   });
 
   it("loadSections fetches sections by notebook", async () => {
@@ -206,7 +271,11 @@ describe("useWorkspaceStore", () => {
       .getState()
       .createSection("nb-1", "New Section");
 
-    expect(mockIpc.createSection).toHaveBeenCalledWith("nb-1", "New Section");
+    expect(mockIpc.createSection).toHaveBeenCalledWith(
+      "nb-1",
+      "New Section",
+      WS_ID,
+    );
     expect(result).toEqual(created);
   });
 
@@ -218,7 +287,7 @@ describe("useWorkspaceStore", () => {
       .createSection("nb-1", "X");
 
     expect(result).toBeUndefined();
-    expect(useWorkspaceStore.getState().error).toContain("fail");
+    expect(mockToast.error).toHaveBeenCalled();
   });
 
   it("renameSection renames and reloads", async () => {
@@ -230,18 +299,30 @@ describe("useWorkspaceStore", () => {
 
     await useWorkspaceStore.getState().renameSection("sec-1", "Renamed");
 
-    expect(mockIpc.renameSection).toHaveBeenCalledWith("sec-1", "Renamed");
+    expect(mockIpc.renameSection).toHaveBeenCalledWith(
+      "sec-1",
+      "Renamed",
+      WS_ID,
+    );
   });
 
   it("deleteSection finds notebook and reloads", async () => {
-    const sections = new Map([["nb-1", [makeSection("sec-1", "nb-1")]]]);
-    useWorkspaceStore.setState({ sections });
+    const sec = makeSection("sec-1", "nb-1");
+    useMultiWorkspaceStore.setState((s) => {
+      const workspaces = new Map(s.workspaces);
+      const slice = workspaces.get(WS_ID)!;
+      workspaces.set(WS_ID, {
+        ...slice,
+        sections: new Map([["nb-1", [sec]]]),
+      });
+      return { workspaces };
+    });
     mockIpc.deleteSection.mockResolvedValue(undefined);
     mockIpc.listSections.mockResolvedValue([]);
 
     await useWorkspaceStore.getState().deleteSection("sec-1");
 
-    expect(mockIpc.deleteSection).toHaveBeenCalledWith("sec-1");
+    expect(mockIpc.deleteSection).toHaveBeenCalledWith("sec-1", WS_ID);
   });
 
   it("reorderSections sends order", async () => {
@@ -250,7 +331,7 @@ describe("useWorkspaceStore", () => {
 
     await useWorkspaceStore.getState().reorderSections(order);
 
-    expect(mockIpc.reorderSections).toHaveBeenCalledWith(order);
+    expect(mockIpc.reorderSections).toHaveBeenCalledWith(order, WS_ID);
   });
 
   it("clearError resets error", () => {
@@ -259,11 +340,11 @@ describe("useWorkspaceStore", () => {
     expect(useWorkspaceStore.getState().error).toBeNull();
   });
 
-  it("loadNotebooks sets error on failure", async () => {
+  it("loadNotebooks shows toast on failure", async () => {
     mockIpc.listNotebooks.mockRejectedValue(new Error("fail"));
 
     await useWorkspaceStore.getState().loadNotebooks();
 
-    expect(useWorkspaceStore.getState().error).toContain("fail");
+    expect(mockToast.error).toHaveBeenCalled();
   });
 });

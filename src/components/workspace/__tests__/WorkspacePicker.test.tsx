@@ -114,4 +114,32 @@ describe("WorkspacePicker", () => {
     render(<WorkspacePicker />);
     expect(await screen.findByTestId("workspace-error")).toBeInTheDocument();
   });
+
+  it("modal_mode_has_backdrop", () => {
+    render(<WorkspacePicker mode="modal" onClose={vi.fn()} />);
+    const backdrop = screen.getByTestId("workspace-picker");
+    expect(backdrop.classList.contains("fixed")).toBe(true);
+  });
+
+  it("modal_mode_has_close_button", async () => {
+    render(<WorkspacePicker mode="modal" onClose={vi.fn()} />);
+    expect(
+      await screen.findByTestId("workspace-picker-close"),
+    ).toBeInTheDocument();
+  });
+
+  it("modal_mode_close_button_calls_onClose", async () => {
+    const onClose = vi.fn();
+    const user = userEvent.setup();
+    render(<WorkspacePicker mode="modal" onClose={onClose} />);
+    const closeBtn = await screen.findByTestId("workspace-picker-close");
+    await user.click(closeBtn);
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("fullscreen_mode_unchanged", () => {
+    render(<WorkspacePicker mode="fullscreen" />);
+    const picker = screen.getByTestId("workspace-picker");
+    expect(picker).not.toHaveStyle({ backdropFilter: "blur(4px)" });
+  });
 });

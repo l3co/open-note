@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useUIStore } from "@/stores/useUIStore";
 import { useNavigationStore } from "@/stores/useNavigationStore";
+import { useMultiWorkspaceStore } from "@/stores/useMultiWorkspaceStore";
 
 export function useKeyboardShortcuts() {
   const toggleSidebar = useUIStore((s) => s.toggleSidebar);
@@ -20,13 +21,13 @@ export function useKeyboardShortcuts() {
         return;
       }
 
-      if (mod && e.key === "[") {
+      if (mod && !e.shiftKey && e.key === "[") {
         e.preventDefault();
         goBack();
         return;
       }
 
-      if (mod && e.key === "]") {
+      if (mod && !e.shiftKey && e.key === "]") {
         e.preventDefault();
         goForward();
         return;
@@ -35,6 +36,39 @@ export function useKeyboardShortcuts() {
       if (mod && e.shiftKey && e.key === "O") {
         e.preventDefault();
         openWorkspacePicker();
+        return;
+      }
+
+      // Cmd/Ctrl+Shift+W — open workspace switcher (workspace picker)
+      if (mod && e.shiftKey && e.key === "W") {
+        e.preventDefault();
+        openWorkspacePicker();
+        return;
+      }
+
+      // Cmd/Ctrl+Shift+[ — previous workspace
+      if (mod && e.shiftKey && e.key === "[") {
+        e.preventDefault();
+        const { workspaces, focusedWorkspaceId, focusWorkspace } =
+          useMultiWorkspaceStore.getState();
+        const ids = Array.from(workspaces.keys());
+        if (ids.length < 2 || !focusedWorkspaceId) return;
+        const idx = ids.indexOf(focusedWorkspaceId);
+        const prev = ids[(idx - 1 + ids.length) % ids.length];
+        if (prev) focusWorkspace(prev);
+        return;
+      }
+
+      // Cmd/Ctrl+Shift+] — next workspace
+      if (mod && e.shiftKey && e.key === "]") {
+        e.preventDefault();
+        const { workspaces, focusedWorkspaceId, focusWorkspace } =
+          useMultiWorkspaceStore.getState();
+        const ids = Array.from(workspaces.keys());
+        if (ids.length < 2 || !focusedWorkspaceId) return;
+        const idx = ids.indexOf(focusedWorkspaceId);
+        const next = ids[(idx + 1) % ids.length];
+        if (next) focusWorkspace(next);
         return;
       }
 

@@ -5,6 +5,7 @@ use serde::Serialize;
 #[serde(tag = "code", content = "message")]
 pub enum CommandError {
     NoWorkspace,
+    WorkspaceNotFound(String),
     NotFound(String),
     Validation(String),
     Storage(String),
@@ -15,6 +16,7 @@ impl std::fmt::Display for CommandError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::NoWorkspace => write!(f, "No workspace is currently open"),
+            Self::WorkspaceNotFound(id) => write!(f, "Workspace {id} is not open"),
             Self::NotFound(message) => write!(f, "Not found: {message}"),
             Self::Validation(message) => write!(f, "Validation error: {message}"),
             Self::Storage(message) => write!(f, "Storage error: {message}"),

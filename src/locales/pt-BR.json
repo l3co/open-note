@@ -21,7 +21,19 @@
       "close": "Fechar workspace",
       "remove_recent": "Remover dos recentes",
       "cloud_connect": "Conectar à nuvem",
-      "cloud_coming_soon": "Em breve"
+      "cloud_coming_soon": "Em breve",
+      "switcher_title": "Workspaces",
+      "switch_to": "Mudar para {{name}}",
+      "close_workspace": "Fechar workspace",
+      "close_confirm": "Fechar \"{{name}}\"?",
+      "open_another": "Abrir Workspace",
+      "create_another": "Novo Workspace",
+      "manage": "Gerenciar Workspaces",
+      "count_open_one": "1 workspace aberto",
+      "count_open_other": "{{count}} workspaces abertos",
+      "shortcut_switch": "Alternar workspace",
+      "shortcut_next": "Próximo workspace",
+      "shortcut_prev": "Workspace anterior"
     },
     "notebook": {
       "new": "Novo Notebook",
