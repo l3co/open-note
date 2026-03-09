@@ -1,9 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Plus, Keyboard } from "lucide-react";
 import { BackgroundPattern } from "@/components/shared/BackgroundPattern";
-import { Illustration } from "@/components/shared/Illustration";
 import logoSrc from "@/assets/logo.png";
-import notebookSvg from "@/assets/illustrations/notes/notebook.svg";
 
 export function WelcomePage() {
   const { t } = useTranslation();
@@ -15,14 +13,6 @@ export function WelcomePage() {
     >
       <BackgroundPattern />
       <div className="relative z-10 max-w-md text-center">
-        <div className="mx-auto mb-4 flex items-center justify-center">
-          <Illustration
-            src={notebookSvg}
-            alt="Notebook"
-            size={80}
-            style={{ color: "var(--text-tertiary)", opacity: 0.5 }}
-          />
-        </div>
         <div className="mx-auto mb-6 flex h-16 w-16 items-center justify-center">
           <img src={logoSrc} alt="Open Note" className="h-14 w-14" />
         </div>
