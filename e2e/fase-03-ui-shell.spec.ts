@@ -6,12 +6,29 @@ import {
   skipOnboarding,
   clearOnboarding,
 } from "./helpers/workspace";
-import { setupIpcMock, DEFAULT_APP_STATE, DEFAULT_WORKSPACE, DEFAULT_NOTEBOOK, DEFAULT_SECTION, DEFAULT_PAGE, DEFAULT_PAGE_SUMMARY } from "./helpers/ipc-mock";
-import { APP, SIDEBAR, TOOLBAR, WORKSPACE_PICKER, ONBOARDING, TREE } from "./helpers/selectors";
+import {
+  setupIpcMock,
+  DEFAULT_APP_STATE,
+  DEFAULT_WORKSPACE,
+  DEFAULT_NOTEBOOK,
+  DEFAULT_SECTION,
+  DEFAULT_PAGE,
+  DEFAULT_PAGE_SUMMARY,
+} from "./helpers/ipc-mock";
+import {
+  APP,
+  SIDEBAR,
+  TOOLBAR,
+  WORKSPACE_PICKER,
+  ONBOARDING,
+  TREE,
+} from "./helpers/selectors";
 
 test.describe("Fase 03 — UI Shell & Navegação", () => {
   test.describe("Happy Path", () => {
-    test("HP-01: WorkspacePicker exibe botões de criar, abrir e cloud", async ({ page }) => {
+    test("HP-01: WorkspacePicker exibe botões de criar, abrir e cloud", async ({
+      page,
+    }) => {
       await skipOnboarding(page);
       await setupFreshApp(page);
 
@@ -24,7 +41,9 @@ test.describe("Fase 03 — UI Shell & Navegação", () => {
       await expect(page.locator(WORKSPACE_PICKER.cloudButton)).toBeDisabled();
     });
 
-    test("HP-02: sidebar exibe notebook tree com notebooks", async ({ page }) => {
+    test("HP-02: sidebar exibe notebook tree com notebooks", async ({
+      page,
+    }) => {
       await skipOnboarding(page);
       await setupWithWorkspace(page);
 
@@ -33,7 +52,9 @@ test.describe("Fase 03 — UI Shell & Navegação", () => {
       await expect(page.locator(TREE.root)).toBeVisible();
     });
 
-    test("HP-03: toolbar exibe botões de navegação e breadcrumb", async ({ page }) => {
+    test("HP-03: toolbar exibe botões de navegação e breadcrumb", async ({
+      page,
+    }) => {
       await skipOnboarding(page);
       await setupWithPage(page);
 
@@ -78,7 +99,9 @@ test.describe("Fase 03 — UI Shell & Navegação", () => {
       await expect(page.locator(SIDEBAR.root)).toBeVisible();
     });
 
-    test("HP-06: onboarding dialog exibe welcome step e permite navegar", async ({ page }) => {
+    test("HP-06: onboarding dialog exibe welcome step e permite navegar", async ({
+      page,
+    }) => {
       await clearOnboarding(page);
 
       await setupIpcMock(page, {
@@ -98,7 +121,10 @@ test.describe("Fase 03 — UI Shell & Navegação", () => {
       await page.waitForLoadState("networkidle");
 
       // Onboarding deve aparecer (se implementado no fluxo)
-      const onboardingVisible = await page.locator(ONBOARDING.root).isVisible().catch(() => false);
+      const onboardingVisible = await page
+        .locator(ONBOARDING.root)
+        .isVisible()
+        .catch(() => false);
       if (onboardingVisible) {
         await expect(page.locator(ONBOARDING.welcomeStep)).toBeVisible();
 
@@ -140,7 +166,10 @@ test.describe("Fase 03 — UI Shell & Navegação", () => {
       await page.goto("http://localhost:1420");
       await page.waitForLoadState("networkidle");
 
-      const onboardingVisible = await page.locator(ONBOARDING.root).isVisible().catch(() => false);
+      const onboardingVisible = await page
+        .locator(ONBOARDING.root)
+        .isVisible()
+        .catch(() => false);
       if (onboardingVisible) {
         await page.locator(ONBOARDING.skipBtn).click();
         await expect(page.locator(ONBOARDING.root)).not.toBeVisible();
@@ -149,7 +178,9 @@ test.describe("Fase 03 — UI Shell & Navegação", () => {
   });
 
   test.describe("Critical Path", () => {
-    test("CP-01: back/forward desabilitados quando sem histórico", async ({ page }) => {
+    test("CP-01: back/forward desabilitados quando sem histórico", async ({
+      page,
+    }) => {
       await skipOnboarding(page);
       await setupWithWorkspace(page);
 
@@ -177,7 +208,9 @@ test.describe("Fase 03 — UI Shell & Navegação", () => {
 
       await expect(page.locator(APP.main)).toBeVisible({ timeout: 10000 });
       await expect(page.locator('[data-testid="status-bar"]')).toBeVisible();
-      await expect(page.locator('[data-testid="status-workspace-path"]')).toContainText("/tmp/test-workspace");
+      await expect(
+        page.locator('[data-testid="status-workspace-path"]'),
+      ).toContainText("Test Workspace");
     });
   });
 });

@@ -69,6 +69,7 @@ const DEFAULT_PAGE_SUMMARY = {
 
 /**
  * Default IPC handlers — covers all 46 commands.
+ * Each handler receives the raw IPC args object as its single argument.
  * Override specific commands via `overrides` parameter.
  */
 function buildDefaultHandlers(overrides: MockOverrides = {}): MockOverrides {
@@ -77,12 +78,18 @@ function buildDefaultHandlers(overrides: MockOverrides = {}): MockOverrides {
     get_app_state: () => DEFAULT_APP_STATE,
 
     // Workspace
-    create_workspace: (_path: unknown, _name: unknown) => DEFAULT_WORKSPACE,
+    create_workspace: () => DEFAULT_WORKSPACE,
     open_workspace: () => DEFAULT_WORKSPACE,
     close_workspace: () => null,
     focus_workspace: () => null,
     switch_workspace: () => null,
-    list_open_workspaces: () => [{ id: DEFAULT_WORKSPACE.id, name: DEFAULT_WORKSPACE.name, root_path: DEFAULT_WORKSPACE.root_path }],
+    list_open_workspaces: () => [
+      {
+        id: DEFAULT_WORKSPACE.id,
+        name: DEFAULT_WORKSPACE.name,
+        root_path: DEFAULT_WORKSPACE.root_path,
+      },
+    ],
     remove_recent_workspace: () => null,
     get_workspace_settings: () => ({}),
     update_workspace_settings: () => null,
@@ -91,10 +98,10 @@ function buildDefaultHandlers(overrides: MockOverrides = {}): MockOverrides {
 
     // Notebook
     list_notebooks: () => [DEFAULT_NOTEBOOK],
-    create_notebook: (_name: unknown) => ({
+    create_notebook: (args: unknown) => ({
       ...DEFAULT_NOTEBOOK,
       id: `nb-${Date.now()}`,
-      name: _name,
+      name: (args as { name?: string }).name,
     }),
     rename_notebook: () => DEFAULT_NOTEBOOK,
     delete_notebook: () => null,
@@ -102,10 +109,10 @@ function buildDefaultHandlers(overrides: MockOverrides = {}): MockOverrides {
 
     // Section
     list_sections: () => [DEFAULT_SECTION],
-    create_section: (_nbId: unknown, _name: unknown) => ({
+    create_section: (args: unknown) => ({
       ...DEFAULT_SECTION,
       id: `sec-${Date.now()}`,
-      name: _name,
+      name: (args as { name?: string }).name,
     }),
     rename_section: () => DEFAULT_SECTION,
     delete_section: () => null,
@@ -114,10 +121,10 @@ function buildDefaultHandlers(overrides: MockOverrides = {}): MockOverrides {
     // Page
     list_pages: () => [DEFAULT_PAGE_SUMMARY],
     load_page: () => DEFAULT_PAGE,
-    create_page: (_secId: unknown, _title: unknown) => ({
+    create_page: (args: unknown) => ({
       ...DEFAULT_PAGE,
       id: `page-${Date.now()}`,
-      title: _title,
+      title: (args as { title?: string }).title,
     }),
     update_page: () => null,
     update_page_blocks: () => DEFAULT_PAGE,
@@ -209,62 +216,44 @@ export async function setupIpcMock(
 ): Promise<void> {
   const handlers = buildDefaultHandlers(overrides);
 
-  // Pre-compute static handler results and preserve thrown errors so invoke()
-  // can reject at runtime instead of crashing setup.
-  const staticHandlers: Record<
-    string,
-    { ok: true; value: unknown } | { ok: false; error: string }
-  > = {};
-  for (const [cmd, fn] of Object.entries(handlers)) {
-    try {
-      staticHandlers[cmd] = { ok: true, value: fn() };
-    } catch (error) {
-      const message =
-        error instanceof Error ? error.message : "Unknown IPC mock error";
-      staticHandlers[cmd] = { ok: false, error: message };
-    }
-  }
-
-  await page.addInitScript(
-    (
-      handlersJson: Record<
-        string,
-        { ok: true; value: unknown } | { ok: false; error: string }
-      >,
-    ) => {
-      // Mock Tauri IPC internals
-      (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__ = {
-        invoke: (cmd: string, _args?: Record<string, unknown>) => {
-          const result = handlersJson[cmd];
-          if (!result) {
-            return Promise.reject(
-              new Error(`[IPC Mock] Unknown command: ${cmd}`),
-            );
-          }
-          if (!result.ok) {
-            return Promise.reject(new Error(result.error));
-          }
-          return Promise.resolve(
-            typeof result.value === "object"
-              ? structuredClone(result.value)
-              : result.value,
-          );
-        },
-        convertFileSrc: (path: string) => path,
-        transformCallback: () => 0,
-      };
-
-      // Mock @tauri-apps/plugin-dialog
-      (window as unknown as Record<string, unknown>).__TAURI_PLUGIN_DIALOG__ = {
-        open: () => Promise.resolve(null),
-        save: () => Promise.resolve(null),
-        message: () => Promise.resolve(null),
-        ask: () => Promise.resolve(false),
-        confirm: () => Promise.resolve(false),
-      };
+  // Expose Node.js handlers to the browser via exposeFunction.
+  // Unlike addInitScript with pre-computed values, this allows handlers to
+  // inspect the actual IPC args at call time (e.g. return different workspace
+  // objects based on the requested path).
+  await page.exposeFunction(
+    "__opennote_ipc__",
+    (cmd: string, args: unknown) => {
+      const fn = handlers[cmd];
+      if (!fn) {
+        throw new Error(`[IPC Mock] Unknown command: ${cmd}`);
+      }
+      return fn(args);
     },
-    staticHandlers,
   );
+
+  await page.addInitScript(() => {
+    type IpcFn = (cmd: string, args: unknown) => Promise<unknown>;
+
+    // Mock Tauri IPC internals — delegates to the Node.js handler
+    (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__ = {
+      invoke: (cmd: string, args?: Record<string, unknown>) =>
+        (window as unknown as { __opennote_ipc__: IpcFn }).__opennote_ipc__(
+          cmd,
+          args ?? {},
+        ),
+      convertFileSrc: (path: string) => path,
+      transformCallback: () => 0,
+    };
+
+    // Mock @tauri-apps/plugin-dialog
+    (window as unknown as Record<string, unknown>).__TAURI_PLUGIN_DIALOG__ = {
+      open: () => Promise.resolve(null),
+      save: () => Promise.resolve(null),
+      message: () => Promise.resolve(null),
+      ask: () => Promise.resolve(false),
+      confirm: () => Promise.resolve(false),
+    };
+  });
 }
 
 // Re-export default data for use in fixtures
