@@ -75,30 +75,33 @@ Workspace
 ## Estrutura de Armazenamento
 
 ```
-~/.opennote/                         # App global (fora de qualquer workspace)
-  └── app_state.json               # Workspaces recentes, settings globais (tema, idioma)
+~/.opennote/                              # App global (fora de qualquer workspace)
+  └── app_state.json                    # Workspaces recentes, settings globais (tema, idioma)
 
-~/OpenNote/                          # Workspace root
-  ├── workspace.json                 # Metadata + preferências do workspace
-  ├── .trash/                        # Lixeira (soft-delete, retenção 30 dias)
-  │    ├── trash_manifest.json
-  │    └── {uuid}/                    # Itens deletados preservados
-  ├── .opennote/                     # Dados derivados (index, cache)
-  │    ├── index/                     # Tantivy index
-  │    └── index_state.json
-  └── meu-notebook/                  # Notebook (diretório)
-       ├── notebook.json             # Metadata do notebook (nome, cor, ícone, ordem)
-       ├── estudos/                  # Section (diretório)
-       │    ├── section.json         # Metadata da section (nome, cor, ordem)
-       │    ├── aula-01.opn.json     # Page (arquivo JSON estruturado)
-       │    ├── aula-02.opn.json
-       │    └── assets/              # Assets da section
-       │         ├── img-abc123.png
-       │         └── ink-def456.svg
-       └── projetos/                 # Outra section
-            ├── section.json
-            └── ...
+~/Documents/                              # Diretório pai selecionado pelo usuário
+  └── meus-estudos/                      # Workspace root (subpasta criada via slugify(nome))
+       ├── workspace.json                # Metadata + preferências do workspace
+       ├── .trash/                       # Lixeira (soft-delete, retenção 30 dias)
+       │    ├── trash_manifest.json
+       │    └── {uuid}/                   # Itens deletados preservados
+       ├── .opennote/                    # Dados derivados (index, cache)
+       │    ├── index/                    # Tantivy index
+       │    └── index_state.json
+       └── meu-notebook/                 # Notebook (diretório)
+            ├── notebook.json            # Metadata do notebook (nome, cor, ícone, ordem)
+            ├── estudos/                 # Section (diretório)
+            │    ├── section.json        # Metadata da section (nome, cor, ordem)
+            │    ├── aula-01.opn.json    # Page (arquivo JSON estruturado)
+            │    ├── aula-02.opn.json
+            │    └── assets/             # Assets da section (imagens, PDFs importados)
+            │         ├── a1b2c3d4.png   # Asset UUID-named (importado via import_asset)
+            │         └── e5f6g7h8.pdf   # PDF importado (via import_pdf)
+            └── projetos/                # Outra section
+                 ├── section.json
+                 └── ...
 ```
+
+**Nota:** Ao criar workspace, o usuário seleciona um diretório pai e digita um nome. O backend cria automaticamente uma subpasta com `slugify(nome)` dentro do diretório selecionado (ex: "Meus Estudos" → `meus-estudos/`).
 
 ### Formato de Page (`.opn.json`)
 

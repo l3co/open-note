@@ -446,12 +446,15 @@ Isso garante que anotações feitas na página 5 do PDF permanecem na página 5,
 }
 ```
 
-### Comandos IPC para PDF
+### Comandos IPC para PDF (✅ implementado)
 
-| Comando | Input | Output |
-|---|---|---|
-| `import_pdf` | `section_id, file_path` | `{ asset_path, total_pages }` |
-| `get_pdf_info` | `asset_path` | `{ total_pages, title, author, size_bytes }` |
+| Comando | Input | Output | Status |
+|---|---|---|---|
+| `import_pdf` | `section_id, file_path` | `(asset_rel, absolute_path, page_count)` | ✅ |
+| `read_asset_base64` | `file_path` | `data:{mime};base64,{encoded}` | ✅ |
+| `get_pdf_info` | `asset_path` | `{ total_pages, title, author, size_bytes }` | Pendente |
+
+**Nota:** `import_pdf` retorna uma tupla `(String, String, u32)`. O `absolute_path` é usado pelo frontend para chamar `read_asset_base64`, que retorna uma data URL base64. O `PdfViewer` converte a data URL em `Uint8Array` via `fetch()` antes de passar ao `pdfjsLib.getDocument({ data })`, pois pdf.js não lida bem com data URLs diretamente.
 
 ---
 
@@ -961,10 +964,11 @@ Esta fase é grande. Divisão interna recomendada:
 - Point simplification
 - Pointer Events + pressure sensitivity
 
-### 07b — Ink Block
-- TipTap node extension para InkBlock
-- InkBlock component (Idle → Editing → Fullscreen)
-- Slash command `/draw`
+### 07b — Ink Block (✅ parcialmente implementado)
+- ✅ TipTap node extension para InkBlock (`InkBlockExtension.ts` com `addNodeView` + `ReactNodeViewRenderer`)
+- ✅ `InkBlockNodeView.tsx` — wrapper que conecta TipTap NodeViewProps ao `InkBlockComponent`
+- ✅ Slash command `/draw` — insere InkBlock no editor
+- InkBlock component (Idle → Editing → Fullscreen) — existente, precisa de polish
 - Redimensionamento
 - Persistência no `.opn.json`
 
@@ -978,13 +982,16 @@ Esta fase é grande. Divisão interna recomendada:
 - Lasso select
 - Smart highlighter
 
-### 07d — PDF Block
-- Integração pdf.js
-- PdfBlock TipTap extension
-- Importação de PDF (file picker, drag & drop)
-- Renderização contínua e paginada
-- Navegação entre páginas
-- Anotação sobre PDF via Overlay
+### 07d — PDF Block (✅ parcialmente implementado)
+- ✅ Integração pdf.js (`pdfjs-dist`)
+- ✅ PdfBlock TipTap extension (`PdfBlockExtension.ts` com `addNodeView` + `ReactNodeViewRenderer`)
+- ✅ `PdfBlockNodeView.tsx` — wrapper que conecta TipTap NodeViewProps ao `PdfBlockComponent`
+- ✅ Importação de PDF via `/pdf` slash command → file picker nativo → `importPdf` IPC → copia para `{section}/assets/`
+- ✅ Exibição via base64 data URL → `fetch()` → `Uint8Array` → `pdfjsLib.getDocument({ data })` 
+- ✅ PdfViewer refatorado: carregamento único do documento (cacheado em ref), auto-detecção de `numPages` via pdf.js
+- ✅ Renderização contínua e paginada com navegação
+- ✅ Zoom in/out
+- Anotação sobre PDF via Overlay (pendente)
 
 ---
 
@@ -1069,12 +1076,12 @@ Esta fase é grande. Divisão interna recomendada:
 - [ ] Point simplification
 
 ### Ink Block
-- [ ] InkBlock inserível via `/draw`
-- [ ] Canvas dedicado com dimensões configuráveis
+- [x] InkBlock inserível via `/draw`
+- [x] Canvas dedicado com dimensões configuráveis
 - [ ] Redimensionamento (drag handle)
-- [ ] Modo tela cheia
+- [x] Modo tela cheia
 - [ ] Lazy initialization (SVG cache quando idle)
-- [ ] Strokes persistem no `.opn.json`
+- [x] Strokes persistem no `.opn.json`
 
 ### Ink Overlay
 - [ ] Canvas transparente sobre toda a page
@@ -1087,11 +1094,11 @@ Esta fase é grande. Divisão interna recomendada:
 - [ ] Auto-activate com stylus
 
 ### PDF
-- [ ] PdfBlock inserível via `/pdf`
-- [ ] Importação (file picker + drag & drop)
-- [ ] Renderização contínua e paginada (pdf.js)
+- [x] PdfBlock inserível via `/pdf`
+- [x] Importação (file picker nativo via Tauri dialog)
+- [x] Renderização contínua e paginada (pdf.js)
 - [ ] Text layer ativo (seleção e cópia de texto do PDF)
-- [ ] Navegação entre páginas
+- [x] Navegação entre páginas
 - [ ] Anotação sobre PDF via Overlay
 - [ ] Annotations ancoradas por página do PDF
 - [ ] Pointer events alternando entre text layer (modo normal) e ink overlay (modo anotar)

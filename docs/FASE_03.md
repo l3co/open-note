@@ -86,9 +86,19 @@ Tela exibida quando nenhum workspace está aberto. Design local-first com cloud-
 - `[×]` remove da lista de recentes (não deleta os arquivos)
 - Badge (📂/☁️) indica visualmente se o workspace é local ou sincronizado
 - Subtexto exibe path local + provider de sync (se houver): `~/Documents/estudos • local` ou `~/Documents/trabalho • Drive`
-- "Novo workspace local" → file picker para escolher pasta + nome
+- "Novo workspace local" → file picker para escolher pasta pai + nome → cria subpasta com `slugify(nome)` dentro da pasta selecionada
 - "Abrir pasta existente" → file picker para selecionar pasta com `workspace.json`
 - Workspace inválido (pasta não existe) → exibir como desabilitado com tooltip
+
+**Criação de workspace (✅ implementado):**
+
+O comando `create_workspace` recebe o **diretório pai** e o **nome do workspace**. O backend:
+1. Gera slug do nome via `slugify()` (ex: "Aulas de Inglês" → `aulas-de-ingles`)
+2. Cria subpasta `{diretório_pai}/{slug}/` 
+3. Dentro dessa subpasta cria `workspace.json`, `.trash/`, etc.
+4. Registra o path completo da subpasta no `app_state.json` como recent workspace
+
+Exemplo: pasta selecionada `/Users/leco/Documents`, nome "Aulas de Inglês" → cria `/Users/leco/Documents/aulas-de-ingles/workspace.json`
 
 **Botão "Conectar workspace na nuvem":**
 - **Antes da Fase 09:** Exibido com badge "Em breve" e desabilitado (cursor not-allowed, cor esmaecida). Tooltip: "Sincronização com a nuvem estará disponível em breve."

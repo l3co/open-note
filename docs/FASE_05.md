@@ -171,16 +171,21 @@ Bloco de imagem com suporte a inserção por múltiplos meios.
 3. Paste de imagem do clipboard (`Cmd+V`)
 4. Paste de URL de imagem
 
-**Fluxo de armazenamento:**
+**Fluxo de armazenamento (✅ implementado):**
 
 ```
-1. Usuário insere imagem
-2. Frontend envia arquivo via IPC para Rust
-3. Rust copia arquivo para {section}/assets/{uuid}.{ext}
-4. Retorna caminho relativo do asset
-5. Frontend exibe imagem via asset protocol do Tauri
-6. JSON armazena referência relativa
+1. Usuário digita /image → abre file picker nativo (Tauri dialog::open)
+2. Frontend obtém sectionId do useNavigationStore
+3. Frontend chama importAsset(sectionId, filePath) via IPC
+4. Rust copia arquivo para {section}/assets/{uuid}.{ext}
+5. Retorna asset_path (relativo) + absolute_path (absoluto)
+6. Frontend chama readAssetBase64(absolutePath) via IPC
+7. Rust lê o arquivo e retorna data:image/{mime};base64,{encoded}
+8. Frontend exibe imagem via base64 data URL no <img> tag
+9. JSON armazena referência relativa
 ```
+
+**Nota sobre exibição:** O `convertFileSrc` do Tauri (asset protocol) tem restrições de scope que impedem servir arquivos de diretórios arbitrários. A solução adotada é ler o arquivo como base64 via IPC (`read_asset_base64`), que funciona independentemente de configuração de scope.
 
 **Formatos suportados:** PNG, JPEG, GIF, WebP, SVG
 
@@ -460,13 +465,13 @@ Comandos agrupados por categoria no menu:
 - [ ] CodeBlock com syntax highlighting e seleção de linguagem
 - [ ] TableBlock editável (CRUD de linhas/colunas, header)
 - [ ] ChecklistBlock com toggle e indentação
-- [ ] ImageBlock (file picker, paste, drag & drop, resize, caption)
+- [x] ImageBlock (file picker via slash command `/image` — ✅ importa asset + exibe via base64 data URL)
 - [ ] CalloutBlock com variantes
 - [ ] EmbedBlock (YouTube iframe, link preview)
 - [ ] DividerBlock polido
 - [ ] Drag & drop de blocos para reordenar
-- [ ] Slash commands atualizados com todos os blocos
-- [ ] Assets armazenados em `{section}/assets/`
+- [x] Slash commands atualizados com todos os blocos
+- [x] Assets armazenados em `{section}/assets/`
 - [ ] Cleanup de assets ao deletar page
 - [ ] Todos os blocos serializam/deserializam corretamente
 - [ ] Testes unitários passando
