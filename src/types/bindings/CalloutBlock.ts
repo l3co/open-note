@@ -2,11 +2,4 @@
 import type { BlockId } from "./BlockId";
 import type { CalloutVariant } from "./CalloutVariant";
 
-export type CalloutBlock = {
-  variant: CalloutVariant;
-  content: string;
-  id: BlockId;
-  order: number;
-  created_at: string;
-  updated_at: string;
-};
+export type CalloutBlock = { variant: CalloutVariant, content: string, id: BlockId, order: number, created_at: string, updated_at: string, };

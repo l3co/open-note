@@ -4,13 +4,4 @@ import type { StrokeAnchor } from "./StrokeAnchor";
 import type { StrokeId } from "./StrokeId";
 import type { StrokePoint } from "./StrokePoint";
 
-export type AnchoredStroke = {
-  id: StrokeId;
-  points: Array<StrokePoint>;
-  color: string;
-  size: number;
-  tool: InkTool;
-  opacity: number;
-  timestamp: bigint;
-  anchor: StrokeAnchor | null;
-};
+export type AnchoredStroke = { id: StrokeId, points: Array<StrokePoint>, color: string, size: number, tool: InkTool, opacity: number, timestamp: bigint, anchor: StrokeAnchor | null, };

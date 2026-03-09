@@ -2,10 +2,4 @@
 import type { NotebookId } from "./NotebookId";
 import type { PageId } from "./PageId";
 
-export type WorkspaceSettings = {
-  default_notebook_id: NotebookId | null;
-  auto_save_interval_ms: bigint;
-  sidebar_width: number;
-  sidebar_open: boolean;
-  last_opened_page_id: PageId | null;
-};
+export type WorkspaceSettings = { default_notebook_id: NotebookId | null, auto_save_interval_ms: bigint, sidebar_width: number, sidebar_open: boolean, last_opened_page_id: PageId | null, };
