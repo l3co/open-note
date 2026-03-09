@@ -2,15 +2,31 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { StatusBar } from "../StatusBar";
-import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
+import { useMultiWorkspaceStore } from "@/stores/useMultiWorkspaceStore";
 import { usePageStore } from "@/stores/usePageStore";
 import { useUIStore } from "@/stores/useUIStore";
 
 vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn() }));
+vi.mock("sonner", () => ({ toast: { error: vi.fn() } }));
+vi.mock("@/lib/ipc", () => ({ focusWorkspace: vi.fn() }));
+
+const defaultNav = () => ({
+  activeView: "home" as const,
+  selectedNotebookId: null,
+  selectedSectionId: null,
+  selectedPageId: null,
+  expandedNotebooks: new Set<string>(),
+  expandedSections: new Set<string>(),
+  history: [] as string[],
+  historyIndex: -1,
+});
 
 describe("StatusBar", () => {
   beforeEach(() => {
-    useWorkspaceStore.setState({ workspace: null });
+    useMultiWorkspaceStore.setState({
+      workspaces: new Map(),
+      focusedWorkspaceId: null,
+    });
     usePageStore.setState({
       currentPage: null,
       saveStatus: "idle",
@@ -18,13 +34,28 @@ describe("StatusBar", () => {
     });
   });
 
-  it("renders workspace path when workspace is open", () => {
-    useWorkspaceStore.setState({
-      workspace: { root_path: "/tmp/my-ws" } as never,
+  it("renders workspace name when workspace is open", () => {
+    useMultiWorkspaceStore.setState({
+      workspaces: new Map([
+        [
+          "ws-1",
+          {
+            workspace: {
+              id: "ws-1",
+              name: "My Workspace",
+              root_path: "/tmp/my-ws",
+            } as never,
+            notebooks: [],
+            sections: new Map(),
+            navigation: defaultNav(),
+          },
+        ],
+      ]),
+      focusedWorkspaceId: "ws-1",
     });
     render(<StatusBar />);
     expect(screen.getByTestId("status-workspace-path")).toHaveTextContent(
-      "/tmp/my-ws",
+      "My Workspace",
     );
   });
 

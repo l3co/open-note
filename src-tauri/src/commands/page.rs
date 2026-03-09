@@ -38,18 +38,32 @@ fn try_index_page(state: &AppManagedState, root: &std::path::Path, page: &Page) 
     }
 }
 
+/// Resolve o workspace_id e obtém o root_path, propagando erros.
+fn resolve_root(
+    state: &AppManagedState,
+    workspace_id: Option<String>,
+) -> Result<std::path::PathBuf, CommandError> {
+    let id = super::resolve_workspace_id(state, workspace_id)?;
+    state.get_workspace_root_by_id(&id)
+}
+
 #[tauri::command]
 pub fn list_pages(
     state: State<AppManagedState>,
     section_id: SectionId,
+    workspace_id: Option<String>,
 ) -> Result<Vec<PageSummary>, CommandError> {
-    let root = state.get_workspace_root()?;
+    let root = resolve_root(&state, workspace_id)?;
     FsStorageEngine::list_pages(&root, section_id).map_err(CommandError::from)
 }
 
 #[tauri::command]
-pub fn load_page(state: State<AppManagedState>, page_id: PageId) -> Result<Page, CommandError> {
-    let root = state.get_workspace_root()?;
+pub fn load_page(
+    state: State<AppManagedState>,
+    page_id: PageId,
+    workspace_id: Option<String>,
+) -> Result<Page, CommandError> {
+    let root = resolve_root(&state, workspace_id)?;
     FsStorageEngine::load_page(&root, page_id).map_err(CommandError::from)
 }
 
@@ -58,8 +72,9 @@ pub fn create_page(
     state: State<AppManagedState>,
     section_id: SectionId,
     title: String,
+    workspace_id: Option<String>,
 ) -> Result<Page, CommandError> {
-    let root = state.get_workspace_root()?;
+    let root = resolve_root(&state, workspace_id)?;
     let page =
         FsStorageEngine::create_page(&root, section_id, &title).map_err(CommandError::from)?;
 
@@ -69,8 +84,12 @@ pub fn create_page(
 }
 
 #[tauri::command]
-pub fn update_page(state: State<AppManagedState>, page: Page) -> Result<(), CommandError> {
-    let root = state.get_workspace_root()?;
+pub fn update_page(
+    state: State<AppManagedState>,
+    page: Page,
+    workspace_id: Option<String>,
+) -> Result<(), CommandError> {
+    let root = resolve_root(&state, workspace_id)?;
     FsStorageEngine::update_page(&root, &page).map_err(CommandError::from)?;
 
     try_index_page(&state, &root, &page);
@@ -83,8 +102,9 @@ pub fn update_page_blocks(
     state: State<AppManagedState>,
     page_id: PageId,
     blocks: Vec<Block>,
+    workspace_id: Option<String>,
 ) -> Result<Page, CommandError> {
-    let root = state.get_workspace_root()?;
+    let root = resolve_root(&state, workspace_id)?;
 
     state.save_coordinator.with_page_lock(page_id, || {
         let mut page = FsStorageEngine::load_page(&root, page_id).map_err(CommandError::from)?;
@@ -99,8 +119,12 @@ pub fn update_page_blocks(
 }
 
 #[tauri::command]
-pub fn delete_page(state: State<AppManagedState>, page_id: PageId) -> Result<(), CommandError> {
-    let root = state.get_workspace_root()?;
+pub fn delete_page(
+    state: State<AppManagedState>,
+    page_id: PageId,
+    workspace_id: Option<String>,
+) -> Result<(), CommandError> {
+    let root = resolve_root(&state, workspace_id)?;
     FsStorageEngine::delete_page(&root, page_id).map_err(CommandError::from)?;
 
     if let Err(error) = state.with_search_engine(|engine| {
@@ -119,8 +143,9 @@ pub fn move_page(
     state: State<AppManagedState>,
     page_id: PageId,
     target_section_id: SectionId,
+    workspace_id: Option<String>,
 ) -> Result<Page, CommandError> {
-    let root = state.get_workspace_root()?;
+    let root = resolve_root(&state, workspace_id)?;
     let page = FsStorageEngine::move_page(&root, page_id, target_section_id)
         .map_err(CommandError::from)?;
 
@@ -134,8 +159,9 @@ pub fn import_pdf(
     state: State<AppManagedState>,
     section_id: SectionId,
     file_path: String,
+    workspace_id: Option<String>,
 ) -> Result<(String, String, u32), CommandError> {
-    let root = state.get_workspace_root()?;
+    let root = resolve_root(&state, workspace_id)?;
     let source = std::path::Path::new(&file_path);
 
     if !source.exists() {

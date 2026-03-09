@@ -14,6 +14,7 @@ use opennote_core::workspace::Workspace;
 use crate::atomic::{atomic_write_json, read_json};
 use crate::error::{StorageError, StorageResult};
 use crate::lock;
+use crate::migrations::migrate_app_state_if_needed;
 use crate::slug::unique_slug;
 
 const WORKSPACE_FILE: &str = "workspace.json";
@@ -43,7 +44,18 @@ impl FsStorageEngine {
         if !path.exists() {
             return Ok(AppState::default());
         }
-        read_json(&path)
+        let raw: serde_json::Value = read_json(&path)?;
+        let raw_version = raw
+            .get("schema_version")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(1) as u32;
+        let migrated = migrate_app_state_if_needed(raw, &path)?;
+        let state: AppState = serde_json::from_value(migrated)?;
+        // Persist if migration ran (raw version was older)
+        if raw_version < opennote_core::settings::CURRENT_APP_STATE_VERSION {
+            atomic_write_json(&path, &state)?;
+        }
+        Ok(state)
     }
 
     pub fn save_app_state(state: &AppState) -> StorageResult<()> {

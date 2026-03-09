@@ -1,4 +1,8 @@
 import { create } from "zustand";
+import {
+  useMultiWorkspaceStore,
+  type WorkspaceNavigation,
+} from "./useMultiWorkspaceStore";
 
 export type ActiveView = "home" | "page" | "tags";
 
@@ -23,92 +27,159 @@ interface NavigationStore {
   reset: () => void;
 }
 
-export const useNavigationStore = create<NavigationStore>((set, get) => ({
-  activeView: "home" as ActiveView,
-  selectedNotebookId: null,
-  selectedSectionId: null,
-  selectedPageId: null,
-  expandedNotebooks: new Set(),
-  expandedSections: new Set(),
-  history: [],
-  historyIndex: -1,
+function getFocusedNav(): WorkspaceNavigation | null {
+  return useMultiWorkspaceStore.getState().focusedSlice()?.navigation ?? null;
+}
 
-  setActiveView: (view) => set({ activeView: view }),
+function updateFocusedNav(
+  updater: (nav: WorkspaceNavigation) => WorkspaceNavigation,
+) {
+  const { focusedWorkspaceId, updateNavigation } =
+    useMultiWorkspaceStore.getState();
+  if (focusedWorkspaceId) updateNavigation(focusedWorkspaceId, updater);
+}
 
-  selectNotebook: (id) =>
-    set((s) => {
-      const expanded = new Set(s.expandedNotebooks);
-      expanded.add(id);
-      return { selectedNotebookId: id, expandedNotebooks: expanded };
-    }),
-
-  selectSection: (id) =>
-    set((s) => {
-      const expanded = new Set(s.expandedSections);
-      expanded.add(id);
-      return { selectedSectionId: id, expandedSections: expanded };
-    }),
-
-  selectPage: (id) => {
-    const { history, historyIndex, selectedPageId, activeView } = get();
-    if (id === selectedPageId) {
-      if (activeView !== "page") set({ activeView: "page" });
-      return;
+// Facade: delegates navigation state to the focused WorkspaceSlice in
+// useMultiWorkspaceStore. Existing components keep the same API.
+export const useNavigationStore = create<NavigationStore>((set) => {
+  // Mirror the focused slice's navigation into this store on every change
+  useMultiWorkspaceStore.subscribe((multiState) => {
+    const nav = multiState.focusedSlice()?.navigation;
+    if (nav) {
+      set({
+        activeView: nav.activeView,
+        selectedNotebookId: nav.selectedNotebookId,
+        selectedSectionId: nav.selectedSectionId,
+        selectedPageId: nav.selectedPageId,
+        expandedNotebooks: nav.expandedNotebooks,
+        expandedSections: nav.expandedSections,
+        history: nav.history,
+        historyIndex: nav.historyIndex,
+      });
+    } else {
+      set({
+        activeView: "home",
+        selectedNotebookId: null,
+        selectedSectionId: null,
+        selectedPageId: null,
+        expandedNotebooks: new Set(),
+        expandedSections: new Set(),
+        history: [],
+        historyIndex: -1,
+      });
     }
-    const newHistory = history.slice(0, historyIndex + 1);
-    newHistory.push(id);
-    set({
-      activeView: "page",
-      selectedPageId: id,
-      history: newHistory,
-      historyIndex: newHistory.length - 1,
-    });
-  },
+  });
 
-  goBack: () => {
-    const { history, historyIndex } = get();
-    if (historyIndex <= 0) return;
-    const newIndex = historyIndex - 1;
-    set({
-      selectedPageId: history[newIndex] ?? null,
-      historyIndex: newIndex,
-    });
-  },
+  return {
+    activeView: "home",
+    selectedNotebookId: null,
+    selectedSectionId: null,
+    selectedPageId: null,
+    expandedNotebooks: new Set(),
+    expandedSections: new Set(),
+    history: [],
+    historyIndex: -1,
 
-  goForward: () => {
-    const { history, historyIndex } = get();
-    if (historyIndex >= history.length - 1) return;
-    const newIndex = historyIndex + 1;
-    set({
-      selectedPageId: history[newIndex] ?? null,
-      historyIndex: newIndex,
-    });
-  },
+    setActiveView: (view) => {
+      updateFocusedNav((nav) => ({ ...nav, activeView: view }));
+    },
 
-  toggleNotebook: (id) =>
-    set((s) => {
-      const expanded = new Set(s.expandedNotebooks);
-      if (expanded.has(id)) expanded.delete(id);
-      else expanded.add(id);
-      return { expandedNotebooks: expanded };
-    }),
+    selectNotebook: (id) => {
+      updateFocusedNav((nav) => {
+        const expanded = new Set(nav.expandedNotebooks);
+        expanded.add(id);
+        return { ...nav, selectedNotebookId: id, expandedNotebooks: expanded };
+      });
+    },
 
-  toggleSection: (id) =>
-    set((s) => {
-      const expanded = new Set(s.expandedSections);
-      if (expanded.has(id)) expanded.delete(id);
-      else expanded.add(id);
-      return { expandedSections: expanded };
-    }),
+    selectSection: (id) => {
+      updateFocusedNav((nav) => {
+        const expanded = new Set(nav.expandedSections);
+        expanded.add(id);
+        return { ...nav, selectedSectionId: id, expandedSections: expanded };
+      });
+    },
 
-  reset: () =>
-    set({
-      selectedNotebookId: null,
-      selectedSectionId: null,
-      selectedPageId: null,
-      expandedNotebooks: new Set(),
-      expandedSections: new Set(),
-      history: [],
-      historyIndex: -1,
-    }),
-}));
+    selectPage: (id) => {
+      const nav = getFocusedNav();
+      const currentPageId = nav?.selectedPageId ?? null;
+      const currentView = nav?.activeView ?? "home";
+
+      if (id === currentPageId) {
+        if (currentView !== "page") {
+          updateFocusedNav((n) => ({ ...n, activeView: "page" }));
+        }
+        return;
+      }
+
+      const currentHistory = nav?.history ?? [];
+      const currentIndex = nav?.historyIndex ?? -1;
+      const newHistory = currentHistory.slice(0, currentIndex + 1);
+      newHistory.push(id);
+      const newIndex = newHistory.length - 1;
+
+      updateFocusedNav((n) => ({
+        ...n,
+        activeView: "page",
+        selectedPageId: id,
+        history: newHistory,
+        historyIndex: newIndex,
+      }));
+    },
+
+    goBack: () => {
+      const nav = getFocusedNav();
+      if (!nav || nav.historyIndex <= 0) return;
+      const newIndex = nav.historyIndex - 1;
+      const pageId = nav.history[newIndex] ?? null;
+      updateFocusedNav((n) => ({
+        ...n,
+        selectedPageId: pageId,
+        historyIndex: newIndex,
+      }));
+    },
+
+    goForward: () => {
+      const nav = getFocusedNav();
+      if (!nav || nav.historyIndex >= nav.history.length - 1) return;
+      const newIndex = nav.historyIndex + 1;
+      const pageId = nav.history[newIndex] ?? null;
+      updateFocusedNav((n) => ({
+        ...n,
+        selectedPageId: pageId,
+        historyIndex: newIndex,
+      }));
+    },
+
+    toggleNotebook: (id) => {
+      updateFocusedNav((nav) => {
+        const expanded = new Set(nav.expandedNotebooks);
+        if (expanded.has(id)) expanded.delete(id);
+        else expanded.add(id);
+        return { ...nav, expandedNotebooks: expanded };
+      });
+    },
+
+    toggleSection: (id) => {
+      updateFocusedNav((nav) => {
+        const expanded = new Set(nav.expandedSections);
+        if (expanded.has(id)) expanded.delete(id);
+        else expanded.add(id);
+        return { ...nav, expandedSections: expanded };
+      });
+    },
+
+    reset: () => {
+      updateFocusedNav((_nav) => ({
+        activeView: "home",
+        selectedNotebookId: null,
+        selectedSectionId: null,
+        selectedPageId: null,
+        expandedNotebooks: new Set(),
+        expandedSections: new Set(),
+        history: [],
+        historyIndex: -1,
+      }));
+    },
+  };
+});

@@ -1,3 +1,4 @@
+import { useMultiWorkspaceStore } from "@/stores/useMultiWorkspaceStore";
 import { usePageStore } from "@/stores/usePageStore";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { HomePage } from "@/components/pages/HomePage";
@@ -6,6 +7,9 @@ import { PageView } from "@/components/pages/PageView";
 import { Loader2 } from "lucide-react";
 
 export function ContentArea() {
+  const focusedWorkspaceId = useMultiWorkspaceStore(
+    (s) => s.focusedWorkspaceId,
+  );
   const { activeView, selectedPageId } = useNavigationStore();
   const { currentPage, isLoading } = usePageStore();
 
@@ -25,17 +29,28 @@ export function ContentArea() {
     );
   }
 
+  let content: React.ReactNode;
+
   if (activeView === "home" || (!selectedPageId && activeView !== "tags")) {
-    return <HomePage />;
+    content = <HomePage />;
+  } else if (activeView === "tags") {
+    content = <TagsPage />;
+  } else if (!currentPage) {
+    content = <HomePage />;
+  } else {
+    content = <PageView page={currentPage} />;
   }
 
-  if (activeView === "tags") {
-    return <TagsPage />;
-  }
-
-  if (!currentPage) {
-    return <HomePage />;
-  }
-
-  return <PageView page={currentPage} />;
+  return (
+    <div
+      key={focusedWorkspaceId ?? "none"}
+      className="flex flex-1 flex-col overflow-hidden"
+      style={{
+        animation: "workspace-fade-in 150ms ease",
+      }}
+      data-testid="content-area-inner"
+    >
+      {content}
+    </div>
+  );
 }

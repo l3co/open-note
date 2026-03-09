@@ -39,7 +39,9 @@ describe("ipc wrappers", () => {
   it("closeWorkspace invokes close_workspace", async () => {
     mockInvoke.mockResolvedValue(undefined);
     await ipc.closeWorkspace();
-    expect(mockInvoke).toHaveBeenCalledWith("close_workspace");
+    expect(mockInvoke).toHaveBeenCalledWith("close_workspace", {
+      workspaceId: undefined,
+    });
   });
 
   it("removeRecentWorkspace invokes with path", async () => {
@@ -53,7 +55,9 @@ describe("ipc wrappers", () => {
   it("getWorkspaceSettings invokes get_workspace_settings", async () => {
     mockInvoke.mockResolvedValue({});
     await ipc.getWorkspaceSettings();
-    expect(mockInvoke).toHaveBeenCalledWith("get_workspace_settings");
+    expect(mockInvoke).toHaveBeenCalledWith("get_workspace_settings", {
+      workspaceId: undefined,
+    });
   });
 
   it("updateWorkspaceSettings invokes with settings", async () => {
@@ -83,7 +87,9 @@ describe("ipc wrappers", () => {
   it("listNotebooks invokes list_notebooks", async () => {
     mockInvoke.mockResolvedValue([]);
     await ipc.listNotebooks();
-    expect(mockInvoke).toHaveBeenCalledWith("list_notebooks");
+    expect(mockInvoke).toHaveBeenCalledWith("list_notebooks", {
+      workspaceId: undefined,
+    });
   });
 
   it("createNotebook invokes with name", async () => {
@@ -239,14 +245,18 @@ describe("ipc wrappers", () => {
   it("listAllTags invokes list_all_tags", async () => {
     mockInvoke.mockResolvedValue(["tag1"]);
     const result = await ipc.listAllTags();
-    expect(mockInvoke).toHaveBeenCalledWith("list_all_tags");
+    expect(mockInvoke).toHaveBeenCalledWith("list_all_tags", {
+      workspaceId: undefined,
+    });
     expect(result).toEqual(["tag1"]);
   });
 
   it("listTrashItems invokes list_trash_items", async () => {
     mockInvoke.mockResolvedValue([]);
     await ipc.listTrashItems();
-    expect(mockInvoke).toHaveBeenCalledWith("list_trash_items");
+    expect(mockInvoke).toHaveBeenCalledWith("list_trash_items", {
+      workspaceId: undefined,
+    });
   });
 
   it("restoreFromTrash invokes with trashItemId", async () => {
@@ -268,7 +278,9 @@ describe("ipc wrappers", () => {
   it("emptyTrash invokes empty_trash", async () => {
     mockInvoke.mockResolvedValue(undefined);
     await ipc.emptyTrash();
-    expect(mockInvoke).toHaveBeenCalledWith("empty_trash");
+    expect(mockInvoke).toHaveBeenCalledWith("empty_trash", {
+      workspaceId: undefined,
+    });
   });
 
   it("searchPages invokes with query", async () => {
@@ -298,14 +310,18 @@ describe("ipc wrappers", () => {
   it("rebuildIndex invokes rebuild_index", async () => {
     mockInvoke.mockResolvedValue(42);
     const result = await ipc.rebuildIndex();
-    expect(mockInvoke).toHaveBeenCalledWith("rebuild_index");
+    expect(mockInvoke).toHaveBeenCalledWith("rebuild_index", {
+      workspaceId: undefined,
+    });
     expect(result).toBe(42);
   });
 
   it("getIndexStatus invokes get_index_status", async () => {
     mockInvoke.mockResolvedValue({});
     await ipc.getIndexStatus();
-    expect(mockInvoke).toHaveBeenCalledWith("get_index_status");
+    expect(mockInvoke).toHaveBeenCalledWith("get_index_status", {
+      workspaceId: undefined,
+    });
   });
 
   it("getSyncProviders invokes get_sync_providers", async () => {

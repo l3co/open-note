@@ -1,8 +1,42 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { useNavigationStore } from "../useNavigationStore";
+import { useMultiWorkspaceStore } from "../useMultiWorkspaceStore";
+
+vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn() }));
+vi.mock("sonner", () => ({ toast: { error: vi.fn() } }));
+vi.mock("@/lib/ipc", () => ({ focusWorkspace: vi.fn() }));
+
+const WS_ID = "nav-ws-1";
+
+function seedWorkspace() {
+  useMultiWorkspaceStore.setState({
+    workspaces: new Map([
+      [
+        WS_ID,
+        {
+          workspace: { id: WS_ID, name: "Nav WS" } as never,
+          notebooks: [],
+          sections: new Map(),
+          navigation: {
+            activeView: "home" as const,
+            selectedNotebookId: null,
+            selectedSectionId: null,
+            selectedPageId: null,
+            expandedNotebooks: new Set<string>(),
+            expandedSections: new Set<string>(),
+            history: [] as string[],
+            historyIndex: -1,
+          },
+        },
+      ],
+    ]),
+    focusedWorkspaceId: WS_ID,
+  });
+}
 
 describe("useNavigationStore", () => {
   beforeEach(() => {
+    seedWorkspace();
     useNavigationStore.getState().reset();
   });
 

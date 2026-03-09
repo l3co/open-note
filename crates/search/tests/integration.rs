@@ -610,3 +610,114 @@ fn test_rebuild_is_idempotent() {
         "Rebuild should not duplicate documents"
     );
 }
+
+// ── Multi-index isolation tests ───────────────────────────────────────────────
+
+#[test]
+fn two_engines_different_dirs_coexist() {
+    let dir_a = tempfile::tempdir().unwrap();
+    let dir_b = tempfile::tempdir().unwrap();
+
+    let engine_a = SearchEngine::open_or_create(dir_a.path()).unwrap();
+    let engine_b = SearchEngine::open_or_create(dir_b.path()).unwrap();
+
+    engine_a
+        .index_page(&make_index_data(make_page(
+            "Page in A",
+            "unique content alpha xray",
+            vec![],
+        )))
+        .unwrap();
+    engine_b
+        .index_page(&make_index_data(make_page(
+            "Page in B",
+            "unique content beta zulu",
+            vec![],
+        )))
+        .unwrap();
+
+    let query_b_text = SearchQuery {
+        text: "zulu".to_string(),
+        notebook_id: None,
+        section_id: None,
+        tags: vec![],
+        limit: 10,
+        offset: 0,
+    };
+    let query_a_text = SearchQuery {
+        text: "xray".to_string(),
+        notebook_id: None,
+        section_id: None,
+        tags: vec![],
+        limit: 10,
+        offset: 0,
+    };
+
+    let results_a = engine_a.search(&query_b_text).unwrap();
+    assert_eq!(results_a.total, 0, "Engine A must not contain B's content");
+
+    let results_b = engine_b.search(&query_a_text).unwrap();
+    assert_eq!(results_b.total, 0, "Engine B must not contain A's content");
+
+    let found_in_a = engine_a.search(&query_a_text).unwrap();
+    assert_eq!(found_in_a.total, 1, "Engine A must find its own content");
+
+    let found_in_b = engine_b.search(&query_b_text).unwrap();
+    assert_eq!(found_in_b.total, 1, "Engine B must find its own content");
+}
+
+#[test]
+fn two_engines_can_commit_simultaneously() {
+    let dir_a = tempfile::tempdir().unwrap();
+    let dir_b = tempfile::tempdir().unwrap();
+
+    let engine_a = SearchEngine::open_or_create(dir_a.path()).unwrap();
+    let engine_b = SearchEngine::open_or_create(dir_b.path()).unwrap();
+
+    for i in 0..5u32 {
+        engine_a
+            .index_page(&make_index_data(make_page(
+                &format!("A-page-{i}"),
+                &format!("content-a-{i}"),
+                vec![],
+            )))
+            .unwrap();
+        engine_b
+            .index_page(&make_index_data(make_page(
+                &format!("B-page-{i}"),
+                &format!("content-b-{i}"),
+                vec![],
+            )))
+            .unwrap();
+    }
+
+    let status_a = engine_a.get_status().unwrap();
+    let status_b = engine_b.get_status().unwrap();
+    assert_eq!(status_a.total_documents, 5);
+    assert_eq!(status_b.total_documents, 5);
+}
+
+#[test]
+fn engine_drop_commits_pending_data() {
+    let dir = tempfile::tempdir().unwrap();
+
+    {
+        let engine = SearchEngine::open_or_create(dir.path()).unwrap();
+        engine
+            .index_page(&make_index_data(make_page(
+                "Persisted Page",
+                "data that must survive drop",
+                vec![],
+            )))
+            .unwrap();
+        // engine drops here, triggering the Drop impl commit
+    }
+
+    // Re-open and verify data is present
+    let engine2 = SearchEngine::open_or_create(dir.path()).unwrap();
+    let status = engine2.get_status().unwrap();
+    assert!(
+        status.total_documents >= 1,
+        "Data indexed before drop should persist"
+    );
+}

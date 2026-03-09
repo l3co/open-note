@@ -1,13 +1,14 @@
 import { useTranslation } from "react-i18next";
-import { CloudOff } from "lucide-react";
-import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
+import { CloudOff, FolderOpen } from "lucide-react";
+import { useWorkspaceList } from "@/hooks/useWorkspaceList";
 import { usePageStore } from "@/stores/usePageStore";
 import { useUIStore } from "@/stores/useUIStore";
 
 const SOFT_BLOCK_LIMIT = 200;
 
 export function StatusBar() {
-  const workspace = useWorkspaceStore((s) => s.workspace);
+  const { workspaces, focusedId, count } = useWorkspaceList();
+  const focused = workspaces.find((w) => w.workspace.id === focusedId);
   const { currentPage, saveStatus, lastSavedAt } = usePageStore();
   const openSyncSettings = useUIStore((s) => s.openSyncSettings);
   const { t } = useTranslation();
@@ -41,8 +42,22 @@ export function StatusBar() {
       }}
       data-testid="status-bar"
     >
-      <span className="truncate" data-testid="status-workspace-path">
-        {workspace?.root_path ?? t("workspace.none_open")}
+      <span
+        className="flex items-center gap-1.5 truncate"
+        data-testid="status-workspace-path"
+      >
+        <FolderOpen size={12} style={{ flexShrink: 0 }} />
+        <span className="truncate">
+          {focused?.workspace.name ?? t("workspace.none_open")}
+        </span>
+        {count > 1 && (
+          <span
+            className="text-[10px] opacity-60"
+            data-testid="status-workspace-count"
+          >
+            ({t("workspace.count_open", { count })})
+          </span>
+        )}
       </span>
 
       <div className="flex items-center gap-4">

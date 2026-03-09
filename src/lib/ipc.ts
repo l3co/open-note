@@ -1,4 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
+import type { ActiveWorkspace } from "@/types/bindings/ActiveWorkspace";
 import type { AppState } from "@/types/bindings/AppState";
 import type { GlobalSettings } from "@/types/bindings/GlobalSettings";
 import type { Notebook } from "@/types/bindings/Notebook";
@@ -25,16 +26,32 @@ export const createWorkspace = (path: string, name: string) =>
 export const openWorkspace = (path: string) =>
   invoke<Workspace>("open_workspace", { path });
 
-export const closeWorkspace = () => invoke<void>("close_workspace");
+/** Fecha o workspace em foco ou o especificado por workspaceId. */
+export const closeWorkspace = (workspaceId?: string) =>
+  invoke<void>("close_workspace", { workspaceId });
+
+/** Lista todos os workspaces atualmente abertos. */
+export const listOpenWorkspaces = () =>
+  invoke<ActiveWorkspace[]>("list_open_workspaces");
+
+/** Define o workspace em foco sem fechar os demais. */
+export const focusWorkspace = (workspaceId: string) =>
+  invoke<void>("focus_workspace", { workspaceId });
+
+/** Muda o workspace em foco e retorna seus dados. */
+export const switchWorkspace = (workspaceId: string) =>
+  invoke<Workspace>("switch_workspace", { workspaceId });
 
 export const removeRecentWorkspace = (path: string) =>
   invoke<void>("remove_recent_workspace", { path });
 
-export const getWorkspaceSettings = () =>
-  invoke<WorkspaceSettings>("get_workspace_settings");
+export const getWorkspaceSettings = (workspaceId?: string) =>
+  invoke<WorkspaceSettings>("get_workspace_settings", { workspaceId });
 
-export const updateWorkspaceSettings = (settings: WorkspaceSettings) =>
-  invoke<void>("update_workspace_settings", { settings });
+export const updateWorkspaceSettings = (
+  settings: WorkspaceSettings,
+  workspaceId?: string,
+) => invoke<void>("update_workspace_settings", { settings, workspaceId });
 
 export const getGlobalSettings = () =>
   invoke<GlobalSettings>("get_global_settings");
@@ -44,58 +61,82 @@ export const updateGlobalSettings = (settings: GlobalSettings) =>
 
 // ─── Notebook ───
 
-export const listNotebooks = () => invoke<Notebook[]>("list_notebooks");
+export const listNotebooks = (workspaceId?: string) =>
+  invoke<Notebook[]>("list_notebooks", { workspaceId });
 
-export const createNotebook = (name: string) =>
-  invoke<Notebook>("create_notebook", { name });
+export const createNotebook = (name: string, workspaceId?: string) =>
+  invoke<Notebook>("create_notebook", { name, workspaceId });
 
-export const renameNotebook = (id: NotebookId, name: string) =>
-  invoke<Notebook>("rename_notebook", { id, name });
+export const renameNotebook = (
+  id: NotebookId,
+  name: string,
+  workspaceId?: string,
+) => invoke<Notebook>("rename_notebook", { id, name, workspaceId });
 
-export const deleteNotebook = (id: NotebookId) =>
-  invoke<void>("delete_notebook", { id });
+export const deleteNotebook = (id: NotebookId, workspaceId?: string) =>
+  invoke<void>("delete_notebook", { id, workspaceId });
 
-export const reorderNotebooks = (order: [NotebookId, number][]) =>
-  invoke<void>("reorder_notebooks", { order });
+export const reorderNotebooks = (
+  order: [NotebookId, number][],
+  workspaceId?: string,
+) => invoke<void>("reorder_notebooks", { order, workspaceId });
 
 // ─── Section ───
 
-export const listSections = (notebookId: NotebookId) =>
-  invoke<Section[]>("list_sections", { notebookId });
+export const listSections = (notebookId: NotebookId, workspaceId?: string) =>
+  invoke<Section[]>("list_sections", { notebookId, workspaceId });
 
-export const createSection = (notebookId: NotebookId, name: string) =>
-  invoke<Section>("create_section", { notebookId, name });
+export const createSection = (
+  notebookId: NotebookId,
+  name: string,
+  workspaceId?: string,
+) => invoke<Section>("create_section", { notebookId, name, workspaceId });
 
-export const renameSection = (id: SectionId, name: string) =>
-  invoke<Section>("rename_section", { id, name });
+export const renameSection = (
+  id: SectionId,
+  name: string,
+  workspaceId?: string,
+) => invoke<Section>("rename_section", { id, name, workspaceId });
 
-export const deleteSection = (id: SectionId) =>
-  invoke<void>("delete_section", { id });
+export const deleteSection = (id: SectionId, workspaceId?: string) =>
+  invoke<void>("delete_section", { id, workspaceId });
 
-export const reorderSections = (order: [SectionId, number][]) =>
-  invoke<void>("reorder_sections", { order });
+export const reorderSections = (
+  order: [SectionId, number][],
+  workspaceId?: string,
+) => invoke<void>("reorder_sections", { order, workspaceId });
 
 // ─── Page ───
 
-export const listPages = (sectionId: SectionId) =>
-  invoke<PageSummary[]>("list_pages", { sectionId });
+export const listPages = (sectionId: SectionId, workspaceId?: string) =>
+  invoke<PageSummary[]>("list_pages", { sectionId, workspaceId });
 
-export const loadPage = (pageId: PageId) =>
-  invoke<Page>("load_page", { pageId });
+export const loadPage = (pageId: PageId, workspaceId?: string) =>
+  invoke<Page>("load_page", { pageId, workspaceId });
 
-export const createPage = (sectionId: SectionId, title: string) =>
-  invoke<Page>("create_page", { sectionId, title });
+export const createPage = (
+  sectionId: SectionId,
+  title: string,
+  workspaceId?: string,
+) => invoke<Page>("create_page", { sectionId, title, workspaceId });
 
-export const updatePage = (page: Page) => invoke<void>("update_page", { page });
+export const updatePage = (page: Page, workspaceId?: string) =>
+  invoke<void>("update_page", { page, workspaceId });
 
-export const updatePageBlocks = (pageId: PageId, blocks: Block[]) =>
-  invoke<Page>("update_page_blocks", { pageId, blocks });
+export const updatePageBlocks = (
+  pageId: PageId,
+  blocks: Block[],
+  workspaceId?: string,
+) => invoke<Page>("update_page_blocks", { pageId, blocks, workspaceId });
 
-export const deletePage = (pageId: PageId) =>
-  invoke<void>("delete_page", { pageId });
+export const deletePage = (pageId: PageId, workspaceId?: string) =>
+  invoke<void>("delete_page", { pageId, workspaceId });
 
-export const movePage = (pageId: PageId, targetSectionId: SectionId) =>
-  invoke<Page>("move_page", { pageId, targetSectionId });
+export const movePage = (
+  pageId: PageId,
+  targetSectionId: SectionId,
+  workspaceId?: string,
+) => invoke<Page>("move_page", { pageId, targetSectionId, workspaceId });
 
 // ─── File I/O ───
 
@@ -107,10 +148,15 @@ export const saveFileContent = (path: string, content: string) =>
 
 // ─── Assets ───
 
-export const importAsset = (sectionId: SectionId, filePath: string) =>
+export const importAsset = (
+  sectionId: SectionId,
+  filePath: string,
+  workspaceId?: string,
+) =>
   invoke<{ asset_path: string; absolute_path: string }>("import_asset", {
     sectionId,
     filePath,
+    workspaceId,
   });
 
 export const readAssetBase64 = (filePath: string) =>
@@ -118,43 +164,76 @@ export const readAssetBase64 = (filePath: string) =>
 
 // ─── PDF ───
 
-export const importPdf = (sectionId: SectionId, filePath: string) =>
-  invoke<[string, string, number]>("import_pdf", { sectionId, filePath });
+export const importPdf = (
+  sectionId: SectionId,
+  filePath: string,
+  workspaceId?: string,
+) =>
+  invoke<[string, string, number]>("import_pdf", {
+    sectionId,
+    filePath,
+    workspaceId,
+  });
 
 // ─── Tags ───
 
-export const listAllTags = () => invoke<string[]>("list_all_tags");
+export const listAllTags = (workspaceId?: string) =>
+  invoke<string[]>("list_all_tags", { workspaceId });
 
 // ─── Trash ───
 
-export const listTrashItems = () => invoke<TrashItem[]>("list_trash_items");
+export const listTrashItems = (workspaceId?: string) =>
+  invoke<TrashItem[]>("list_trash_items", { workspaceId });
 
-export const restoreFromTrash = (trashItemId: string) =>
-  invoke<void>("restore_from_trash", { trashItemId });
+export const restoreFromTrash = (trashItemId: string, workspaceId?: string) =>
+  invoke<void>("restore_from_trash", { trashItemId, workspaceId });
 
-export const permanentlyDelete = (trashItemId: string) =>
-  invoke<void>("permanently_delete", { trashItemId });
+export const permanentlyDelete = (trashItemId: string, workspaceId?: string) =>
+  invoke<void>("permanently_delete", { trashItemId, workspaceId });
 
-export const emptyTrash = () => invoke<void>("empty_trash");
+export const emptyTrash = (workspaceId?: string) =>
+  invoke<void>("empty_trash", { workspaceId });
 
 // ─── Search ───
 
-export const searchPages = (query: import("@/types/search").SearchQuery) =>
-  invoke<import("@/types/search").SearchResults>("search_pages", { query });
+export const searchPages = (
+  query: import("@/types/search").SearchQuery,
+  workspaceId?: string,
+) =>
+  invoke<import("@/types/search").SearchResults>("search_pages", {
+    query,
+    workspaceId,
+  });
 
-export const quickOpen = (query: string, limit?: number) =>
+export const quickOpen = (
+  query: string,
+  limit?: number,
+  workspaceId?: string,
+) =>
   invoke<import("@/types/search").SearchResultItem[]>("quick_open", {
     query,
     limit,
+    workspaceId,
   });
 
-export const reindexPage = (pageId: PageId) =>
-  invoke<void>("reindex_page", { pageId });
+export const reindexPage = (pageId: PageId, workspaceId?: string) =>
+  invoke<void>("reindex_page", { pageId, workspaceId });
 
-export const rebuildIndex = () => invoke<number>("rebuild_index");
+export const rebuildIndex = (workspaceId?: string) =>
+  invoke<number>("rebuild_index", { workspaceId });
 
-export const getIndexStatus = () =>
-  invoke<import("@/types/search").IndexStatus>("get_index_status");
+export const getIndexStatus = (workspaceId?: string) =>
+  invoke<import("@/types/search").IndexStatus>("get_index_status", {
+    workspaceId,
+  });
+
+export const searchAllWorkspaces = (
+  query: import("@/types/search").SearchQuery,
+) =>
+  invoke<import("@/types/search").CrossWorkspaceResult[]>(
+    "search_all_workspaces",
+    { query },
+  );
 
 // ─── Sync ───
 

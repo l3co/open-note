@@ -318,6 +318,14 @@ impl SearchEngine {
     }
 }
 
+impl Drop for SearchEngine {
+    fn drop(&mut self) {
+        if let Ok(mut writer) = self.writer.lock() {
+            let _ = writer.commit();
+        }
+    }
+}
+
 fn get_text_field(doc: &tantivy::TantivyDocument, field: tantivy::schema::Field) -> String {
     doc.get_first(field)
         .and_then(|v| v.as_str())

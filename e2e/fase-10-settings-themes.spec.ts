@@ -15,7 +15,10 @@ test.describe("Fase 10 — Settings, Temas & i18n", () => {
       await page.waitForTimeout(300);
 
       // Settings dialog deve estar visível
-      const settingsVisible = await page.locator(SETTINGS.root).isVisible().catch(() => false);
+      const settingsVisible = await page
+        .locator(SETTINGS.root)
+        .isVisible()
+        .catch(() => false);
       if (settingsVisible) {
         await expect(page.locator(SETTINGS.root)).toBeVisible();
         // Deve começar na aba Geral
@@ -34,7 +37,10 @@ test.describe("Fase 10 — Settings, Temas & i18n", () => {
       await page.locator(SIDEBAR.settingsBtn).click();
       await page.waitForTimeout(300);
 
-      const settingsVisible = await page.locator(SETTINGS.root).isVisible().catch(() => false);
+      const settingsVisible = await page
+        .locator(SETTINGS.root)
+        .isVisible()
+        .catch(() => false);
       if (!settingsVisible) return;
 
       // Navega para Aparência
@@ -60,7 +66,9 @@ test.describe("Fase 10 — Settings, Temas & i18n", () => {
 
       // Navega para Atalhos
       const shortcutsTab = page.locator(SETTINGS.tabShortcuts);
-      const shortcutsTabVisible = await shortcutsTab.isVisible().catch(() => false);
+      const shortcutsTabVisible = await shortcutsTab
+        .isVisible()
+        .catch(() => false);
       if (shortcutsTabVisible) {
         await shortcutsTab.click();
         await page.waitForTimeout(200);
@@ -87,7 +95,10 @@ test.describe("Fase 10 — Settings, Temas & i18n", () => {
       await page.locator(SIDEBAR.settingsBtn).click();
       await page.waitForTimeout(300);
 
-      const settingsVisible = await page.locator(SETTINGS.root).isVisible().catch(() => false);
+      const settingsVisible = await page
+        .locator(SETTINGS.root)
+        .isVisible()
+        .catch(() => false);
       if (!settingsVisible) return;
 
       // Fecha
@@ -106,7 +117,10 @@ test.describe("Fase 10 — Settings, Temas & i18n", () => {
       await page.locator(SIDEBAR.settingsBtn).click();
       await page.waitForTimeout(300);
 
-      const settingsVisible = await page.locator(SETTINGS.root).isVisible().catch(() => false);
+      const settingsVisible = await page
+        .locator(SETTINGS.root)
+        .isVisible()
+        .catch(() => false);
       if (!settingsVisible) return;
 
       // Clica fora do dialog (no overlay)
@@ -128,7 +142,9 @@ test.describe("Fase 10 — Settings, Temas & i18n", () => {
       expect(theme).toBeTruthy();
     });
 
-    test("HP-06: chrome tint é aplicado ao DOM via data-chrome", async ({ page }) => {
+    test("HP-06: chrome tint é aplicado ao DOM via data-chrome", async ({
+      page,
+    }) => {
       await skipOnboarding(page);
       await setupWithWorkspace(page);
 
@@ -141,17 +157,23 @@ test.describe("Fase 10 — Settings, Temas & i18n", () => {
   });
 
   test.describe("Critical Path", () => {
-    test("CP-01: status bar exibe workspace path corretamente", async ({ page }) => {
+    test("CP-01: status bar exibe workspace path corretamente", async ({
+      page,
+    }) => {
       await skipOnboarding(page);
       await setupWithWorkspace(page);
 
       await expect(page.locator(APP.main)).toBeVisible({ timeout: 10000 });
 
       // StatusBar deve exibir o path do workspace
-      await expect(page.locator('[data-testid="status-workspace-path"]')).toContainText("/tmp/test-workspace");
+      await expect(
+        page.locator('[data-testid="status-workspace-path"]'),
+      ).toContainText("Test Workspace");
     });
 
-    test("CP-02: sidebar footer tem todos os botões de ação", async ({ page }) => {
+    test("CP-02: sidebar footer tem todos os botões de ação", async ({
+      page,
+    }) => {
       await skipOnboarding(page);
       await setupWithWorkspace(page);
 
