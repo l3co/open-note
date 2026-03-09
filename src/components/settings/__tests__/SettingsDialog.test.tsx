@@ -21,9 +21,7 @@ vi.mock("@/components/settings/SyncSection", () => ({
   SyncSection: () => <div data-testid="sync-section">Sync</div>,
 }));
 vi.mock("@/components/settings/ShortcutsSection", () => ({
-  ShortcutsSection: () => (
-    <div data-testid="shortcuts-section">Shortcuts</div>
-  ),
+  ShortcutsSection: () => <div data-testid="shortcuts-section">Shortcuts</div>,
 }));
 vi.mock("@/components/settings/AboutSection", () => ({
   AboutSection: () => <div data-testid="about-section">About</div>,

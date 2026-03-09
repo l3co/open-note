@@ -22,13 +22,18 @@ describe("ipc wrappers", () => {
   it("createWorkspace invokes with path and name", async () => {
     mockInvoke.mockResolvedValue({});
     await ipc.createWorkspace("/tmp/ws", "My WS");
-    expect(mockInvoke).toHaveBeenCalledWith("create_workspace", { path: "/tmp/ws", name: "My WS" });
+    expect(mockInvoke).toHaveBeenCalledWith("create_workspace", {
+      path: "/tmp/ws",
+      name: "My WS",
+    });
   });
 
   it("openWorkspace invokes with path", async () => {
     mockInvoke.mockResolvedValue({});
     await ipc.openWorkspace("/tmp/ws");
-    expect(mockInvoke).toHaveBeenCalledWith("open_workspace", { path: "/tmp/ws" });
+    expect(mockInvoke).toHaveBeenCalledWith("open_workspace", {
+      path: "/tmp/ws",
+    });
   });
 
   it("closeWorkspace invokes close_workspace", async () => {
@@ -40,7 +45,9 @@ describe("ipc wrappers", () => {
   it("removeRecentWorkspace invokes with path", async () => {
     mockInvoke.mockResolvedValue(undefined);
     await ipc.removeRecentWorkspace("/tmp/ws");
-    expect(mockInvoke).toHaveBeenCalledWith("remove_recent_workspace", { path: "/tmp/ws" });
+    expect(mockInvoke).toHaveBeenCalledWith("remove_recent_workspace", {
+      path: "/tmp/ws",
+    });
   });
 
   it("getWorkspaceSettings invokes get_workspace_settings", async () => {
@@ -53,7 +60,9 @@ describe("ipc wrappers", () => {
     const settings = { auto_save: true };
     mockInvoke.mockResolvedValue(undefined);
     await ipc.updateWorkspaceSettings(settings as never);
-    expect(mockInvoke).toHaveBeenCalledWith("update_workspace_settings", { settings });
+    expect(mockInvoke).toHaveBeenCalledWith("update_workspace_settings", {
+      settings,
+    });
   });
 
   it("getGlobalSettings invokes get_global_settings", async () => {
@@ -66,7 +75,9 @@ describe("ipc wrappers", () => {
     const settings = { theme: {} };
     mockInvoke.mockResolvedValue(undefined);
     await ipc.updateGlobalSettings(settings as never);
-    expect(mockInvoke).toHaveBeenCalledWith("update_global_settings", { settings });
+    expect(mockInvoke).toHaveBeenCalledWith("update_global_settings", {
+      settings,
+    });
   });
 
   it("listNotebooks invokes list_notebooks", async () => {
@@ -84,7 +95,10 @@ describe("ipc wrappers", () => {
   it("renameNotebook invokes with id and name", async () => {
     mockInvoke.mockResolvedValue({});
     await ipc.renameNotebook("nb-1", "New");
-    expect(mockInvoke).toHaveBeenCalledWith("rename_notebook", { id: "nb-1", name: "New" });
+    expect(mockInvoke).toHaveBeenCalledWith("rename_notebook", {
+      id: "nb-1",
+      name: "New",
+    });
   });
 
   it("deleteNotebook invokes with id", async () => {
@@ -103,19 +117,27 @@ describe("ipc wrappers", () => {
   it("listSections invokes with notebookId", async () => {
     mockInvoke.mockResolvedValue([]);
     await ipc.listSections("nb-1");
-    expect(mockInvoke).toHaveBeenCalledWith("list_sections", { notebookId: "nb-1" });
+    expect(mockInvoke).toHaveBeenCalledWith("list_sections", {
+      notebookId: "nb-1",
+    });
   });
 
   it("createSection invokes with notebookId and name", async () => {
     mockInvoke.mockResolvedValue({});
     await ipc.createSection("nb-1", "Sec");
-    expect(mockInvoke).toHaveBeenCalledWith("create_section", { notebookId: "nb-1", name: "Sec" });
+    expect(mockInvoke).toHaveBeenCalledWith("create_section", {
+      notebookId: "nb-1",
+      name: "Sec",
+    });
   });
 
   it("renameSection invokes with id and name", async () => {
     mockInvoke.mockResolvedValue({});
     await ipc.renameSection("sec-1", "New");
-    expect(mockInvoke).toHaveBeenCalledWith("rename_section", { id: "sec-1", name: "New" });
+    expect(mockInvoke).toHaveBeenCalledWith("rename_section", {
+      id: "sec-1",
+      name: "New",
+    });
   });
 
   it("deleteSection invokes with id", async () => {
@@ -134,7 +156,9 @@ describe("ipc wrappers", () => {
   it("listPages invokes with sectionId", async () => {
     mockInvoke.mockResolvedValue([]);
     await ipc.listPages("sec-1");
-    expect(mockInvoke).toHaveBeenCalledWith("list_pages", { sectionId: "sec-1" });
+    expect(mockInvoke).toHaveBeenCalledWith("list_pages", {
+      sectionId: "sec-1",
+    });
   });
 
   it("loadPage invokes with pageId", async () => {
@@ -146,7 +170,10 @@ describe("ipc wrappers", () => {
   it("createPage invokes with sectionId and title", async () => {
     mockInvoke.mockResolvedValue({});
     await ipc.createPage("sec-1", "Page");
-    expect(mockInvoke).toHaveBeenCalledWith("create_page", { sectionId: "sec-1", title: "Page" });
+    expect(mockInvoke).toHaveBeenCalledWith("create_page", {
+      sectionId: "sec-1",
+      title: "Page",
+    });
   });
 
   it("updatePage invokes with page", async () => {
@@ -159,38 +186,54 @@ describe("ipc wrappers", () => {
   it("updatePageBlocks invokes with pageId and blocks", async () => {
     mockInvoke.mockResolvedValue({});
     await ipc.updatePageBlocks("page-1", []);
-    expect(mockInvoke).toHaveBeenCalledWith("update_page_blocks", { pageId: "page-1", blocks: [] });
+    expect(mockInvoke).toHaveBeenCalledWith("update_page_blocks", {
+      pageId: "page-1",
+      blocks: [],
+    });
   });
 
   it("deletePage invokes with pageId", async () => {
     mockInvoke.mockResolvedValue(undefined);
     await ipc.deletePage("page-1");
-    expect(mockInvoke).toHaveBeenCalledWith("delete_page", { pageId: "page-1" });
+    expect(mockInvoke).toHaveBeenCalledWith("delete_page", {
+      pageId: "page-1",
+    });
   });
 
   it("movePage invokes with pageId and targetSectionId", async () => {
     mockInvoke.mockResolvedValue({});
     await ipc.movePage("page-1", "sec-2");
-    expect(mockInvoke).toHaveBeenCalledWith("move_page", { pageId: "page-1", targetSectionId: "sec-2" });
+    expect(mockInvoke).toHaveBeenCalledWith("move_page", {
+      pageId: "page-1",
+      targetSectionId: "sec-2",
+    });
   });
 
   it("readFileContent invokes with path", async () => {
     mockInvoke.mockResolvedValue("content");
     const result = await ipc.readFileContent("/test.md");
-    expect(mockInvoke).toHaveBeenCalledWith("read_file_content", { path: "/test.md" });
+    expect(mockInvoke).toHaveBeenCalledWith("read_file_content", {
+      path: "/test.md",
+    });
     expect(result).toBe("content");
   });
 
   it("saveFileContent invokes with path and content", async () => {
     mockInvoke.mockResolvedValue(undefined);
     await ipc.saveFileContent("/test.md", "data");
-    expect(mockInvoke).toHaveBeenCalledWith("save_file_content", { path: "/test.md", content: "data" });
+    expect(mockInvoke).toHaveBeenCalledWith("save_file_content", {
+      path: "/test.md",
+      content: "data",
+    });
   });
 
   it("importPdf invokes with sectionId and filePath", async () => {
     mockInvoke.mockResolvedValue(["asset-id", 5]);
     await ipc.importPdf("sec-1", "/test.pdf");
-    expect(mockInvoke).toHaveBeenCalledWith("import_pdf", { sectionId: "sec-1", filePath: "/test.pdf" });
+    expect(mockInvoke).toHaveBeenCalledWith("import_pdf", {
+      sectionId: "sec-1",
+      filePath: "/test.pdf",
+    });
   });
 
   it("listAllTags invokes list_all_tags", async () => {
@@ -209,13 +252,17 @@ describe("ipc wrappers", () => {
   it("restoreFromTrash invokes with trashItemId", async () => {
     mockInvoke.mockResolvedValue(undefined);
     await ipc.restoreFromTrash("trash-1");
-    expect(mockInvoke).toHaveBeenCalledWith("restore_from_trash", { trashItemId: "trash-1" });
+    expect(mockInvoke).toHaveBeenCalledWith("restore_from_trash", {
+      trashItemId: "trash-1",
+    });
   });
 
   it("permanentlyDelete invokes with trashItemId", async () => {
     mockInvoke.mockResolvedValue(undefined);
     await ipc.permanentlyDelete("trash-1");
-    expect(mockInvoke).toHaveBeenCalledWith("permanently_delete", { trashItemId: "trash-1" });
+    expect(mockInvoke).toHaveBeenCalledWith("permanently_delete", {
+      trashItemId: "trash-1",
+    });
   });
 
   it("emptyTrash invokes empty_trash", async () => {
@@ -234,13 +281,18 @@ describe("ipc wrappers", () => {
   it("quickOpen invokes with query and limit", async () => {
     mockInvoke.mockResolvedValue([]);
     await ipc.quickOpen("test", 5);
-    expect(mockInvoke).toHaveBeenCalledWith("quick_open", { query: "test", limit: 5 });
+    expect(mockInvoke).toHaveBeenCalledWith("quick_open", {
+      query: "test",
+      limit: 5,
+    });
   });
 
   it("reindexPage invokes with pageId", async () => {
     mockInvoke.mockResolvedValue(undefined);
     await ipc.reindexPage("page-1");
-    expect(mockInvoke).toHaveBeenCalledWith("reindex_page", { pageId: "page-1" });
+    expect(mockInvoke).toHaveBeenCalledWith("reindex_page", {
+      pageId: "page-1",
+    });
   });
 
   it("rebuildIndex invokes rebuild_index", async () => {
@@ -290,6 +342,9 @@ describe("ipc wrappers", () => {
   it("resolveSyncConflict invokes with conflictId and resolution", async () => {
     mockInvoke.mockResolvedValue(undefined);
     await ipc.resolveSyncConflict("c1", "keep_local" as never);
-    expect(mockInvoke).toHaveBeenCalledWith("resolve_sync_conflict", { conflictId: "c1", resolution: "keep_local" });
+    expect(mockInvoke).toHaveBeenCalledWith("resolve_sync_conflict", {
+      conflictId: "c1",
+      resolution: "keep_local",
+    });
   });
 });

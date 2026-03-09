@@ -3,4 +3,8 @@ import type { Language } from "./Language";
 import type { ThemeConfig } from "./ThemeConfig";
 import type { WindowBounds } from "./WindowBounds";
 
-export type GlobalSettings = { theme: ThemeConfig, language: Language, window_bounds: WindowBounds | null, };
+export type GlobalSettings = {
+  theme: ThemeConfig;
+  language: Language;
+  window_bounds: WindowBounds | null;
+};

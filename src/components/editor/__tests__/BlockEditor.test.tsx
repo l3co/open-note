@@ -9,7 +9,11 @@ vi.mock("@tiptap/react", () => {
     getJSON: () => ({ type: "doc", content: [] }),
     commands: { setContent: vi.fn() },
     isActive: vi.fn(() => false),
-    can: () => ({ chain: () => ({ focus: () => ({ toggleBold: () => ({ run: vi.fn() }) }) }) }),
+    can: () => ({
+      chain: () => ({
+        focus: () => ({ toggleBold: () => ({ run: vi.fn() }) }),
+      }),
+    }),
     chain: () => ({ focus: () => ({ toggleBold: () => ({ run: vi.fn() }) }) }),
     view: { state: { selection: { empty: true } } },
     on: vi.fn(),
@@ -18,7 +22,9 @@ vi.mock("@tiptap/react", () => {
     state: { doc: { textContent: "" } },
   };
   return {
-    useEditor: (opts: { onUpdate?: (p: { editor: typeof mockEditor }) => void }) => {
+    useEditor: (opts: {
+      onUpdate?: (p: { editor: typeof mockEditor }) => void;
+    }) => {
       if (opts?.onUpdate) {
         setTimeout(() => opts.onUpdate!({ editor: mockEditor }), 0);
       }

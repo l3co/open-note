@@ -107,7 +107,9 @@ describe("usePageStore", () => {
     mockIpc.createPage.mockResolvedValue(page);
     mockIpc.listPages.mockResolvedValue([]);
 
-    const result = await usePageStore.getState().createPage("sec-1", "New Page");
+    const result = await usePageStore
+      .getState()
+      .createPage("sec-1", "New Page");
 
     expect(mockIpc.createPage).toHaveBeenCalledWith("sec-1", "New Page");
     expect(result).toEqual(page);

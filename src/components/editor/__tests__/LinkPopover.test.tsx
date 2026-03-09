@@ -19,7 +19,9 @@ describe("LinkPopover", () => {
 
   it("renders input with initial URL", () => {
     render(<LinkPopover {...defaultProps} initialUrl="https://example.com" />);
-    const input = screen.getByPlaceholderText("https://...") as HTMLInputElement;
+    const input = screen.getByPlaceholderText(
+      "https://...",
+    ) as HTMLInputElement;
     expect(input.value).toBe("https://example.com");
   });
 

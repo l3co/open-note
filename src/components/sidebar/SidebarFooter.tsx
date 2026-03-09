@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Plus, Search, Trash2, FolderSync, Settings, LogOut } from "lucide-react";
+import {
+  Plus,
+  Search,
+  Trash2,
+  FolderSync,
+  Settings,
+  LogOut,
+} from "lucide-react";
 import { useUIStore } from "@/stores/useUIStore";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 import { useNavigationStore } from "@/stores/useNavigationStore";

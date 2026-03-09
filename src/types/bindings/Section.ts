@@ -3,4 +3,12 @@ import type { Color } from "./Color";
 import type { NotebookId } from "./NotebookId";
 import type { SectionId } from "./SectionId";
 
-export type Section = { id: SectionId, notebook_id: NotebookId, name: string, color: Color | null, order: number, created_at: string, updated_at: string, };
+export type Section = {
+  id: SectionId;
+  notebook_id: NotebookId;
+  name: string;
+  color: Color | null;
+  order: number;
+  created_at: string;
+  updated_at: string;
+};

@@ -34,7 +34,6 @@ const mockChain = () => ({
   }),
 });
 
-
 const mockEditor = {
   chain: mockChain,
   isActive: vi.fn(() => false),

@@ -71,8 +71,10 @@ export function PdfViewer({
         if (cancelled) return;
 
         pdfDocRef.current = pdf;
-        if (pdf.numPages > 0 && pdf.numPages !== pageCount) {
-          setPageCount(pdf.numPages);
+        if (pdf.numPages > 0) {
+          setPageCount((previous) =>
+            previous === pdf.numPages ? previous : pdf.numPages,
+          );
         }
       } catch (err) {
         if (!cancelled) {

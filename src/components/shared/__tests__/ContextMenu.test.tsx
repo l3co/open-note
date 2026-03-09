@@ -23,7 +23,9 @@ describe("ContextMenu", () => {
     useWorkspaceStore.setState({
       renameNotebook: vi.fn().mockResolvedValue(undefined),
       deleteNotebook: vi.fn().mockResolvedValue(undefined),
-      createSection: vi.fn().mockResolvedValue({ id: "sec-new", notebook_id: "nb-1" }),
+      createSection: vi
+        .fn()
+        .mockResolvedValue({ id: "sec-new", notebook_id: "nb-1" }),
       renameSection: vi.fn().mockResolvedValue(undefined),
       deleteSection: vi.fn().mockResolvedValue(undefined),
     });
@@ -109,7 +111,14 @@ describe("ContextMenu", () => {
 
   it("calls deleteSection after confirming delete dialog for section", async () => {
     const user = userEvent.setup();
-    render(<ContextMenu {...defaultProps} type="section" id="sec-1" name="My Section" />);
+    render(
+      <ContextMenu
+        {...defaultProps}
+        type="section"
+        id="sec-1"
+        name="My Section"
+      />,
+    );
     await user.click(screen.getByText("Excluir"));
     await user.click(screen.getByTestId("delete-dialog-confirm"));
     expect(useWorkspaceStore.getState().deleteSection).toHaveBeenCalledWith(
@@ -119,7 +128,9 @@ describe("ContextMenu", () => {
 
   it("calls deletePage after confirming delete dialog for page", async () => {
     const user = userEvent.setup();
-    render(<ContextMenu {...defaultProps} type="page" id="p-1" name="My Page" />);
+    render(
+      <ContextMenu {...defaultProps} type="page" id="p-1" name="My Page" />,
+    );
     await user.click(screen.getByText("Excluir"));
     await user.click(screen.getByTestId("delete-dialog-confirm"));
     expect(usePageStore.getState().deletePage).toHaveBeenCalledWith("p-1");
@@ -142,21 +153,38 @@ describe("ContextMenu", () => {
       "nb-1",
       "Nova Seção",
     );
-    expect(useNavigationStore.getState().selectNotebook).toHaveBeenCalledWith("nb-1");
-    expect(useNavigationStore.getState().selectSection).toHaveBeenCalledWith("sec-new");
+    expect(useNavigationStore.getState().selectNotebook).toHaveBeenCalledWith(
+      "nb-1",
+    );
+    expect(useNavigationStore.getState().selectSection).toHaveBeenCalledWith(
+      "sec-new",
+    );
   });
 
   it("calls createPage, expands section, and loads page on 'Nova Página' click", async () => {
     const user = userEvent.setup();
-    render(<ContextMenu {...defaultProps} type="section" id="sec-1" notebookId="nb-1" />);
+    render(
+      <ContextMenu
+        {...defaultProps}
+        type="section"
+        id="sec-1"
+        notebookId="nb-1"
+      />,
+    );
     await user.click(screen.getByText("Nova Página"));
     expect(usePageStore.getState().createPage).toHaveBeenCalledWith(
       "sec-1",
       "Nova Página",
     );
-    expect(useNavigationStore.getState().selectNotebook).toHaveBeenCalledWith("nb-1");
-    expect(useNavigationStore.getState().selectSection).toHaveBeenCalledWith("sec-1");
-    expect(useNavigationStore.getState().selectPage).toHaveBeenCalledWith("new-page");
+    expect(useNavigationStore.getState().selectNotebook).toHaveBeenCalledWith(
+      "nb-1",
+    );
+    expect(useNavigationStore.getState().selectSection).toHaveBeenCalledWith(
+      "sec-1",
+    );
+    expect(useNavigationStore.getState().selectPage).toHaveBeenCalledWith(
+      "new-page",
+    );
     expect(usePageStore.getState().loadPage).toHaveBeenCalledWith("new-page");
   });
 
@@ -203,9 +231,7 @@ describe("ContextMenu", () => {
     render(<ContextMenu {...defaultProps} />);
     await user.click(screen.getByText("Renomear"));
     fireEvent.blur(screen.getByRole("textbox"));
-    expect(
-      useWorkspaceStore.getState().renameNotebook,
-    ).not.toHaveBeenCalled();
+    expect(useWorkspaceStore.getState().renameNotebook).not.toHaveBeenCalled();
   });
 
   it("cleans up event listeners on unmount", () => {

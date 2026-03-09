@@ -61,10 +61,7 @@ export function HomePage() {
 
         <section className="mb-10">
           <div className="mb-3 flex items-center gap-2">
-            <Clock
-              size={14}
-              style={{ color: "var(--text-tertiary)" }}
-            />
+            <Clock size={14} style={{ color: "var(--text-tertiary)" }} />
             <h2
               className="text-xs font-semibold tracking-widest uppercase"
               style={{ color: "var(--text-tertiary)" }}
@@ -117,10 +114,7 @@ export function HomePage() {
                 color: "var(--text-tertiary)",
               }}
             >
-              <FileText
-                size={28}
-                className="mx-auto mb-2 opacity-30"
-              />
+              <FileText size={28} className="mx-auto mb-2 opacity-30" />
               <p className="text-sm">{t("home.no_recent")}</p>
             </div>
           )}

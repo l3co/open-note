@@ -211,7 +211,10 @@ function buildCommands(t: TFunction, sectionId: string | null): SlashCommand[] {
         });
         if (selected) {
           try {
-            const [, absolutePath, pageCount] = await importPdf(sectionId, selected);
+            const [, absolutePath, pageCount] = await importPdf(
+              sectionId,
+              selected,
+            );
             const assetUrl = await readAssetBase64(absolutePath);
             editor
               .chain()

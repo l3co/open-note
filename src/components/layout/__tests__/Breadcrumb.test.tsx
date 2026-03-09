@@ -56,9 +56,7 @@ describe("Breadcrumb", () => {
     });
     useWorkspaceStore.setState({
       notebooks: [{ id: "nb-1", name: "NB" }] as never,
-      sections: new Map([
-        ["nb-1", [{ id: "sec-1", name: "Sec" }] as never],
-      ]),
+      sections: new Map([["nb-1", [{ id: "sec-1", name: "Sec" }] as never]]),
     });
     usePageStore.setState({
       currentPage: { title: "My Page" } as never,

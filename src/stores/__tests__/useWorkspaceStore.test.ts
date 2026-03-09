@@ -187,7 +187,9 @@ describe("useWorkspaceStore", () => {
   });
 
   it("loadSections fetches sections by notebook", async () => {
-    const secs = [{ id: "sec-1", name: "Section 1", notebook_id: "nb-1", sort_order: 0 }];
+    const secs = [
+      { id: "sec-1", name: "Section 1", notebook_id: "nb-1", sort_order: 0 },
+    ];
     mockIpc.listSections.mockResolvedValue(secs);
 
     await useWorkspaceStore.getState().loadSections("nb-1");
@@ -200,7 +202,9 @@ describe("useWorkspaceStore", () => {
     mockIpc.createSection.mockResolvedValue(created);
     mockIpc.listSections.mockResolvedValue([created]);
 
-    const result = await useWorkspaceStore.getState().createSection("nb-1", "New Section");
+    const result = await useWorkspaceStore
+      .getState()
+      .createSection("nb-1", "New Section");
 
     expect(mockIpc.createSection).toHaveBeenCalledWith("nb-1", "New Section");
     expect(result).toEqual(created);
@@ -209,14 +213,19 @@ describe("useWorkspaceStore", () => {
   it("createSection returns undefined on error", async () => {
     mockIpc.createSection.mockRejectedValue(new Error("fail"));
 
-    const result = await useWorkspaceStore.getState().createSection("nb-1", "X");
+    const result = await useWorkspaceStore
+      .getState()
+      .createSection("nb-1", "X");
 
     expect(result).toBeUndefined();
     expect(useWorkspaceStore.getState().error).toContain("fail");
   });
 
   it("renameSection renames and reloads", async () => {
-    mockIpc.renameSection.mockResolvedValue({ id: "sec-1", notebook_id: "nb-1" });
+    mockIpc.renameSection.mockResolvedValue({
+      id: "sec-1",
+      notebook_id: "nb-1",
+    });
     mockIpc.listSections.mockResolvedValue([]);
 
     await useWorkspaceStore.getState().renameSection("sec-1", "Renamed");
@@ -225,9 +234,7 @@ describe("useWorkspaceStore", () => {
   });
 
   it("deleteSection finds notebook and reloads", async () => {
-    const sections = new Map([
-      ["nb-1", [makeSection("sec-1", "nb-1")]],
-    ]);
+    const sections = new Map([["nb-1", [makeSection("sec-1", "nb-1")]]]);
     useWorkspaceStore.setState({ sections });
     mockIpc.deleteSection.mockResolvedValue(undefined);
     mockIpc.listSections.mockResolvedValue([]);

@@ -70,10 +70,16 @@ vi.mock("@/components/editor/EditorModeToggle", () => ({
     onChange: (m: string) => void;
   }) => (
     <div data-testid="mode-toggle-mock">
-      <button data-testid="toggle-richtext" onClick={() => onChange("richtext")}>
+      <button
+        data-testid="toggle-richtext"
+        onClick={() => onChange("richtext")}
+      >
         Rich
       </button>
-      <button data-testid="toggle-markdown" onClick={() => onChange("markdown")}>
+      <button
+        data-testid="toggle-markdown"
+        onClick={() => onChange("markdown")}
+      >
         MD
       </button>
       <span data-testid="current-mode">{mode}</span>
@@ -144,7 +150,9 @@ describe("PageEditor", () => {
   it("renders block editor in richtext mode by default", () => {
     render(<PageEditor page={makePage()} />);
     expect(screen.getByTestId("block-editor-mock")).toBeInTheDocument();
-    expect(screen.queryByTestId("markdown-editor-mock")).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId("markdown-editor-mock"),
+    ).not.toBeInTheDocument();
   });
 
   it("switches to markdown mode on toggle", async () => {

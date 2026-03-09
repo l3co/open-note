@@ -69,8 +69,7 @@ function QuickNavItem({
           e.currentTarget.style.backgroundColor = "var(--bg-hover)";
       }}
       onMouseLeave={(e) => {
-        if (!active)
-          e.currentTarget.style.backgroundColor = "transparent";
+        if (!active) e.currentTarget.style.backgroundColor = "transparent";
       }}
     >
       <span className="flex h-4 w-4 shrink-0 items-center justify-center">

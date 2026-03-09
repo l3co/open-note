@@ -30,7 +30,11 @@ describe("WorkspacePicker", () => {
       recent_workspaces: [],
       last_opened_workspace: null,
       global_settings: {
-        theme: { base_theme: "system", accent_color: "Blue", chrome_tint: "neutral" },
+        theme: {
+          base_theme: "system",
+          accent_color: "Blue",
+          chrome_tint: "neutral",
+        },
         language: "en",
         window_bounds: null,
       },
@@ -44,7 +48,9 @@ describe("WorkspacePicker", () => {
 
   it("shows title", async () => {
     render(<WorkspacePicker />);
-    expect(await screen.findByTestId("workspace-picker-title")).toBeInTheDocument();
+    expect(
+      await screen.findByTestId("workspace-picker-title"),
+    ).toBeInTheDocument();
   });
 
   it("shows loading state initially", () => {
@@ -54,7 +60,9 @@ describe("WorkspacePicker", () => {
 
   it("shows create and open buttons after loading", async () => {
     render(<WorkspacePicker />);
-    expect(await screen.findByTestId("workspace-create-btn")).toBeInTheDocument();
+    expect(
+      await screen.findByTestId("workspace-create-btn"),
+    ).toBeInTheDocument();
     expect(screen.getByTestId("workspace-open-btn")).toBeInTheDocument();
   });
 
@@ -71,7 +79,11 @@ describe("WorkspacePicker", () => {
       ],
       last_opened_workspace: null,
       global_settings: {
-        theme: { base_theme: "system", accent_color: "Blue", chrome_tint: "neutral" },
+        theme: {
+          base_theme: "system",
+          accent_color: "Blue",
+          chrome_tint: "neutral",
+        },
         language: "en",
         window_bounds: null,
       },

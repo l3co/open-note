@@ -138,8 +138,6 @@ describe("SyncSettings", () => {
     useUIStore.setState({ showSyncSettings: true });
     render(<SyncSettings />);
     await screen.findByText("Google Drive");
-    expect(
-      screen.getByText(/provedores de nuvem/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/provedores de nuvem/i)).toBeInTheDocument();
   });
 });

@@ -183,9 +183,13 @@ describe("useAnnotationStore", () => {
   it("undo reverses add_highlight", () => {
     const { addHighlight, undo } = useAnnotationStore.getState();
     addHighlight(makeHighlight("h1"));
-    expect(useAnnotationStore.getState().annotations.highlights).toHaveLength(1);
+    expect(useAnnotationStore.getState().annotations.highlights).toHaveLength(
+      1,
+    );
     undo();
-    expect(useAnnotationStore.getState().annotations.highlights).toHaveLength(0);
+    expect(useAnnotationStore.getState().annotations.highlights).toHaveLength(
+      0,
+    );
     expect(useAnnotationStore.getState().redoStack).toHaveLength(1);
   });
 
@@ -194,20 +198,28 @@ describe("useAnnotationStore", () => {
     addHighlight(makeHighlight("h1"));
     undo();
     redo();
-    expect(useAnnotationStore.getState().annotations.highlights).toHaveLength(1);
+    expect(useAnnotationStore.getState().annotations.highlights).toHaveLength(
+      1,
+    );
   });
 
   it("undo reverses remove_highlight", () => {
-    const { addHighlight, removeHighlight, undo } = useAnnotationStore.getState();
+    const { addHighlight, removeHighlight, undo } =
+      useAnnotationStore.getState();
     addHighlight(makeHighlight("h1"));
     removeHighlight("h1");
-    expect(useAnnotationStore.getState().annotations.highlights).toHaveLength(0);
+    expect(useAnnotationStore.getState().annotations.highlights).toHaveLength(
+      0,
+    );
     undo();
-    expect(useAnnotationStore.getState().annotations.highlights).toHaveLength(1);
+    expect(useAnnotationStore.getState().annotations.highlights).toHaveLength(
+      1,
+    );
   });
 
   it("redo restores undone remove_stroke", () => {
-    const { addStroke, removeStroke, undo, redo } = useAnnotationStore.getState();
+    const { addStroke, removeStroke, undo, redo } =
+      useAnnotationStore.getState();
     addStroke(makeStroke("s1"));
     removeStroke("s1");
     undo();
@@ -217,23 +229,29 @@ describe("useAnnotationStore", () => {
   });
 
   it("redo restores undone remove_highlight", () => {
-    const { addHighlight, removeHighlight, undo, redo } = useAnnotationStore.getState();
+    const { addHighlight, removeHighlight, undo, redo } =
+      useAnnotationStore.getState();
     addHighlight(makeHighlight("h1"));
     removeHighlight("h1");
     undo();
     redo();
-    expect(useAnnotationStore.getState().annotations.highlights).toHaveLength(0);
+    expect(useAnnotationStore.getState().annotations.highlights).toHaveLength(
+      0,
+    );
   });
 
   it("redo restores undone clear_all", () => {
-    const { addStroke, addHighlight, clearAll, undo, redo } = useAnnotationStore.getState();
+    const { addStroke, addHighlight, clearAll, undo, redo } =
+      useAnnotationStore.getState();
     addStroke(makeStroke("s1"));
     addHighlight(makeHighlight("h1"));
     clearAll();
     undo();
     redo();
     expect(useAnnotationStore.getState().annotations.strokes).toHaveLength(0);
-    expect(useAnnotationStore.getState().annotations.highlights).toHaveLength(0);
+    expect(useAnnotationStore.getState().annotations.highlights).toHaveLength(
+      0,
+    );
   });
 
   it("removeStroke does nothing for unknown id", () => {

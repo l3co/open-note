@@ -180,5 +180,9 @@ export const resolveSyncConflict = (
 
 // ─── Spell Check ───
 
-export const checkSpelling = (request: import("@/types/spellcheck").SpellCheckRequest) =>
-  invoke<import("@/types/spellcheck").SpellCheckResponse>("check_spelling", { request });
+export const checkSpelling = (
+  request: import("@/types/spellcheck").SpellCheckRequest,
+) =>
+  invoke<import("@/types/spellcheck").SpellCheckResponse>("check_spelling", {
+    request,
+  });

@@ -62,7 +62,10 @@ export const SpellCheckExtension = Extension.create<SpellCheckOptions>({
 
         props: {
           decorations(state) {
-            return spellCheckPluginKey.getState(state)?.decorations ?? DecorationSet.empty;
+            return (
+              spellCheckPluginKey.getState(state)?.decorations ??
+              DecorationSet.empty
+            );
           },
         },
 

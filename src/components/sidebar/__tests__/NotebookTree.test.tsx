@@ -254,7 +254,9 @@ describe("NotebookTree", () => {
     });
     useNavigationStore.setState({ selectedNotebookId: "nb-1" });
     render(<NotebookTree />);
-    const item = screen.getByText("NB").closest('[role="button"]') as HTMLElement;
+    const item = screen
+      .getByText("NB")
+      .closest('[role="button"]') as HTMLElement;
     expect(item.style.backgroundColor).toBe("var(--accent-subtle)");
   });
 

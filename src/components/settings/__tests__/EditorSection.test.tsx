@@ -30,7 +30,9 @@ describe("EditorSection", () => {
 
   it("renders font family select with default value", () => {
     render(<EditorSection />);
-    const select = screen.getByTestId("editor-font-family") as HTMLSelectElement;
+    const select = screen.getByTestId(
+      "editor-font-family",
+    ) as HTMLSelectElement;
     expect(select.value).toBe("System");
   });
 

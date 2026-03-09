@@ -150,9 +150,9 @@ describe("FloatingToolbar", () => {
   });
 
   it("highlights active bold button", () => {
-    (mockEditor as { isActive: ReturnType<typeof vi.fn> }).isActive.mockImplementation(
-      (name: string) => name === "bold",
-    );
+    (
+      mockEditor as { isActive: ReturnType<typeof vi.fn> }
+    ).isActive.mockImplementation((name: string) => name === "bold");
     render(
       <FloatingToolbar editor={mockEditor as import("@tiptap/react").Editor} />,
     );

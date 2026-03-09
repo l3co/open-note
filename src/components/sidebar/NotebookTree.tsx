@@ -88,7 +88,14 @@ export function NotebookTree() {
       notebookId?: string,
     ) => {
       e.preventDefault();
-      setContextMenu({ x: e.clientX, y: e.clientY, type, id, name, notebookId });
+      setContextMenu({
+        x: e.clientX,
+        y: e.clientY,
+        type,
+        id,
+        name,
+        notebookId,
+      });
     },
     [],
   );
@@ -151,7 +158,9 @@ export function NotebookTree() {
               isDragOver={dragOverId === nb.id}
               depth={0}
               onClick={() => handleNotebookClick(nb.id)}
-              onContextMenu={(e) => handleContextMenu(e, "notebook", nb.id, nb.name)}
+              onContextMenu={(e) =>
+                handleContextMenu(e, "notebook", nb.id, nb.name)
+              }
               draggable
               onDragStart={() => handleDragStart("notebook", nb.id)}
               onDragOver={(e) => handleDragOver(e, nb.id)}
@@ -236,7 +245,9 @@ function SectionNode({
   return (
     <div role="treeitem" aria-expanded={isExpanded}>
       <TreeItem
-        icon={isExpanded ? <FolderOpen size={16} /> : <FolderClosed size={16} />}
+        icon={
+          isExpanded ? <FolderOpen size={16} /> : <FolderClosed size={16} />
+        }
         label={section.name}
         isExpanded={isExpanded}
         isSelected={isSelected}
@@ -249,11 +260,7 @@ function SectionNode({
       />
 
       {isExpanded && pages.length === 0 && (
-        <EmptyHint
-          src={notesListSvg}
-          label={t("sidebar.no_pages")}
-          depth={2}
-        />
+        <EmptyHint src={notesListSvg} label={t("sidebar.no_pages")} depth={2} />
       )}
       {isExpanded &&
         pages.map((page) => (
@@ -264,7 +271,9 @@ function SectionNode({
             isSelected={selectedPageId === page.id}
             depth={2}
             onClick={() => onPageClick(page.id)}
-            onContextMenu={(e) => onContextMenu(e, "page", page.id, page.title, notebookId)}
+            onContextMenu={(e) =>
+              onContextMenu(e, "page", page.id, page.title, notebookId)
+            }
           />
         ))}
     </div>

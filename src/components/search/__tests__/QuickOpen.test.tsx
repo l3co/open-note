@@ -53,9 +53,12 @@ describe("QuickOpen", () => {
     render(<QuickOpen />);
     await user.type(screen.getByRole("textbox"), "nonexistent");
     // Wait for debounce
-    await vi.waitFor(() => {
-      expect(mockQuickOpen).toHaveBeenCalled();
-    }, { timeout: 500 });
+    await vi.waitFor(
+      () => {
+        expect(mockQuickOpen).toHaveBeenCalled();
+      },
+      { timeout: 500 },
+    );
     expect(screen.getByText(/no.*result|nenhum/i)).toBeInTheDocument();
   });
 
@@ -77,9 +80,12 @@ describe("QuickOpen", () => {
     const user = userEvent.setup();
     render(<QuickOpen />);
     await user.type(screen.getByRole("textbox"), "found");
-    await vi.waitFor(() => {
-      expect(screen.getByText("Found Page")).toBeInTheDocument();
-    }, { timeout: 500 });
+    await vi.waitFor(
+      () => {
+        expect(screen.getByText("Found Page")).toBeInTheDocument();
+      },
+      { timeout: 500 },
+    );
   });
 
   it("selects page and closes on result click", async () => {
@@ -102,9 +108,12 @@ describe("QuickOpen", () => {
     const user = userEvent.setup();
     render(<QuickOpen />);
     await user.type(screen.getByRole("textbox"), "result");
-    await vi.waitFor(() => {
-      expect(screen.getByText("Result")).toBeInTheDocument();
-    }, { timeout: 500 });
+    await vi.waitFor(
+      () => {
+        expect(screen.getByText("Result")).toBeInTheDocument();
+      },
+      { timeout: 500 },
+    );
     await user.click(screen.getByText("Result"));
     expect(selectPage).toHaveBeenCalledWith("p1");
     expect(useUIStore.getState().showQuickOpen).toBe(false);

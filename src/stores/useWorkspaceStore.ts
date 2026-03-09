@@ -28,7 +28,10 @@ interface WorkspaceStore {
   deleteNotebook: (id: string) => Promise<void>;
   reorderNotebooks: (order: [string, number][]) => Promise<void>;
   loadSections: (notebookId: string) => Promise<void>;
-  createSection: (notebookId: string, name: string) => Promise<Section | undefined>;
+  createSection: (
+    notebookId: string,
+    name: string,
+  ) => Promise<Section | undefined>;
   renameSection: (id: string, name: string) => Promise<void>;
   deleteSection: (id: string) => Promise<void>;
   reorderSections: (order: [string, number][]) => Promise<void>;
@@ -49,7 +52,9 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
       set({ workspace, isLoading: false });
       await get().loadNotebooks();
       // Rebuild index whenever a workspace is opened to sync physical files to tantivy db
-      await ipc.rebuildIndex().catch(err => console.warn("[Search] failed to rebuild index:", err));
+      await ipc
+        .rebuildIndex()
+        .catch((err) => console.warn("[Search] failed to rebuild index:", err));
     } catch (e) {
       set({ isLoading: false });
       handleError(e, set);
@@ -62,7 +67,9 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
       const workspace = await ipc.createWorkspace(path, name);
       set({ workspace, notebooks: [], sections: new Map(), isLoading: false });
       // Rebuild index for the newly created empty workspace
-      await ipc.rebuildIndex().catch(err => console.warn("[Search] failed to rebuild index:", err));
+      await ipc
+        .rebuildIndex()
+        .catch((err) => console.warn("[Search] failed to rebuild index:", err));
     } catch (e) {
       set({ isLoading: false });
       handleError(e, set);

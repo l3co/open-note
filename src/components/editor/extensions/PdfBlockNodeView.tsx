@@ -7,11 +7,7 @@ export function PdfBlockNodeView({ node, updateAttributes }: NodeViewProps) {
   const { src, totalPages, displayMode, currentPage, scale } = node.attrs;
 
   const handleUpdate = useCallback(
-    (data: {
-      displayMode?: string;
-      currentPage?: number;
-      scale?: number;
-    }) => {
+    (data: { displayMode?: string; currentPage?: number; scale?: number }) => {
       updateAttributes(data);
     },
     [updateAttributes],

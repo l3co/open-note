@@ -8,11 +8,7 @@ export function AboutSection() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <img
-          src={appIcon}
-          alt="Open Note"
-          className="h-12 w-12 rounded-xl"
-        />
+        <img src={appIcon} alt="Open Note" className="h-12 w-12 rounded-xl" />
         <div>
           <h3
             className="text-base font-semibold"
