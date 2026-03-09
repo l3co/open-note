@@ -7,5 +7,6 @@ pub mod notebook;
 pub mod page;
 pub mod section;
 pub mod settings;
+pub mod spellcheck;
 pub mod trash;
 pub mod workspace;

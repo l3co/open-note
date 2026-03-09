@@ -83,6 +83,9 @@ vi.mock("@/components/editor/extensions/InkBlockExtension", () => ({
 vi.mock("@/components/editor/extensions/PdfBlockExtension", () => ({
   PdfBlock: {},
 }));
+vi.mock("@/components/editor/extensions/SpellCheckExtension", () => ({
+  SpellCheckExtension: { configure: () => ({}) },
+}));
 
 describe("BlockEditor", () => {
   const defaultProps = {

@@ -166,3 +166,8 @@ export const resolveSyncConflict = (
   conflictId: string,
   resolution: import("@/types/sync").ConflictResolution,
 ) => invoke<void>("resolve_sync_conflict", { conflictId, resolution });
+
+// ─── Spell Check ───
+
+export const checkSpelling = (request: import("@/types/spellcheck").SpellCheckRequest) =>
+  invoke<import("@/types/spellcheck").SpellCheckResponse>("check_spelling", { request });

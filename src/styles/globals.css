@@ -1033,3 +1033,30 @@ body {
   line-height: 1.5;
   margin: 0;
 }
+
+/* ─── Spell Check ─── */
+
+.spell-error {
+  text-decoration: wavy underline;
+  text-decoration-color: var(--danger);
+  text-underline-offset: 3px;
+  cursor: help;
+  position: relative;
+}
+
+.spell-error:hover::after {
+  content: attr(data-spell-message);
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  padding: 4px 8px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  font-size: 12px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  z-index: 100;
+  box-shadow: var(--shadow);
+  pointer-events: none;
+}

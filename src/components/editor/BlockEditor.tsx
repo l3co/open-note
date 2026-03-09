@@ -21,6 +21,8 @@ import { SlashCommandMenu } from "@/components/editor/SlashCommandMenu";
 import { Callout } from "@/components/editor/extensions/CalloutExtension";
 import { InkBlock } from "@/components/editor/extensions/InkBlockExtension";
 import { PdfBlock } from "@/components/editor/extensions/PdfBlockExtension";
+import { SpellCheckExtension } from "@/components/editor/extensions/SpellCheckExtension";
+import { useUIStore } from "@/stores/useUIStore";
 
 const lowlight = createLowlight(common);
 
@@ -35,6 +37,8 @@ export function BlockEditor({
   onUpdate,
   onEditorReady,
 }: BlockEditorProps) {
+  const editorConfig = useUIStore((s) => s.editorConfig);
+
   const editor = useEditor({
     extensions: [
       StarterKit.configure({
@@ -81,6 +85,11 @@ export function BlockEditor({
       }),
       Typography,
       CharacterCount,
+      SpellCheckExtension.configure({
+        language: editorConfig.documentLanguage,
+        enabled: editorConfig.spellCheckEnabled,
+        debounceMs: 2000,
+      }),
     ],
     content: initialContent,
     onUpdate: ({ editor: ed }) => {
@@ -89,7 +98,7 @@ export function BlockEditor({
     editorProps: {
       attributes: {
         class: "editor-content",
-        spellcheck: "true",
+        spellcheck: editorConfig.spellCheckEnabled ? "true" : "false",
       },
     },
   });

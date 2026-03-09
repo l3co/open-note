@@ -14,6 +14,7 @@ use commands::search::{get_index_status, quick_open, rebuild_index, reindex_page
 use commands::section::{
     create_section, delete_section, list_sections, rename_section, reorder_sections,
 };
+use commands::spellcheck::check_spelling;
 use commands::sync::{
     get_sync_config, get_sync_conflicts, get_sync_providers, get_sync_status,
     resolve_sync_conflict, set_sync_config,
@@ -103,6 +104,8 @@ pub fn run() {
             set_sync_config,
             get_sync_conflicts,
             resolve_sync_conflict,
+            // Spell Check
+            check_spelling,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

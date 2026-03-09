@@ -2505,6 +2505,7 @@ dependencies = [
  "opennote-search",
  "opennote-storage",
  "opennote-sync",
+ "reqwest 0.12.28",
  "serde",
  "serde_json",
  "tauri",
