@@ -2,12 +2,4 @@
 import type { Color } from "./Color";
 import type { NotebookId } from "./NotebookId";
 
-export type Notebook = {
-  id: NotebookId;
-  name: string;
-  color: Color | null;
-  icon: string | null;
-  order: number;
-  created_at: string;
-  updated_at: string;
-};
+export type Notebook = { id: NotebookId, name: string, color: Color | null, icon: string | null, order: number, created_at: string, updated_at: string, };

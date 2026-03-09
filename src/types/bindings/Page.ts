@@ -5,15 +5,4 @@ import type { PageAnnotations } from "./PageAnnotations";
 import type { PageId } from "./PageId";
 import type { SectionId } from "./SectionId";
 
-export type Page = {
-  id: PageId;
-  section_id: SectionId;
-  title: string;
-  tags: Array<string>;
-  blocks: Array<Block>;
-  annotations: PageAnnotations;
-  editor_preferences: EditorPreferences;
-  created_at: string;
-  updated_at: string;
-  schema_version: number;
-};
+export type Page = { id: PageId, section_id: SectionId, title: string, tags: Array<string>, blocks: Array<Block>, annotations: PageAnnotations, editor_preferences: EditorPreferences, created_at: string, updated_at: string, schema_version: number, };

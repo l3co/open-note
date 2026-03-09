@@ -2,11 +2,4 @@
 import type { WorkspaceId } from "./WorkspaceId";
 import type { WorkspaceSettings } from "./WorkspaceSettings";
 
-export type Workspace = {
-  id: WorkspaceId;
-  name: string;
-  root_path: string;
-  created_at: string;
-  updated_at: string;
-  settings: WorkspaceSettings;
-};
+export type Workspace = { id: WorkspaceId, name: string, root_path: string, created_at: string, updated_at: string, settings: WorkspaceSettings, };

@@ -2,8 +2,4 @@
 import type { BaseTheme } from "./BaseTheme";
 import type { ChromeTint } from "./ChromeTint";
 
-export type ThemeConfig = {
-  base_theme: BaseTheme;
-  accent_color: string;
-  chrome_tint: ChromeTint;
-};
+export type ThemeConfig = { base_theme: BaseTheme, accent_color: string, chrome_tint: ChromeTint, };
