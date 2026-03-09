@@ -50,8 +50,11 @@ export const useNavigationStore = create<NavigationStore>((set, get) => ({
     }),
 
   selectPage: (id) => {
-    const { history, historyIndex, selectedPageId } = get();
-    if (id === selectedPageId) return;
+    const { history, historyIndex, selectedPageId, activeView } = get();
+    if (id === selectedPageId) {
+      if (activeView !== "page") set({ activeView: "page" });
+      return;
+    }
     const newHistory = history.slice(0, historyIndex + 1);
     newHistory.push(id);
     set({
