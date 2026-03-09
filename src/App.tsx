@@ -20,8 +20,12 @@ import * as ipc from "@/lib/ipc";
 export function App() {
   const [initializing, setInitializing] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
-  const { showWorkspacePicker, openWorkspacePicker, applyThemeToDOM } =
-    useUIStore();
+  const {
+    showWorkspacePicker,
+    openWorkspacePicker,
+    closeWorkspacePicker,
+    applyThemeToDOM,
+  } = useUIStore();
   const workspaceCount = useMultiWorkspaceStore((s) => s.workspaces.size);
   const multiStore = useMultiWorkspaceStore.getState();
 
@@ -118,7 +122,7 @@ export function App() {
     );
   }
 
-  if (showWorkspacePicker || workspaceCount === 0) {
+  if (workspaceCount === 0) {
     return (
       <>
         <WorkspacePicker />
@@ -140,6 +144,9 @@ export function App() {
       <SearchPanel />
       <SyncSettings />
       <SettingsDialog />
+      {showWorkspacePicker && (
+        <WorkspacePicker mode="modal" onClose={closeWorkspacePicker} />
+      )}
       {showOnboarding && (
         <OnboardingDialog
           onComplete={() => {

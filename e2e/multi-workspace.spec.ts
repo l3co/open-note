@@ -99,7 +99,10 @@ test.describe("Multi-Workspace — Fluxos Básicos", () => {
   }) => {
     await setupIpcMock(page, {
       get_app_state: () => APP_STATE_TWO_WORKSPACES,
-      open_workspace: () => WS_A,
+      open_workspace: (args: unknown) => {
+        const { path } = args as { path: string };
+        return path === WS_B.root_path ? WS_B : WS_A;
+      },
       list_open_workspaces: () => [
         { id: WS_A.id, name: WS_A.name, root_path: WS_A.root_path },
         { id: WS_B.id, name: WS_B.name, root_path: WS_B.root_path },
@@ -139,7 +142,7 @@ test.describe("Multi-Workspace — Fluxos Básicos", () => {
         return path === WS_B.root_path ? WS_B : WS_A;
       },
       focus_workspace: (args: unknown) => {
-        focused.push((args as { workspace_id: string }).workspace_id);
+        focused.push((args as { workspaceId: string }).workspaceId);
         return null;
       },
       list_open_workspaces: () => [
