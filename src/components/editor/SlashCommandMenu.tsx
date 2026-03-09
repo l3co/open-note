@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import type { Editor } from "@tiptap/react";
 import type { TFunction } from "i18next";
+import { open } from "@tauri-apps/plugin-dialog";
 
 interface SlashCommand {
   id: string;
@@ -126,10 +127,18 @@ function buildCommands(t: TFunction): SlashCommand[] {
       description: t("editor.slash.image_desc"),
       icon: <ImageIcon size={18} />,
       category: "media",
-      action: (editor) => {
-        const url = window.prompt(t("editor.image_url_prompt"));
-        if (url) {
-          editor.chain().focus().setImage({ src: url }).run();
+      action: async (editor) => {
+        const selected = await open({
+          multiple: false,
+          filters: [
+            {
+              name: "Images",
+              extensions: ["png", "jpg", "jpeg", "gif", "webp", "svg"],
+            },
+          ],
+        });
+        if (selected) {
+          editor.chain().focus().setImage({ src: selected }).run();
         }
       },
     },
@@ -185,16 +194,19 @@ function buildCommands(t: TFunction): SlashCommand[] {
       description: t("pdf.import"),
       icon: <FileText size={18} />,
       category: "media",
-      action: (editor) => {
-        const src = window.prompt(t("pdf.select_file"));
-        if (src) {
+      action: async (editor) => {
+        const selected = await open({
+          multiple: false,
+          filters: [{ name: "PDF", extensions: ["pdf"] }],
+        });
+        if (selected) {
           editor
             .chain()
             .focus()
             .insertContent({
               type: "pdfBlock",
               attrs: {
-                src,
+                src: selected,
                 totalPages: 0,
                 displayMode: "continuous",
                 currentPage: 1,
