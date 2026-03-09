@@ -1,9 +1,22 @@
 import { useTranslation } from "react-i18next";
 import i18n from "@/lib/i18n";
+import { useUIStore } from "@/stores/useUIStore";
+
+const DOCUMENT_LANGUAGES = [
+  { id: "pt-BR", label: "Português (BR)" },
+  { id: "en", label: "English" },
+  { id: "es", label: "Español" },
+  { id: "fr", label: "Français" },
+  { id: "de", label: "Deutsch" },
+  { id: "it", label: "Italiano" },
+  { id: "ja", label: "日本語" },
+  { id: "zh", label: "中文" },
+];
 
 export function GeneralSection() {
   const { t } = useTranslation();
   const currentLang = i18n.language;
+  const { editorConfig, setEditorConfig } = useUIStore();
 
   const handleLanguageChange = (lng: string) => {
     i18n.changeLanguage(lng);
@@ -24,6 +37,28 @@ export function GeneralSection() {
             onClick={() => handleLanguageChange("en")}
           />
         </div>
+      </SettingsField>
+
+      <SettingsField label={t("settings.document_language")}>
+        <select
+          value={editorConfig.documentLanguage}
+          onChange={(e) =>
+            setEditorConfig({ documentLanguage: e.target.value })
+          }
+          data-testid="document-language"
+          className="rounded-md border px-2 py-1 text-xs outline-none"
+          style={{
+            borderColor: "var(--border)",
+            backgroundColor: "var(--bg-primary)",
+            color: "var(--text-primary)",
+          }}
+        >
+          {DOCUMENT_LANGUAGES.map((lang) => (
+            <option key={lang.id} value={lang.id}>
+              {lang.label}
+            </option>
+          ))}
+        </select>
       </SettingsField>
     </div>
   );

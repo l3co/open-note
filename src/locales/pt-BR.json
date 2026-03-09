@@ -163,6 +163,7 @@
       "language": "Idioma",
       "language_pt": "Português (BR)",
       "language_en": "English",
+      "document_language": "Idioma dos documentos",
       "theme": "Tema",
       "theme_light": "Claro",
       "theme_dark": "Escuro",

@@ -12,10 +12,18 @@ interface ThemeConfig {
   chromeTint: "neutral" | "tinted";
 }
 
+interface EditorConfig {
+  fontFamily: string;
+  fontSize: number;
+  documentLanguage: string;
+  spellCheckEnabled: boolean;
+}
+
 interface UIStore {
   sidebarOpen: boolean;
   sidebarWidth: number;
   theme: ThemeConfig;
+  editorConfig: EditorConfig;
   showWorkspacePicker: boolean;
   showTrashPanel: boolean;
   showQuickOpen: boolean;
@@ -26,6 +34,7 @@ interface UIStore {
   toggleSidebar: () => void;
   setSidebarWidth: (width: number) => void;
   setTheme: (theme: Partial<ThemeConfig>) => void;
+  setEditorConfig: (config: Partial<EditorConfig>) => void;
   applyThemeToDOM: () => void;
   openWorkspacePicker: () => void;
   closeWorkspacePicker: () => void;
@@ -55,6 +64,12 @@ export const useUIStore = create<UIStore>((set, get) => ({
   showQuickOpen: false,
   showSearchPanel: false,
   showSyncSettings: false,
+  editorConfig: {
+    fontFamily: "System",
+    fontSize: 16,
+    documentLanguage: "pt-BR",
+    spellCheckEnabled: true,
+  },
   showSettings: false,
 
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
@@ -67,6 +82,11 @@ export const useUIStore = create<UIStore>((set, get) => ({
       const theme = { ...s.theme, ...partial };
       return { theme };
     }),
+
+  setEditorConfig: (partial) =>
+    set((s) => ({
+      editorConfig: { ...s.editorConfig, ...partial },
+    })),
 
   applyThemeToDOM: () => {
     const { theme } = get();

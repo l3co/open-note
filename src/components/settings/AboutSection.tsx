@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
-import { BookOpen, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
+import appIcon from "@/assets/logo.png";
 
 export function AboutSection() {
   const { t } = useTranslation();
@@ -7,12 +8,11 @@ export function AboutSection() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <div
-          className="flex h-12 w-12 items-center justify-center rounded-xl"
-          style={{ backgroundColor: "var(--accent-subtle)" }}
-        >
-          <BookOpen size={24} style={{ color: "var(--accent)" }} />
-        </div>
+        <img
+          src={appIcon}
+          alt="Open Note"
+          className="h-12 w-12 rounded-xl"
+        />
         <div>
           <h3
             className="text-base font-semibold"
