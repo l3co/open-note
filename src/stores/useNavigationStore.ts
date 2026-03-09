@@ -1,6 +1,9 @@
 import { create } from "zustand";
 
+export type ActiveView = "home" | "page" | "tags";
+
 interface NavigationStore {
+  activeView: ActiveView;
   selectedNotebookId: string | null;
   selectedSectionId: string | null;
   selectedPageId: string | null;
@@ -9,6 +12,7 @@ interface NavigationStore {
   history: string[];
   historyIndex: number;
 
+  setActiveView: (view: ActiveView) => void;
   selectNotebook: (id: string) => void;
   selectSection: (id: string) => void;
   selectPage: (id: string) => void;
@@ -20,6 +24,7 @@ interface NavigationStore {
 }
 
 export const useNavigationStore = create<NavigationStore>((set, get) => ({
+  activeView: "home" as ActiveView,
   selectedNotebookId: null,
   selectedSectionId: null,
   selectedPageId: null,
@@ -27,6 +32,8 @@ export const useNavigationStore = create<NavigationStore>((set, get) => ({
   expandedSections: new Set(),
   history: [],
   historyIndex: -1,
+
+  setActiveView: (view) => set({ activeView: view }),
 
   selectNotebook: (id) =>
     set((s) => {
@@ -48,6 +55,7 @@ export const useNavigationStore = create<NavigationStore>((set, get) => ({
     const newHistory = history.slice(0, historyIndex + 1);
     newHistory.push(id);
     set({
+      activeView: "page",
       selectedPageId: id,
       history: newHistory,
       historyIndex: newHistory.length - 1,

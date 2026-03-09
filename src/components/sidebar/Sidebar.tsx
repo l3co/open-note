@@ -1,6 +1,7 @@
 import { useCallback, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useUIStore } from "@/stores/useUIStore";
+import { SidebarQuickNav } from "@/components/sidebar/SidebarQuickNav";
 import { NotebookTree } from "@/components/sidebar/NotebookTree";
 import { SidebarFooter } from "@/components/sidebar/SidebarFooter";
 
@@ -52,10 +53,21 @@ export function Sidebar() {
       data-testid="sidebar"
     >
       <nav
-        className="flex-1 overflow-y-auto px-2 py-2"
+        className="flex-1 overflow-y-auto px-3 pt-3"
         aria-label={t("sidebar.notebooks")}
         data-testid="sidebar-nav"
       >
+        <SidebarQuickNav />
+
+        <div className="mt-4 mb-1.5 flex items-center px-1">
+          <h2
+            className="text-[11px] font-semibold tracking-widest uppercase"
+            style={{ color: "var(--text-tertiary)" }}
+          >
+            {t("sidebar.notebooks")}
+          </h2>
+        </div>
+
         <NotebookTree />
       </nav>
 

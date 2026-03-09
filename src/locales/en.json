@@ -47,6 +47,22 @@
       "blocks_warning": "This page is large. Consider splitting the content.",
       "select_page": "Select a page in the sidebar or create a new one to get started."
     },
+    "home": {
+      "greeting_morning": "Good morning",
+      "greeting_afternoon": "Good afternoon",
+      "greeting_evening": "Good evening",
+      "recent_pages": "Recently visited",
+      "quick_actions": "Quick actions",
+      "action_new_page": "New page",
+      "action_new_notebook": "New notebook",
+      "action_search": "Search notes",
+      "action_settings": "Settings",
+      "no_recent": "No pages visited yet",
+      "time_just_now": "Just now",
+      "time_minutes_ago": "{{count}}min ago",
+      "time_hours_ago": "{{count}}h ago",
+      "time_days_ago": "{{count}}d ago"
+    },
     "editor": {
       "placeholder": "Type '/' for commands...",
       "heading_placeholder": "Heading {{level}}",
@@ -144,9 +160,13 @@
     "sidebar": {
       "notebooks": "Notebooks",
       "new_notebook": "New Notebook",
-      "search": "Search...",
+      "search": "Search",
       "settings": "Settings",
       "trash": "Trash",
+      "home": "Home",
+      "calendar": "Calendar",
+      "calendar_coming_soon": "Coming soon",
+      "tags": "Tags",
       "no_sections": "No sections",
       "no_pages": "No pages",
       "no_notebooks": "Create a notebook to get started"

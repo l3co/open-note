@@ -1,11 +1,12 @@
 import { usePageStore } from "@/stores/usePageStore";
 import { useNavigationStore } from "@/stores/useNavigationStore";
-import { WelcomePage } from "@/components/pages/WelcomePage";
+import { HomePage } from "@/components/pages/HomePage";
+import { TagsPage } from "@/components/pages/TagsPage";
 import { PageView } from "@/components/pages/PageView";
 import { Loader2 } from "lucide-react";
 
 export function ContentArea() {
-  const { selectedPageId } = useNavigationStore();
+  const { activeView, selectedPageId } = useNavigationStore();
   const { currentPage, isLoading } = usePageStore();
 
   if (isLoading) {
@@ -24,8 +25,16 @@ export function ContentArea() {
     );
   }
 
-  if (!selectedPageId || !currentPage) {
-    return <WelcomePage />;
+  if (activeView === "home" || (!selectedPageId && activeView !== "tags")) {
+    return <HomePage />;
+  }
+
+  if (activeView === "tags") {
+    return <TagsPage />;
+  }
+
+  if (!currentPage) {
+    return <HomePage />;
   }
 
   return <PageView page={currentPage} />;

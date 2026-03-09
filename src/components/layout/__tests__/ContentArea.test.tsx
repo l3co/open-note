@@ -5,8 +5,11 @@ import { useNavigationStore } from "@/stores/useNavigationStore";
 import { usePageStore } from "@/stores/usePageStore";
 
 vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn() }));
-vi.mock("@/components/pages/WelcomePage", () => ({
-  WelcomePage: () => <div data-testid="welcome-page">Welcome</div>,
+vi.mock("@/components/pages/HomePage", () => ({
+  HomePage: () => <div data-testid="home-page">Home</div>,
+}));
+vi.mock("@/components/pages/TagsPage", () => ({
+  TagsPage: () => <div data-testid="tags-page">Tags</div>,
 }));
 vi.mock("@/components/pages/PageView", () => ({
   PageView: ({ page }: { page: { title: string } }) => (
@@ -16,7 +19,10 @@ vi.mock("@/components/pages/PageView", () => ({
 
 describe("ContentArea", () => {
   beforeEach(() => {
-    useNavigationStore.setState({ selectedPageId: null });
+    useNavigationStore.setState({
+      activeView: "home",
+      selectedPageId: null,
+    });
     usePageStore.setState({ currentPage: null, isLoading: false });
   });
 
@@ -26,19 +32,25 @@ describe("ContentArea", () => {
     expect(screen.getByTestId("content-loading")).toBeInTheDocument();
   });
 
-  it("shows welcome page when no page selected", () => {
+  it("shows home page when activeView is home", () => {
     render(<ContentArea />);
-    expect(screen.getByTestId("welcome-page")).toBeInTheDocument();
+    expect(screen.getByTestId("home-page")).toBeInTheDocument();
   });
 
-  it("shows welcome page when selectedPageId but no currentPage", () => {
-    useNavigationStore.setState({ selectedPageId: "p1" });
+  it("shows home page when no page selected and view is page", () => {
+    useNavigationStore.setState({ activeView: "page", selectedPageId: null });
     render(<ContentArea />);
-    expect(screen.getByTestId("welcome-page")).toBeInTheDocument();
+    expect(screen.getByTestId("home-page")).toBeInTheDocument();
+  });
+
+  it("shows tags page when activeView is tags", () => {
+    useNavigationStore.setState({ activeView: "tags" });
+    render(<ContentArea />);
+    expect(screen.getByTestId("tags-page")).toBeInTheDocument();
   });
 
   it("shows PageView when page is selected and loaded", () => {
-    useNavigationStore.setState({ selectedPageId: "p1" });
+    useNavigationStore.setState({ activeView: "page", selectedPageId: "p1" });
     usePageStore.setState({ currentPage: { title: "Test" } as never });
     render(<ContentArea />);
     expect(screen.getByTestId("page-view")).toHaveTextContent("Test");

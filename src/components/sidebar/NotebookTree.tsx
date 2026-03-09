@@ -144,7 +144,7 @@ export function NotebookTree() {
         return (
           <div key={nb.id} role="treeitem" aria-expanded={isExpanded}>
             <TreeItem
-              icon={isExpanded ? <BookOpen size={14} /> : <Book size={14} />}
+              icon={isExpanded ? <BookOpen size={16} /> : <Book size={16} />}
               label={nb.name}
               isExpanded={isExpanded}
               isSelected={selectedNotebookId === nb.id}
@@ -236,7 +236,7 @@ function SectionNode({
   return (
     <div role="treeitem" aria-expanded={isExpanded}>
       <TreeItem
-        icon={isExpanded ? <FolderOpen size={14} /> : <FolderClosed size={14} />}
+        icon={isExpanded ? <FolderOpen size={16} /> : <FolderClosed size={16} />}
         label={section.name}
         isExpanded={isExpanded}
         isSelected={isSelected}
@@ -259,7 +259,7 @@ function SectionNode({
         pages.map((page) => (
           <TreeItem
             key={page.id}
-            icon={<FileText size={14} />}
+            icon={<FileText size={16} />}
             label={page.title}
             isSelected={selectedPageId === page.id}
             depth={2}
@@ -350,7 +350,7 @@ function TreeItem({
 
   return (
     <div
-      className="group flex h-7 cursor-pointer items-center gap-1.5 rounded-md pr-1 text-[13px]"
+      className="group flex h-8 cursor-pointer items-center gap-2 rounded-md pr-1 text-[14px]"
       style={{
         paddingLeft,
         backgroundColor: bgColor,
@@ -394,7 +394,7 @@ function TreeItem({
           className="flex h-4 w-4 shrink-0 items-center justify-center"
           style={{ color: "var(--text-tertiary)" }}
         >
-          {isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+          {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
         </span>
       ) : (
         <span className="h-4 w-4 shrink-0" />
@@ -410,7 +410,7 @@ function TreeItem({
       {renaming ? (
         <input
           autoFocus
-          className="h-5 flex-1 rounded border bg-transparent px-1 text-[13px] outline-none"
+          className="h-5 flex-1 rounded border bg-transparent px-1 text-[14px] outline-none"
           style={{
             borderColor: "var(--accent)",
             color: "var(--text-primary)",

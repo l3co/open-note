@@ -47,6 +47,22 @@
       "blocks_warning": "Esta página está grande. Considere dividir o conteúdo.",
       "select_page": "Selecione uma página na sidebar ou crie uma nova para começar."
     },
+    "home": {
+      "greeting_morning": "Bom dia",
+      "greeting_afternoon": "Boa tarde",
+      "greeting_evening": "Boa noite",
+      "recent_pages": "Visitados recentemente",
+      "quick_actions": "Ações rápidas",
+      "action_new_page": "Nova página",
+      "action_new_notebook": "Novo notebook",
+      "action_search": "Buscar notas",
+      "action_settings": "Configurações",
+      "no_recent": "Nenhuma página visitada ainda",
+      "time_just_now": "Agora",
+      "time_minutes_ago": "{{count}}min atrás",
+      "time_hours_ago": "{{count}}h atrás",
+      "time_days_ago": "{{count}}d atrás"
+    },
     "editor": {
       "placeholder": "Digite '/' para comandos...",
       "heading_placeholder": "Título {{level}}",
@@ -144,9 +160,13 @@
     "sidebar": {
       "notebooks": "Notebooks",
       "new_notebook": "Novo Notebook",
-      "search": "Buscar...",
+      "search": "Buscar",
       "settings": "Configurações",
       "trash": "Lixeira",
+      "home": "Home",
+      "calendar": "Calendário",
+      "calendar_coming_soon": "Em breve",
+      "tags": "Tags",
       "no_sections": "Nenhuma seção",
       "no_pages": "Nenhuma página",
       "no_notebooks": "Crie um notebook para começar"
