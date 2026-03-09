@@ -1,4 +1,5 @@
-import { Node, mergeAttributes } from "@tiptap/react";
+import { Node, mergeAttributes, ReactNodeViewRenderer } from "@tiptap/react";
+import { PdfBlockNodeView } from "./PdfBlockNodeView";
 
 export const PdfBlock = Node.create({
   name: "pdfBlock",
@@ -28,5 +29,9 @@ export const PdfBlock = Node.create({
         class: "pdf-block-wrapper",
       }),
     ];
+  },
+
+  addNodeView() {
+    return ReactNodeViewRenderer(PdfBlockNodeView);
   },
 });
