@@ -1,12 +1,16 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag da release (ex: v1.2.0)'
+        required: true
+        type: string
 
 env:
   CARGO_TERM_COLOR: always
+  RELEASE_TAG: ${{ github.event.inputs.tag }}
 
 jobs:
   # macOS — universal binary (arm64 + x86_64) compilado no runner arm64
@@ -47,10 +51,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: Open Note ${{ github.ref_name }}
+          tagName: ${{ github.event.inputs.tag }}
+          releaseName: Open Note ${{ github.event.inputs.tag }}
           releaseDraft: true
-          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+          prerelease: ${{ contains(github.event.inputs.tag, 'alpha') || contains(github.event.inputs.tag, 'beta') || contains(github.event.inputs.tag, 'rc') }}
           args: --target universal-apple-darwin --bundles app,dmg
 
       - name: Upload artifacts (debug)
@@ -105,10 +109,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: Open Note ${{ github.ref_name }}
+          tagName: ${{ github.event.inputs.tag }}
+          releaseName: Open Note ${{ github.event.inputs.tag }}
           releaseDraft: true
-          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+          prerelease: ${{ contains(github.event.inputs.tag, 'alpha') || contains(github.event.inputs.tag, 'beta') || contains(github.event.inputs.tag, 'rc') }}
           args: --bundles appimage,deb
 
       - name: Upload artifacts (debug)
@@ -156,10 +160,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tagName: ${{ github.ref_name }}
-          releaseName: Open Note ${{ github.ref_name }}
+          tagName: ${{ github.event.inputs.tag }}
+          releaseName: Open Note ${{ github.event.inputs.tag }}
           releaseDraft: true
-          prerelease: ${{ contains(github.ref_name, 'alpha') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'rc') }}
+          prerelease: ${{ contains(github.event.inputs.tag, 'alpha') || contains(github.event.inputs.tag, 'beta') || contains(github.event.inputs.tag, 'rc') }}
           args: --bundles nsis,msi
 
       - name: Upload artifacts (debug)
@@ -187,5 +191,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          TAG="${{ github.ref_name }}"
+          TAG="${{ github.event.inputs.tag }}"
           gh release edit "$TAG" --draft=false
