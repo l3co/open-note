@@ -91,7 +91,7 @@ export async function setupWithPage(
  * Clears localStorage onboarding flag so OnboardingDialog shows.
  */
 export async function clearOnboarding(page: Page): Promise<void> {
-  await page.evaluate(() => {
+  await page.addInitScript(() => {
     localStorage.removeItem("opennote_onboarding_done");
   });
 }

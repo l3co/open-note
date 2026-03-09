@@ -19,7 +19,9 @@ test.describe("Fase 10 — Settings, Temas & i18n", () => {
       if (settingsVisible) {
         await expect(page.locator(SETTINGS.root)).toBeVisible();
         // Deve começar na aba Geral
-        await expect(page.getByText("Geral")).toBeVisible();
+        await expect(
+          page.locator(SETTINGS.root).getByRole("heading", { name: "Geral" }),
+        ).toBeVisible();
       }
     });
 
@@ -41,7 +43,11 @@ test.describe("Fase 10 — Settings, Temas & i18n", () => {
       if (tabVisible) {
         await appearanceTab.click();
         await page.waitForTimeout(200);
-        await expect(page.getByText("Aparência")).toBeVisible();
+        await expect(
+          page
+            .locator(SETTINGS.root)
+            .getByRole("heading", { name: "Aparência" }),
+        ).toBeVisible();
       }
 
       // Navega para Editor
@@ -66,7 +72,9 @@ test.describe("Fase 10 — Settings, Temas & i18n", () => {
       if (aboutTabVisible) {
         await aboutTab.click();
         await page.waitForTimeout(200);
-        await expect(page.getByText("Sobre")).toBeVisible();
+        await expect(
+          page.locator(SETTINGS.root).getByRole("heading", { name: "Sobre" }),
+        ).toBeVisible();
       }
     });
 

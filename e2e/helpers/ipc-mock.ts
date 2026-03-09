@@ -202,27 +202,45 @@ export async function setupIpcMock(
 ): Promise<void> {
   const handlers = buildDefaultHandlers(overrides);
 
-  // Serialize handler outputs (functions can't cross the bridge, so we
-  // pre-compute the return values and embed them as a JSON lookup table).
-  // For dynamic handlers that depend on arguments, we serialize the function body.
-  const staticHandlers: Record<string, unknown> = {};
+  // Pre-compute static handler results and preserve thrown errors so invoke()
+  // can reject at runtime instead of crashing setup.
+  const staticHandlers: Record<
+    string,
+    { ok: true; value: unknown } | { ok: false; error: string }
+  > = {};
   for (const [cmd, fn] of Object.entries(handlers)) {
-    staticHandlers[cmd] = fn();
+    try {
+      staticHandlers[cmd] = { ok: true, value: fn() };
+    } catch (error) {
+      const message =
+        error instanceof Error ? error.message : "Unknown IPC mock error";
+      staticHandlers[cmd] = { ok: false, error: message };
+    }
   }
 
   await page.addInitScript(
-    (handlersJson: Record<string, unknown>) => {
+    (
+      handlersJson: Record<
+        string,
+        { ok: true; value: unknown } | { ok: false; error: string }
+      >,
+    ) => {
       // Mock Tauri IPC internals
       (window as unknown as Record<string, unknown>).__TAURI_INTERNALS__ = {
         invoke: (cmd: string, _args?: Record<string, unknown>) => {
           const result = handlersJson[cmd];
-          if (result === undefined) {
+          if (!result) {
             return Promise.reject(
               new Error(`[IPC Mock] Unknown command: ${cmd}`),
             );
           }
+          if (!result.ok) {
+            return Promise.reject(new Error(result.error));
+          }
           return Promise.resolve(
-            typeof result === "object" ? structuredClone(result) : result,
+            typeof result.value === "object"
+              ? structuredClone(result.value)
+              : result.value,
           );
         },
         convertFileSrc: (path: string) => path,

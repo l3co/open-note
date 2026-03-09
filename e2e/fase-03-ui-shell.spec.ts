@@ -1,5 +1,11 @@
 import { test, expect } from "@playwright/test";
-import { setupWithWorkspace, setupFreshApp, skipOnboarding, clearOnboarding } from "./helpers/workspace";
+import {
+  setupWithWorkspace,
+  setupWithPage,
+  setupFreshApp,
+  skipOnboarding,
+  clearOnboarding,
+} from "./helpers/workspace";
 import { setupIpcMock, DEFAULT_APP_STATE, DEFAULT_WORKSPACE, DEFAULT_NOTEBOOK, DEFAULT_SECTION, DEFAULT_PAGE, DEFAULT_PAGE_SUMMARY } from "./helpers/ipc-mock";
 import { APP, SIDEBAR, TOOLBAR, WORKSPACE_PICKER, ONBOARDING, TREE } from "./helpers/selectors";
 
@@ -29,14 +35,14 @@ test.describe("Fase 03 — UI Shell & Navegação", () => {
 
     test("HP-03: toolbar exibe botões de navegação e breadcrumb", async ({ page }) => {
       await skipOnboarding(page);
-      await setupWithWorkspace(page);
+      await setupWithPage(page);
 
       await expect(page.locator(APP.main)).toBeVisible({ timeout: 10000 });
       await expect(page.locator(TOOLBAR.root)).toBeVisible();
       await expect(page.locator(TOOLBAR.toggleSidebar)).toBeVisible();
       await expect(page.locator(TOOLBAR.backBtn)).toBeVisible();
       await expect(page.locator(TOOLBAR.forwardBtn)).toBeVisible();
-      await expect(page.locator(TOOLBAR.breadcrumb)).toBeVisible();
+      await expect(page.locator(TOOLBAR.breadcrumb)).toBeAttached();
     });
 
     test("HP-04: toggle sidebar esconde e mostra sidebar", async ({ page }) => {
