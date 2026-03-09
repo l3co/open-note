@@ -20,8 +20,7 @@ import {
 import type { Editor } from "@tiptap/react";
 import type { TFunction } from "i18next";
 import { open } from "@tauri-apps/plugin-dialog";
-import { convertFileSrc } from "@tauri-apps/api/core";
-import { importAsset, importPdf } from "@/lib/ipc";
+import { importAsset, importPdf, readAssetBase64 } from "@/lib/ipc";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 
 interface SlashCommand {
@@ -144,8 +143,8 @@ function buildCommands(t: TFunction, sectionId: string | null): SlashCommand[] {
         if (selected) {
           try {
             const result = await importAsset(sectionId, selected);
-            const assetUrl = convertFileSrc(result.absolute_path);
-            editor.chain().focus().setImage({ src: assetUrl }).run();
+            const dataUrl = await readAssetBase64(result.absolute_path);
+            editor.chain().focus().setImage({ src: dataUrl }).run();
           } catch (err) {
             console.error("[Image] Import failed:", err);
           }
@@ -213,7 +212,7 @@ function buildCommands(t: TFunction, sectionId: string | null): SlashCommand[] {
         if (selected) {
           try {
             const [, absolutePath, pageCount] = await importPdf(sectionId, selected);
-            const assetUrl = convertFileSrc(absolutePath);
+            const assetUrl = await readAssetBase64(absolutePath);
             editor
               .chain()
               .focus()

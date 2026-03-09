@@ -113,6 +113,9 @@ export const importAsset = (sectionId: SectionId, filePath: string) =>
     filePath,
   });
 
+export const readAssetBase64 = (filePath: string) =>
+  invoke<string>("read_asset_base64", { filePath });
+
 // ─── PDF ───
 
 export const importPdf = (sectionId: SectionId, filePath: string) =>

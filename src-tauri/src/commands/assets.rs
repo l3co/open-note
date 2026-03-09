@@ -53,6 +53,26 @@ pub fn import_asset_from_bytes(
 }
 
 #[tauri::command]
+pub fn read_asset_base64(file_path: String) -> Result<String, String> {
+    let path = std::path::Path::new(&file_path);
+    let bytes = std::fs::read(path).map_err(|e| format!("Failed to read file: {e}"))?;
+
+    let mime = match path.extension().and_then(|e| e.to_str()) {
+        Some("png") => "image/png",
+        Some("jpg" | "jpeg") => "image/jpeg",
+        Some("gif") => "image/gif",
+        Some("webp") => "image/webp",
+        Some("svg") => "image/svg+xml",
+        Some("pdf") => "application/pdf",
+        _ => "application/octet-stream",
+    };
+
+    use base64::Engine;
+    let encoded = base64::engine::general_purpose::STANDARD.encode(&bytes);
+    Ok(format!("data:{mime};base64,{encoded}"))
+}
+
+#[tauri::command]
 pub fn delete_asset(state: State<AppManagedState>, asset_path: String) -> Result<(), String> {
     let root = state.get_workspace_root()?;
     FsStorageEngine::delete_asset(&root, &asset_path).map_err(|e| e.to_string())

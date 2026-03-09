@@ -1,7 +1,7 @@
 mod commands;
 mod state;
 
-use commands::assets::{delete_asset, import_asset, import_asset_from_bytes};
+use commands::assets::{delete_asset, import_asset, import_asset_from_bytes, read_asset_base64};
 use commands::get_app_info;
 use commands::notebook::{
     create_notebook, delete_notebook, list_notebooks, rename_notebook, reorder_notebooks,
@@ -91,6 +91,7 @@ pub fn run() {
             // Assets
             import_asset,
             import_asset_from_bytes,
+            read_asset_base64,
             delete_asset,
             // Search
             search_pages,
