@@ -105,10 +105,18 @@ export const readFileContent = (path: string) =>
 export const saveFileContent = (path: string, content: string) =>
   invoke<void>("save_file_content", { path, content });
 
+// ─── Assets ───
+
+export const importAsset = (sectionId: SectionId, filePath: string) =>
+  invoke<{ asset_path: string; absolute_path: string }>("import_asset", {
+    sectionId,
+    filePath,
+  });
+
 // ─── PDF ───
 
 export const importPdf = (sectionId: SectionId, filePath: string) =>
-  invoke<[string, number]>("import_pdf", { sectionId, filePath });
+  invoke<[string, string, number]>("import_pdf", { sectionId, filePath });
 
 // ─── Tags ───
 

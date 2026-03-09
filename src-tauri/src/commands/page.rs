@@ -75,7 +75,7 @@ pub fn import_pdf(
     state: State<AppManagedState>,
     section_id: SectionId,
     file_path: String,
-) -> Result<(String, u32), String> {
+) -> Result<(String, String, u32), String> {
     let root = state.get_workspace_root()?;
     let source = std::path::Path::new(&file_path);
     if !source.exists() {
@@ -94,11 +94,12 @@ pub fn import_pdf(
     std::fs::copy(source, &dest_path).map_err(|e| format!("Failed to copy PDF: {e}"))?;
 
     let asset_rel = format!("assets/{dest_name}");
+    let absolute_path = dest_path.to_string_lossy().to_string();
 
     // Page count: read file and count PDF pages via cross-reference
     let page_count = count_pdf_pages(&dest_path).unwrap_or(0);
 
-    Ok((asset_rel, page_count))
+    Ok((asset_rel, absolute_path, page_count))
 }
 
 fn count_pdf_pages(path: &std::path::Path) -> Option<u32> {

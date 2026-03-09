@@ -8,6 +8,7 @@ use crate::state::AppManagedState;
 #[derive(serde::Serialize)]
 pub struct AssetResult {
     pub asset_path: String,
+    pub absolute_path: String,
 }
 
 #[tauri::command]
@@ -20,7 +21,14 @@ pub fn import_asset(
     let source = std::path::PathBuf::from(&file_path);
     let asset_path =
         FsStorageEngine::import_asset(&root, section_id, &source).map_err(|e| e.to_string())?;
-    Ok(AssetResult { asset_path })
+    let absolute_path = root
+        .join(&asset_path)
+        .to_string_lossy()
+        .to_string();
+    Ok(AssetResult {
+        asset_path,
+        absolute_path,
+    })
 }
 
 #[tauri::command]
@@ -34,7 +42,14 @@ pub fn import_asset_from_bytes(
     let asset_path =
         FsStorageEngine::import_asset_from_bytes(&root, section_id, &bytes, &extension)
             .map_err(|e| e.to_string())?;
-    Ok(AssetResult { asset_path })
+    let absolute_path = root
+        .join(&asset_path)
+        .to_string_lossy()
+        .to_string();
+    Ok(AssetResult {
+        asset_path,
+        absolute_path,
+    })
 }
 
 #[tauri::command]

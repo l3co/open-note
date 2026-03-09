@@ -21,6 +21,8 @@ import type { Editor } from "@tiptap/react";
 import type { TFunction } from "i18next";
 import { open } from "@tauri-apps/plugin-dialog";
 import { convertFileSrc } from "@tauri-apps/api/core";
+import { importAsset, importPdf } from "@/lib/ipc";
+import { useNavigationStore } from "@/stores/useNavigationStore";
 
 interface SlashCommand {
   id: string;
@@ -31,7 +33,7 @@ interface SlashCommand {
   action: (editor: Editor) => void;
 }
 
-function buildCommands(t: TFunction): SlashCommand[] {
+function buildCommands(t: TFunction, sectionId: string | null): SlashCommand[] {
   return [
     {
       id: "heading1",
@@ -129,6 +131,7 @@ function buildCommands(t: TFunction): SlashCommand[] {
       icon: <ImageIcon size={18} />,
       category: "media",
       action: async (editor) => {
+        if (!sectionId) return;
         const selected = await open({
           multiple: false,
           filters: [
@@ -139,8 +142,13 @@ function buildCommands(t: TFunction): SlashCommand[] {
           ],
         });
         if (selected) {
-          const assetUrl = convertFileSrc(selected);
-          editor.chain().focus().setImage({ src: assetUrl }).run();
+          try {
+            const result = await importAsset(sectionId, selected);
+            const assetUrl = convertFileSrc(result.absolute_path);
+            editor.chain().focus().setImage({ src: assetUrl }).run();
+          } catch (err) {
+            console.error("[Image] Import failed:", err);
+          }
         }
       },
     },
@@ -197,25 +205,32 @@ function buildCommands(t: TFunction): SlashCommand[] {
       icon: <FileText size={18} />,
       category: "media",
       action: async (editor) => {
+        if (!sectionId) return;
         const selected = await open({
           multiple: false,
           filters: [{ name: "PDF", extensions: ["pdf"] }],
         });
         if (selected) {
-          editor
-            .chain()
-            .focus()
-            .insertContent({
-              type: "pdfBlock",
-              attrs: {
-                src: selected,
-                totalPages: 0,
-                displayMode: "continuous",
-                currentPage: 1,
-                scale: 1.5,
-              },
-            })
-            .run();
+          try {
+            const [, absolutePath, pageCount] = await importPdf(sectionId, selected);
+            const assetUrl = convertFileSrc(absolutePath);
+            editor
+              .chain()
+              .focus()
+              .insertContent({
+                type: "pdfBlock",
+                attrs: {
+                  src: assetUrl,
+                  totalPages: pageCount,
+                  displayMode: "continuous",
+                  currentPage: 1,
+                  scale: 1.5,
+                },
+              })
+              .run();
+          } catch (err) {
+            console.error("[PDF] Import failed:", err);
+          }
         }
       },
     },
@@ -254,7 +269,8 @@ export function SlashCommandMenu({ editor }: SlashCommandMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [position, setPosition] = useState({ top: 0, left: 0 });
   const { t } = useTranslation();
-  const commands = useMemo(() => buildCommands(t), [t]);
+  const sectionId = useNavigationStore((s) => s.selectedSectionId);
+  const commands = useMemo(() => buildCommands(t, sectionId), [t, sectionId]);
 
   const filtered = commands.filter(
     (cmd) =>
