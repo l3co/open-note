@@ -45,7 +45,19 @@ export function PdfViewer({
           import.meta.url,
         ).toString();
 
-        const pdf = await pdfjsLib.getDocument(src).promise;
+        let pdfSource: string | { data: Uint8Array } = src;
+        if (src.startsWith("data:")) {
+          const base64 = src.split(",")[1];
+          if (base64) {
+            const binary = atob(base64);
+            const bytes = new Uint8Array(binary.length);
+            for (let i = 0; i < binary.length; i++) {
+              bytes[i] = binary.charCodeAt(i);
+            }
+            pdfSource = { data: bytes };
+          }
+        }
+        const pdf = await pdfjsLib.getDocument(pdfSource).promise;
         const page = await pdf.getPage(pageNum);
         const viewport = page.getViewport({ scale });
 
