@@ -4,12 +4,14 @@ import { Pencil, Trash2, Plus } from "lucide-react";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 import { usePageStore } from "@/stores/usePageStore";
 import { useNavigationStore } from "@/stores/useNavigationStore";
+import { DeleteDialog } from "@/components/shared/DeleteDialog";
 
 interface ContextMenuProps {
   x: number;
   y: number;
   type: "notebook" | "section" | "page";
   id: string;
+  name: string;
   notebookId?: string;
   onClose: () => void;
 }
@@ -19,11 +21,13 @@ export function ContextMenu({
   y,
   type,
   id,
+  name,
   notebookId: _notebookId,
   onClose,
 }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [renaming, setRenaming] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [renameDraft, setRenameDraft] = useState("");
   const { t } = useTranslation();
   const {
@@ -68,7 +72,11 @@ export function ContextMenu({
     onClose();
   };
 
-  const handleDelete = async () => {
+  const handleDeleteClick = () => {
+    setShowDeleteConfirm(true);
+  };
+
+  const handleDeleteConfirm = async () => {
     if (type === "notebook") await deleteNotebook(id);
     if (type === "section") await deleteSection(id);
     if (type === "page") await deletePage(id);
@@ -96,6 +104,17 @@ export function ContextMenu({
     }
     onClose();
   };
+
+  if (showDeleteConfirm) {
+    return (
+      <DeleteDialog
+        itemType={type}
+        itemName={name}
+        onConfirm={handleDeleteConfirm}
+        onCancel={onClose}
+      />
+    );
+  }
 
   if (renaming) {
     return (
@@ -159,7 +178,7 @@ export function ContextMenu({
   items.push({
     icon: <Trash2 size={14} />,
     label: t("context_menu.delete"),
-    onClick: handleDelete,
+    onClick: handleDeleteClick,
     danger: true,
   });
 

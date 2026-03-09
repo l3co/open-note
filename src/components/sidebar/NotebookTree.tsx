@@ -43,6 +43,7 @@ export function NotebookTree() {
     y: number;
     type: "notebook" | "section" | "page";
     id: string;
+    name: string;
     notebookId?: string;
   } | null>(null);
 
@@ -80,10 +81,11 @@ export function NotebookTree() {
       e: React.MouseEvent,
       type: "notebook" | "section" | "page",
       id: string,
+      name: string,
       notebookId?: string,
     ) => {
       e.preventDefault();
-      setContextMenu({ x: e.clientX, y: e.clientY, type, id, notebookId });
+      setContextMenu({ x: e.clientX, y: e.clientY, type, id, name, notebookId });
     },
     [],
   );
@@ -146,7 +148,7 @@ export function NotebookTree() {
               isDragOver={dragOverId === nb.id}
               depth={0}
               onClick={() => handleNotebookClick(nb.id)}
-              onContextMenu={(e) => handleContextMenu(e, "notebook", nb.id)}
+              onContextMenu={(e) => handleContextMenu(e, "notebook", nb.id, nb.name)}
               draggable
               onDragStart={() => handleDragStart("notebook", nb.id)}
               onDragOver={(e) => handleDragOver(e, nb.id)}
@@ -181,6 +183,7 @@ export function NotebookTree() {
           y={contextMenu.y}
           type={contextMenu.type}
           id={contextMenu.id}
+          name={contextMenu.name}
           notebookId={contextMenu.notebookId}
           onClose={() => setContextMenu(null)}
         />
@@ -212,6 +215,7 @@ function SectionNode({
     e: React.MouseEvent,
     type: "notebook" | "section" | "page",
     id: string,
+    name: string,
     notebookId?: string,
   ) => void;
   notebookId: string;
@@ -227,7 +231,7 @@ function SectionNode({
         depth={1}
         onClick={onSectionClick}
         onContextMenu={(e) =>
-          onContextMenu(e, "section", section.id, notebookId)
+          onContextMenu(e, "section", section.id, section.name, notebookId)
         }
         onRename={onRename}
       />
@@ -241,7 +245,7 @@ function SectionNode({
             isSelected={selectedPageId === page.id}
             depth={2}
             onClick={() => onPageClick(page.id)}
-            onContextMenu={(e) => onContextMenu(e, "page", page.id, notebookId)}
+            onContextMenu={(e) => onContextMenu(e, "page", page.id, page.title, notebookId)}
           />
         ))}
     </div>
@@ -339,13 +343,15 @@ function TreeItem({
       onDrop={onDrop}
       onDragEnd={onDragEnd}
     >
-      {isExpanded !== undefined && (
+      {isExpanded !== undefined ? (
         <span
-          className="flex h-4 w-4 items-center justify-center"
+          className="flex h-4 w-4 shrink-0 items-center justify-center"
           style={{ color: "var(--text-tertiary)" }}
         >
           {isExpanded ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
         </span>
+      ) : (
+        <span className="h-4 w-4 shrink-0" />
       )}
       <span
         className="flex h-4 w-4 items-center justify-center"

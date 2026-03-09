@@ -14,6 +14,7 @@ describe("ContextMenu", () => {
     y: 200,
     type: "notebook" as const,
     id: "nb-1",
+    name: "My Notebook",
     onClose: vi.fn(),
   };
 
@@ -87,30 +88,50 @@ describe("ContextMenu", () => {
     expect(defaultProps.onClose).toHaveBeenCalled();
   });
 
-  it("calls deleteNotebook on delete click for notebook", async () => {
+  it("shows delete confirmation dialog on delete click", async () => {
     const user = userEvent.setup();
     render(<ContextMenu {...defaultProps} />);
     await user.click(screen.getByText("Excluir"));
+    expect(screen.getByRole("alertdialog")).toBeInTheDocument();
+    expect(screen.getByText(/My Notebook/)).toBeInTheDocument();
+  });
+
+  it("calls deleteNotebook after confirming delete dialog", async () => {
+    const user = userEvent.setup();
+    render(<ContextMenu {...defaultProps} />);
+    await user.click(screen.getByText("Excluir"));
+    await user.click(screen.getByTestId("delete-dialog-confirm"));
     expect(useWorkspaceStore.getState().deleteNotebook).toHaveBeenCalledWith(
       "nb-1",
     );
     expect(defaultProps.onClose).toHaveBeenCalled();
   });
 
-  it("calls deleteSection on delete click for section", async () => {
+  it("calls deleteSection after confirming delete dialog for section", async () => {
     const user = userEvent.setup();
-    render(<ContextMenu {...defaultProps} type="section" id="sec-1" />);
+    render(<ContextMenu {...defaultProps} type="section" id="sec-1" name="My Section" />);
     await user.click(screen.getByText("Excluir"));
+    await user.click(screen.getByTestId("delete-dialog-confirm"));
     expect(useWorkspaceStore.getState().deleteSection).toHaveBeenCalledWith(
       "sec-1",
     );
   });
 
-  it("calls deletePage on delete click for page", async () => {
+  it("calls deletePage after confirming delete dialog for page", async () => {
     const user = userEvent.setup();
-    render(<ContextMenu {...defaultProps} type="page" id="p-1" />);
+    render(<ContextMenu {...defaultProps} type="page" id="p-1" name="My Page" />);
     await user.click(screen.getByText("Excluir"));
+    await user.click(screen.getByTestId("delete-dialog-confirm"));
     expect(usePageStore.getState().deletePage).toHaveBeenCalledWith("p-1");
+  });
+
+  it("closes without deleting when cancel is clicked in delete dialog", async () => {
+    const user = userEvent.setup();
+    render(<ContextMenu {...defaultProps} />);
+    await user.click(screen.getByText("Excluir"));
+    await user.click(screen.getByTestId("delete-dialog-cancel"));
+    expect(useWorkspaceStore.getState().deleteNotebook).not.toHaveBeenCalled();
+    expect(defaultProps.onClose).toHaveBeenCalled();
   });
 
   it("calls createSection and expands notebook on 'Nova Seção' click", async () => {
