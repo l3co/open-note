@@ -1,4 +1,5 @@
-import { Node, mergeAttributes } from "@tiptap/react";
+import { Node, mergeAttributes, ReactNodeViewRenderer } from "@tiptap/react";
+import { InkBlockNodeView } from "./InkBlockNodeView";
 
 export const InkBlock = Node.create({
   name: "inkBlock",
@@ -27,5 +28,9 @@ export const InkBlock = Node.create({
         class: "ink-block-wrapper",
       }),
     ];
+  },
+
+  addNodeView() {
+    return ReactNodeViewRenderer(InkBlockNodeView);
   },
 });
