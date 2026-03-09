@@ -146,12 +146,28 @@ Pages are stored as `{slug}.opn.json` with versioned schema.
 
 ## Documentation
 
-- [ROADMAP.md](./ROADMAP.md) — Vision, domain model, phases, risks, cross-cutting concerns
+**[📚 Documentation Hub](./docs/README.md)** — Central index with all project documentation.
+
+### Design & Architecture
+- [System Design](./docs/SYSTEM_DESIGN.md) — Vision, principles, concurrency, persistence, search, sync, security
+- [Architecture Diagrams](./docs/ARCHITECTURE.md) — Mermaid diagrams (C4, sequence, ER, state)
+- [Data Model](./docs/DATA_MODEL.md) — Entities, block types, JSON schemas, TypeScript bindings
+- [Glossary](./docs/GLOSSARY.md) — DDD ubiquitous language
+
+### API & Reference
+- [IPC Reference](./docs/IPC_REFERENCE.md) — All 46 IPC commands (Rust ↔ TypeScript)
+
+### Development
+- [Development Guide](./docs/DEVELOPMENT.md) — Setup, workflow, conventions, how-to guides
+- [Testing Strategy](./docs/TESTING.md) — Test pyramid, coverage targets, CI pipeline
+- [Build & Deploy](./docs/BUILD_AND_DEPLOY.md) — Build, release, CI/CD, code signing
+- [Contributing](./CONTRIBUTING.md) — Contribution workflow, PR checklist
+- [Troubleshooting](./docs/TROUBLESHOOTING.md) — Common problems and solutions
+
+### Decisions & Planning
+- [ADRs](./docs/adr/) — 9 Architecture Decision Records (001–009)
+- [ROADMAP.md](./ROADMAP.md) — Vision, domain model, phases, risks
 - [Phase docs](./docs/) — Detailed specs for each phase (FASE_01–10)
-- [ADR-001](./docs/adr/001-tauri-v2.md) — Why Tauri v2
-- [ADR-002](./docs/adr/002-cargo-workspace.md) — Why Cargo workspace
-- [E2E Test Plan](./retrofit_e2e/) — Playwright E2E test scenarios by phase
-- [Rust Test Retrofit](./retrofit_test_rust/) — Rust test improvement plans
 
 ## License
 
