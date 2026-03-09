@@ -234,12 +234,10 @@ describe("useMultiWorkspaceStore", () => {
     await useMultiWorkspaceStore.getState().openWorkspace("/tmp/ws-1");
     await useMultiWorkspaceStore.getState().openWorkspace("/tmp/ws-2");
 
-    useMultiWorkspaceStore
-      .getState()
-      .updateNavigation("ws-1", (nav) => ({
-        ...nav,
-        selectedPageId: "page-x",
-      }));
+    useMultiWorkspaceStore.getState().updateNavigation("ws-1", (nav) => ({
+      ...nav,
+      selectedPageId: "page-x",
+    }));
 
     const ws1Nav = useMultiWorkspaceStore
       .getState()
