@@ -171,6 +171,11 @@
       "no_pages": "No pages",
       "no_notebooks": "Create a notebook to get started"
     },
+    "tags": {
+      "empty_title": "No tags found",
+      "empty_desc": "Create tags on your pages to see them listed here.",
+      "error_load": "Error loading tags"
+    },
     "toolbar": {
       "toggle_sidebar": "Toggle sidebar"
     },

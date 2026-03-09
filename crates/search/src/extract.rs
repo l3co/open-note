@@ -45,7 +45,11 @@ fn extract_text_from_block(block: &Block) -> String {
 
 pub fn extract_text_from_tiptap_json(value: &serde_json::Value) -> String {
     let mut parts = Vec::new();
-    collect_text_recursive(value, &mut parts);
+    if let Some(inner) = value.get("tiptap_json") {
+        collect_text_recursive(inner, &mut parts);
+    } else {
+        collect_text_recursive(value, &mut parts);
+    }
     parts.join(" ")
 }
 

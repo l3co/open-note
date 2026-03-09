@@ -171,6 +171,11 @@
       "no_pages": "Nenhuma página",
       "no_notebooks": "Crie um notebook para começar"
     },
+    "tags": {
+      "empty_title": "Nenhuma tag encontrada",
+      "empty_desc": "Crie tags nas suas páginas para vê-las listadas aqui.",
+      "error_load": "Erro ao carregar tags"
+    },
     "toolbar": {
       "toggle_sidebar": "Alternar sidebar"
     },

@@ -189,25 +189,40 @@ impl SearchEngine {
         parser.set_field_boost(s.title, 2.0);
         parser.set_field_boost(s.tags, 1.5);
 
-        let (text_query, _errors) = parser.parse_query_lenient(&query.text);
+        let mut must_clauses: Vec<Box<dyn tantivy::query::Query>> = Vec::new();
 
-        let final_query: Box<dyn tantivy::query::Query> = if let Some(ref nb_id) = query.notebook_id
-        {
+        if !query.text.trim().is_empty() {
+            let (text_query, _errors) = parser.parse_query_lenient(&query.text);
+            must_clauses.push(text_query);
+        }
+
+        if let Some(ref nb_id) = query.notebook_id {
             let nb_term = Term::from_field_text(s.notebook_id, nb_id);
             let nb_query = TermQuery::new(nb_term, IndexRecordOption::Basic);
-            Box::new(BooleanQuery::new(vec![
-                (Occur::Must, text_query),
-                (Occur::Must, Box::new(nb_query)),
-            ]))
-        } else if let Some(ref sec_id) = query.section_id {
+            must_clauses.push(Box::new(nb_query));
+        }
+        
+        if let Some(ref sec_id) = query.section_id {
             let sec_term = Term::from_field_text(s.section_id, sec_id);
             let sec_query = TermQuery::new(sec_term, IndexRecordOption::Basic);
-            Box::new(BooleanQuery::new(vec![
-                (Occur::Must, text_query),
-                (Occur::Must, Box::new(sec_query)),
-            ]))
+            must_clauses.push(Box::new(sec_query));
+        }
+
+        if !query.tags.is_empty() {
+            let tag_parser = QueryParser::for_index(&self.index, vec![s.tags]);
+            for tag in &query.tags {
+                let (tag_query, _) = tag_parser.parse_query_lenient(tag);
+                must_clauses.push(tag_query);
+            }
+        }
+
+        let final_query: Box<dyn tantivy::query::Query> = if must_clauses.is_empty() {
+            Box::new(tantivy::query::AllQuery)
+        } else if must_clauses.len() == 1 {
+            must_clauses.pop().unwrap()
         } else {
-            text_query
+            let boolean_clauses = must_clauses.into_iter().map(|q| (Occur::Must, q)).collect();
+            Box::new(BooleanQuery::new(boolean_clauses))
         };
 
         let top_docs = searcher.search(
@@ -256,7 +271,10 @@ impl SearchEngine {
         let searcher = self.reader.searcher();
         let s = &self.schema;
 
-        let parser = QueryParser::for_index(&self.index, vec![s.title]);
+        let mut parser = QueryParser::for_index(&self.index, vec![s.title, s.content, s.tags]);
+        parser.set_field_boost(s.title, 2.0); // Prioriza título
+        parser.set_field_boost(s.tags, 1.5);  // Prioriza tags 
+
         let query = if query_text.trim().is_empty() {
             Box::new(tantivy::query::AllQuery) as Box<dyn tantivy::query::Query>
         } else {
@@ -354,5 +372,51 @@ mod tests {
         let content = "Some content here";
         let snippet = generate_snippet(content, "", 10);
         assert_eq!(snippet, "Some conte");
+    }
+
+    #[test]
+    fn test_content_search_query() {
+        let temp_dir = tempfile::tempdir().unwrap();
+        let engine = SearchEngine::open_or_create(temp_dir.path()).unwrap();
+        
+        let mut page = Page::new(opennote_core::id::SectionId::new(), "My title").unwrap();
+        
+        // Add a block
+        let json = serde_json::json!({
+            "type": "doc",
+            "content": [
+                {
+                    "type": "paragraph",
+                    "content": [
+                        { "type": "text", "text": "This is a special content word called abracadabra." }
+                    ]
+                }
+            ]
+        });
+        page.add_block(opennote_core::block::Block::new_text(0, json)).unwrap();
+
+        let data = PageIndexData {
+            page: page.clone(),
+            notebook_name: "NB".to_string(),
+            section_name: "SEC".to_string(),
+            notebook_id: "nb1".to_string(),
+            section_id: "sec1".to_string(),
+        };
+
+        engine.index_page(&data).unwrap();
+
+        // Let's search using the regular search function
+        let sq = SearchQuery {
+            text: "abracadabra".to_string(),
+            notebook_id: None,
+            section_id: None,
+            tags: vec![],
+            limit: 10,
+            offset: 0,
+        };
+
+        let result = engine.search(&sq).unwrap();
+        assert_eq!(result.items.len(), 1);
+        assert_eq!(result.items[0].title, "My title");
     }
 }

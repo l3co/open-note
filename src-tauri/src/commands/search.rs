@@ -85,7 +85,7 @@ pub fn get_index_status(state: State<AppManagedState>) -> Result<IndexStatus, St
     state.with_search_engine(|engine| engine.get_status().map_err(|e| e.to_string()))
 }
 
-fn resolve_page_context(
+pub fn resolve_page_context(
     root: &std::path::Path,
     section_id: opennote_core::id::SectionId,
 ) -> Result<(String, String, String, String), String> {

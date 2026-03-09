@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Search, FileText } from "lucide-react";
 import { useUIStore } from "@/stores/useUIStore";
 import { useNavigationStore } from "@/stores/useNavigationStore";
+import { usePageStore } from "@/stores/usePageStore";
 import { quickOpen } from "@/lib/ipc";
 import type { SearchResultItem } from "@/types/search";
 
@@ -10,6 +11,7 @@ export function QuickOpen() {
   const show = useUIStore((s) => s.showQuickOpen);
   const close = useUIStore((s) => s.closeQuickOpen);
   const selectPage = useNavigationStore((s) => s.selectPage);
+  const loadPage = usePageStore((s) => s.loadPage);
 
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResultItem[]>([]);
@@ -56,9 +58,10 @@ export function QuickOpen() {
   const openResult = useCallback(
     (item: SearchResultItem) => {
       selectPage(item.page_id);
+      loadPage(item.page_id);
       close();
     },
-    [selectPage, close],
+    [selectPage, loadPage, close],
   );
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

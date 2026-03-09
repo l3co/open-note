@@ -3,6 +3,7 @@ use tauri::State;
 use opennote_core::block::Block;
 use opennote_core::id::{PageId, SectionId};
 use opennote_core::page::{Page, PageSummary};
+use opennote_search::engine::PageIndexData;
 use opennote_storage::engine::FsStorageEngine;
 
 use crate::state::AppManagedState;
@@ -29,13 +30,41 @@ pub fn create_page(
     title: String,
 ) -> Result<Page, String> {
     let root = state.get_workspace_root()?;
-    FsStorageEngine::create_page(&root, section_id, &title).map_err(|e| e.to_string())
+    let page = FsStorageEngine::create_page(&root, section_id, &title).map_err(|e| e.to_string())?;
+    
+    // Reindex
+    if let Ok((notebook_name, section_name, notebook_id, sect_id)) = super::search::resolve_page_context(&root, page.section_id) {
+        let data = PageIndexData {
+            page: page.clone(),
+            notebook_name,
+            section_name,
+            notebook_id,
+            section_id: sect_id,
+        };
+        let _ = state.with_search_engine(|engine| engine.index_page(&data).map_err(|e| e.to_string()));
+    }
+    
+    Ok(page)
 }
 
 #[tauri::command]
 pub fn update_page(state: State<AppManagedState>, page: Page) -> Result<(), String> {
     let root = state.get_workspace_root()?;
-    FsStorageEngine::update_page(&root, &page).map_err(|e| e.to_string())
+    FsStorageEngine::update_page(&root, &page).map_err(|e| e.to_string())?;
+
+    // Reindex
+    if let Ok((notebook_name, section_name, notebook_id, sect_id)) = super::search::resolve_page_context(&root, page.section_id) {
+        let data = PageIndexData {
+            page: page.clone(),
+            notebook_name,
+            section_name,
+            notebook_id,
+            section_id: sect_id,
+        };
+        let _ = state.with_search_engine(|engine| engine.index_page(&data).map_err(|e| e.to_string()));
+    }
+    
+    Ok(())
 }
 
 #[tauri::command]
@@ -50,6 +79,19 @@ pub fn update_page_blocks(
         page.blocks = blocks.clone();
         page.updated_at = chrono::Utc::now();
         FsStorageEngine::update_page(&root, &page).map_err(|e| e.to_string())?;
+
+        // Reindex
+        if let Ok((notebook_name, section_name, notebook_id, sect_id)) = super::search::resolve_page_context(&root, page.section_id) {
+            let data = PageIndexData {
+                page: page.clone(),
+                notebook_name,
+                section_name,
+                notebook_id,
+                section_id: sect_id,
+            };
+            let _ = state.with_search_engine(|engine| engine.index_page(&data).map_err(|e| e.to_string()));
+        }
+        
         Ok(page)
     })
 }
@@ -57,7 +99,12 @@ pub fn update_page_blocks(
 #[tauri::command]
 pub fn delete_page(state: State<AppManagedState>, page_id: PageId) -> Result<(), String> {
     let root = state.get_workspace_root()?;
-    FsStorageEngine::delete_page(&root, page_id).map_err(|e| e.to_string())
+    FsStorageEngine::delete_page(&root, page_id).map_err(|e| e.to_string())?;
+    
+    // Remove from index
+    let _ = state.with_search_engine(|engine| engine.remove_page(&page_id.to_string()).map_err(|e| e.to_string()));
+    
+    Ok(())
 }
 
 #[tauri::command]
@@ -67,7 +114,21 @@ pub fn move_page(
     target_section_id: SectionId,
 ) -> Result<Page, String> {
     let root = state.get_workspace_root()?;
-    FsStorageEngine::move_page(&root, page_id, target_section_id).map_err(|e| e.to_string())
+    let page = FsStorageEngine::move_page(&root, page_id, target_section_id).map_err(|e| e.to_string())?;
+    
+    // Reindex immediately after moving to ensure paths inside Search motor are up to date
+    if let Ok((notebook_name, section_name, notebook_id, sect_id)) = super::search::resolve_page_context(&root, page.section_id) {
+        let data = PageIndexData {
+            page: page.clone(),
+            notebook_name,
+            section_name,
+            notebook_id,
+            section_id: sect_id,
+        };
+        let _ = state.with_search_engine(|engine| engine.index_page(&data).map_err(|e| e.to_string()));
+    }
+
+    Ok(page)
 }
 
 #[tauri::command]

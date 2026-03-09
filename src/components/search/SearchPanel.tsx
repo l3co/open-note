@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Search, FileText, X, Clock } from "lucide-react";
 import { useUIStore } from "@/stores/useUIStore";
 import { useNavigationStore } from "@/stores/useNavigationStore";
+import { usePageStore } from "@/stores/usePageStore";
 import { searchPages } from "@/lib/ipc";
 import type { SearchResultItem, SearchQuery } from "@/types/search";
 
@@ -10,6 +11,7 @@ export function SearchPanel() {
   const show = useUIStore((s) => s.showSearchPanel);
   const close = useUIStore((s) => s.closeSearchPanel);
   const selectPage = useNavigationStore((s) => s.selectPage);
+  const loadPage = usePageStore((s) => s.loadPage);
 
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResultItem[]>([]);
@@ -64,9 +66,10 @@ export function SearchPanel() {
   const openResult = useCallback(
     (item: SearchResultItem) => {
       selectPage(item.page_id);
+      loadPage(item.page_id);
       close();
     },
-    [selectPage, close],
+    [selectPage, loadPage, close],
   );
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

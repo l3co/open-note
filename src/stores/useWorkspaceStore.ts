@@ -48,6 +48,8 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
       const workspace = await ipc.openWorkspace(path);
       set({ workspace, isLoading: false });
       await get().loadNotebooks();
+      // Rebuild index whenever a workspace is opened to sync physical files to tantivy db
+      await ipc.rebuildIndex().catch(err => console.warn("[Search] failed to rebuild index:", err));
     } catch (e) {
       set({ isLoading: false });
       handleError(e, set);
@@ -59,6 +61,8 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
     try {
       const workspace = await ipc.createWorkspace(path, name);
       set({ workspace, notebooks: [], sections: new Map(), isLoading: false });
+      // Rebuild index for the newly created empty workspace
+      await ipc.rebuildIndex().catch(err => console.warn("[Search] failed to rebuild index:", err));
     } catch (e) {
       set({ isLoading: false });
       handleError(e, set);
