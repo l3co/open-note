@@ -84,10 +84,10 @@ Classes base para estados interativos que usam CSS custom properties:
 | `.interactive-accent` | `var(--accent-hover)` | — | opacity 0.5 |
 
 **Critérios:**
-- [ ] Todas as classes incluem `:focus-visible` (acessibilidade)
-- [ ] Transição suave de 100ms
-- [ ] Funciona com CSS Variables do tema
-- [ ] Importado no `main.css` ou entry point
+- [x] Todas as classes incluem `:focus-visible` (acessibilidade)
+- [x] Transição suave de 100ms
+- [x] Funciona com CSS Variables do tema
+- [x] Importado no `main.css` ou entry point
 
 ---
 
@@ -156,9 +156,9 @@ A lógica de "só hover se não selected" é resolvida pela CSS:
 ```
 
 **Critérios:**
-- [ ] TreeItem sem nenhum `onMouseEnter`/`onMouseLeave`
-- [ ] Selected + drag-over states via `data-active` ou classes condicionais
-- [ ] Testes de TreeItem continuam passando
+- [x] TreeItem sem nenhum `onMouseEnter`/`onMouseLeave`
+- [x] Selected + drag-over states via `data-active` ou classes condicionais
+- [x] Testes de TreeItem continuam passando
 
 ---
 
@@ -184,9 +184,9 @@ onMouseLeave={(e) => {
 ```
 
 **Critérios:**
-- [ ] Tailwind `hover:` classes para border e shadow
-- [ ] Transição suave via `transition-all`
-- [ ] Sem `style={{}}` para borderColor/boxShadow
+- [x] Tailwind `hover:` classes para border e shadow
+- [x] Transição suave via `transition-all`
+- [x] Sem `style={{}}` para borderColor/boxShadow
 
 ---
 
@@ -207,8 +207,8 @@ grep -r "onMouseLeave.*style\." src/components/ | grep -v test | wc -l
 Esses são **comportamentais**, não visuais, e podem permanecer.
 
 **Critérios:**
-- [ ] Zero `onMouseEnter`/`onMouseLeave` para manipulação de `style`
-- [ ] `onMouseEnter` mantido apenas para lógica comportamental (drag, selection)
+- [x] Zero `onMouseEnter`/`onMouseLeave` para manipulação de `style`
+- [x] `onMouseEnter` mantido apenas para lógica comportamental (drag, selection)
 
 ---
 
@@ -231,11 +231,11 @@ Esses são **comportamentais**, não visuais, e podem permanecer.
 
 ## Critérios de Aceitação
 
-- [ ] Zero `onMouseEnter`/`onMouseLeave` para manipulação de `style` em componentes
-- [ ] Todos os hovers funcionam via CSS pseudo-classes
-- [ ] `:focus-visible` implementado em todos os elementos interativos
-- [ ] Testes existentes passam sem alteração
-- [ ] Visual identico ao atual (nenhuma mudança perceptível para o usuário)
-- [ ] `npm run test` passa
-- [ ] `npm run lint` limpo
-- [ ] PR review aprovado
+- [x] Zero `onMouseEnter`/`onMouseLeave` para manipulação de `style` em componentes
+- [x] Todos os hovers funcionam via CSS pseudo-classes
+- [x] `:focus-visible` implementado em todos os elementos interativos
+- [x] Testes existentes passam sem alteração
+- [x] Visual identico ao atual (nenhuma mudança perceptível para o usuário)
+- [x] `npm run test` passa
+- [x] `npm run lint` limpo
+- [x] PR review aprovado

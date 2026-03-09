@@ -7,6 +7,7 @@ import { useUIStore } from "@/stores/useUIStore";
 import * as ipc from "@/lib/ipc";
 import { BackgroundPattern } from "@/components/shared/BackgroundPattern";
 import { Illustration } from "@/components/shared/Illustration";
+import { Button, IconButton } from "@/components/ui";
 import logoSrc from "@/assets/logo.png";
 import folderOpenSvg from "@/assets/illustrations/folders/folder-open.svg";
 import type { AppState } from "@/types/bindings/AppState";
@@ -86,21 +87,15 @@ export function WorkspacePicker({
       }}
     >
       {mode === "modal" && (
-        <button
-          onClick={handleClose}
-          className="absolute top-3 right-3 flex h-7 w-7 items-center justify-center rounded-md"
-          style={{ color: "var(--text-tertiary)" }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = "transparent")
-          }
-          aria-label={t("common.close")}
-          data-testid="workspace-picker-close"
-        >
-          <X size={16} />
-        </button>
+        <div className="absolute top-3 right-3 z-10">
+          <IconButton
+            size="sm"
+            onClick={handleClose}
+            icon={<X size={16} />}
+            aria-label={t("common.close")}
+            data-testid="workspace-picker-close"
+          />
+        </div>
       )}
       <div className="mb-4 flex justify-center">
         <img src={logoSrc} alt="Open Note" className="h-14 w-14" />
@@ -130,9 +125,7 @@ export function WorkspacePicker({
         >
           <AlertCircle size={14} />
           <span className="flex-1">{error}</span>
-          <button onClick={() => setError(null)}>
-            <X size={12} />
-          </button>
+          <IconButton size="sm" onClick={() => setError(null)} icon={<X size={12} />} />
         </div>
       )}
 
@@ -157,15 +150,8 @@ export function WorkspacePicker({
                 {appState.recent_workspaces.map((rw) => (
                   <div
                     key={rw.path}
-                    className="group flex cursor-pointer items-center rounded-lg px-3 py-2"
+                    className="interactive-ghost group flex cursor-pointer items-center rounded-lg px-3 py-2"
                     onClick={() => handleOpen(rw.path)}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.backgroundColor =
-                        "var(--bg-hover)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.backgroundColor = "transparent")
-                    }
                   >
                     <Illustration
                       src={folderOpenSvg}
@@ -188,24 +174,16 @@ export function WorkspacePicker({
                         {rw.path} • local
                       </div>
                     </div>
-                    <button
+                    <IconButton
+                      size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
                         handleRemoveRecent(rw.path);
                       }}
-                      className="flex h-5 w-5 items-center justify-center rounded opacity-0 group-hover:opacity-100"
-                      style={{ color: "var(--text-tertiary)" }}
-                      onMouseEnter={(e) =>
-                        (e.currentTarget.style.backgroundColor =
-                          "var(--bg-active)")
-                      }
-                      onMouseLeave={(e) =>
-                        (e.currentTarget.style.backgroundColor = "transparent")
-                      }
+                      className="opacity-0 group-hover:opacity-100"
+                      icon={<X size={12} />}
                       aria-label={t("workspace.remove_recent")}
-                    >
-                      <X size={12} />
-                    </button>
+                    />
                   </div>
                 ))}
               </div>
@@ -267,8 +245,8 @@ export function WorkspacePicker({
                   }}
                   readOnly
                 />
-                <button
-                  type="button"
+                <Button
+                  variant="secondary"
                   onClick={async () => {
                     const selected = await open({
                       directory: true,
@@ -277,62 +255,56 @@ export function WorkspacePicker({
                     });
                     if (selected) setNewPath(selected);
                   }}
-                  className="flex h-8 items-center gap-1.5 rounded border px-3 text-xs font-medium whitespace-nowrap"
-                  style={{
-                    borderColor: "var(--border)",
-                    color: "var(--text-secondary)",
-                  }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.backgroundColor = "transparent")
-                  }
+                  icon={<FolderOpen size={14} className="text-[var(--text-secondary)]" />}
                 >
-                  <FolderOpen size={14} />
                   {t("workspace.choose_folder")}
-                </button>
+                </Button>
               </div>
               <div className="flex justify-end gap-2">
-                <button
+                <Button
+                  variant="ghost"
                   onClick={() => setShowCreate(false)}
-                  className="rounded px-3 py-1.5 text-xs"
-                  style={{ color: "var(--text-secondary)" }}
                 >
                   {t("common.cancel")}
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="primary"
                   onClick={handleCreate}
-                  className="rounded px-3 py-1.5 text-xs font-medium"
-                  style={{
-                    backgroundColor: "var(--accent)",
-                    color: "var(--accent-text)",
-                  }}
                   data-testid="workspace-confirm-create"
                 >
                   {t("common.create")}
-                </button>
+                </Button>
               </div>
             </div>
           ) : (
             <div className="space-y-1">
-              <ActionButton
-                icon={<Plus size={16} />}
-                label={t("workspace.create")}
+              <Button
+                variant="ghost"
+                icon={<Plus size={16} className="text-[var(--text-secondary)]" />}
                 onClick={() => setShowCreate(true)}
-                testId="workspace-create-btn"
-              />
-              <ActionButton
-                icon={<Cloud size={16} />}
-                label={t("workspace.cloud_connect")}
+                data-testid="workspace-create-btn"
+                fullWidth
+                className="!justify-start"
+              >
+                {t("workspace.create")}
+              </Button>
+              <Button
+                variant="ghost"
+                icon={<Cloud size={16} className="text-[var(--text-secondary)]" />}
                 disabled
                 badge={t("workspace.cloud_coming_soon")}
-                testId="workspace-cloud-btn"
-              />
-              <ActionButton
-                icon={<FolderOpen size={16} />}
-                label={t("workspace.open")}
-                testId="workspace-open-btn"
+                data-testid="workspace-cloud-btn"
+                fullWidth
+                className="!justify-start"
+              >
+                {t("workspace.cloud_connect")}
+              </Button>
+              <Button
+                variant="ghost"
+                icon={<FolderOpen size={16} className="text-[var(--text-secondary)]" />}
+                data-testid="workspace-open-btn"
+                fullWidth
+                className="!justify-start"
                 onClick={async () => {
                   const selected = await open({
                     directory: true,
@@ -341,7 +313,9 @@ export function WorkspacePicker({
                   });
                   if (selected) handleOpen(selected);
                 }}
-              />
+              >
+                {t("workspace.open")}
+              </Button>
             </div>
           )}
         </>
@@ -376,52 +350,5 @@ export function WorkspacePicker({
       <BackgroundPattern />
       {card}
     </div>
-  );
-}
-
-function ActionButton({
-  icon,
-  label,
-  onClick,
-  disabled = false,
-  badge,
-  testId,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  onClick?: () => void;
-  disabled?: boolean;
-  badge?: string;
-  testId?: string;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      data-testid={testId}
-      className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-50"
-      style={{ color: "var(--text-primary)" }}
-      onMouseEnter={(e) => {
-        if (!disabled)
-          e.currentTarget.style.backgroundColor = "var(--bg-hover)";
-      }}
-      onMouseLeave={(e) =>
-        (e.currentTarget.style.backgroundColor = "transparent")
-      }
-    >
-      <span style={{ color: "var(--text-secondary)" }}>{icon}</span>
-      <span>{label}</span>
-      {badge && (
-        <span
-          className="ml-auto rounded-full px-2 py-0.5 text-[10px]"
-          style={{
-            backgroundColor: "var(--bg-tertiary)",
-            color: "var(--text-tertiary)",
-          }}
-        >
-          {badge}
-        </span>
-      )}
-    </button>
   );
 }

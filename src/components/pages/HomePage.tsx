@@ -11,6 +11,7 @@ import { useNavigationStore } from "@/stores/useNavigationStore";
 import { usePageStore } from "@/stores/usePageStore";
 import { useUIStore } from "@/stores/useUIStore";
 import { BackgroundPattern } from "@/components/shared/BackgroundPattern";
+import { Button } from "@/components/ui";
 import logoSrc from "@/assets/logo.png";
 
 function getGreetingKey(): string {
@@ -76,20 +77,7 @@ export function HomePage() {
                 <button
                   key={page.id}
                   onClick={() => handlePageClick(page.id)}
-                  className="group flex flex-col items-start rounded-xl border p-4 text-left transition-all"
-                  style={{
-                    borderColor: "var(--border)",
-                    backgroundColor: "var(--bg-secondary)",
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.borderColor = "var(--accent)";
-                    e.currentTarget.style.boxShadow =
-                      "0 2px 8px rgba(0,0,0,0.06)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.borderColor = "var(--border)";
-                    e.currentTarget.style.boxShadow = "none";
-                  }}
+                  className="group flex flex-col items-start rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] p-4 text-left transition-all hover:border-[var(--accent)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]"
                 >
                   <FileText
                     size={18}
@@ -128,30 +116,46 @@ export function HomePage() {
             {t("home.quick_actions")}
           </h2>
           <div className="grid grid-cols-2 gap-3">
-            <QuickAction
-              icon={<Plus size={18} />}
-              label={t("home.action_new_page")}
+            <Button
+              variant="secondary"
+              icon={<Plus size={18} className="text-[var(--accent)]" />}
               shortcut="⌘N"
-              onClick={() => {}}
-            />
-            <QuickAction
-              icon={<BookOpen size={18} />}
-              label={t("home.action_new_notebook")}
+              onClick={() => { }}
+              fullWidth
+              className="!justify-start !py-6 border border-[var(--border)] hover:border-[var(--accent)] hover:shadow-sm"
+            >
+              {t("home.action_new_page")}
+            </Button>
+            <Button
+              variant="secondary"
+              icon={<BookOpen size={18} className="text-[var(--accent)]" />}
               shortcut="⌘⇧N"
-              onClick={() => {}}
-            />
-            <QuickAction
-              icon={<Search size={18} />}
-              label={t("home.action_search")}
+              onClick={() => { }}
+              fullWidth
+              className="!justify-start !py-6 border border-[var(--border)] hover:border-[var(--accent)] hover:shadow-sm"
+            >
+              {t("home.action_new_notebook")}
+            </Button>
+            <Button
+              variant="secondary"
+              icon={<Search size={18} className="text-[var(--accent)]" />}
               shortcut="⌘K"
               onClick={openQuickOpen}
-            />
-            <QuickAction
-              icon={<Settings size={18} />}
-              label={t("home.action_settings")}
+              fullWidth
+              className="!justify-start !py-6 border border-[var(--border)] hover:border-[var(--accent)] hover:shadow-sm"
+            >
+              {t("home.action_search")}
+            </Button>
+            <Button
+              variant="secondary"
+              icon={<Settings size={18} className="text-[var(--accent)]" />}
               shortcut="⌘,"
               onClick={openSettings}
-            />
+              fullWidth
+              className="!justify-start !py-6 border border-[var(--border)] hover:border-[var(--accent)] hover:shadow-sm"
+            >
+              {t("home.action_settings")}
+            </Button>
           </div>
         </section>
       </div>
@@ -159,61 +163,4 @@ export function HomePage() {
   );
 }
 
-function QuickAction({
-  icon,
-  label,
-  shortcut,
-  onClick,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  shortcut: string;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="flex items-center gap-3 rounded-xl border px-4 py-3 text-left transition-all"
-      style={{
-        borderColor: "var(--border)",
-        backgroundColor: "var(--bg-secondary)",
-      }}
-      onMouseEnter={(e) => {
-        e.currentTarget.style.borderColor = "var(--accent)";
-        e.currentTarget.style.boxShadow = "0 2px 8px rgba(0,0,0,0.06)";
-      }}
-      onMouseLeave={(e) => {
-        e.currentTarget.style.borderColor = "var(--border)";
-        e.currentTarget.style.boxShadow = "none";
-      }}
-    >
-      <span
-        className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
-        style={{
-          backgroundColor: "var(--accent-subtle)",
-          color: "var(--accent)",
-        }}
-      >
-        {icon}
-      </span>
-      <div className="min-w-0 flex-1">
-        <span
-          className="text-sm font-medium"
-          style={{ color: "var(--text-primary)" }}
-        >
-          {label}
-        </span>
-      </div>
-      <kbd
-        className="rounded px-1.5 py-0.5 text-[11px]"
-        style={{
-          backgroundColor: "var(--bg-tertiary)",
-          color: "var(--text-tertiary)",
-          border: "1px solid var(--border)",
-        }}
-      >
-        {shortcut}
-      </kbd>
-    </button>
-  );
-}
+

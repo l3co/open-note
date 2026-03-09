@@ -232,8 +232,8 @@ Três sistemas de styling coexistem sem critério claro.
 
 | Fase | Nome | Esforço | Impacto |
 |------|------|---------|---------|
-| 1 | **Primitivas de UI** — Button, Dialog, Input, IconButton | ~20h | 🔴 CRÍTICO |
-| 2 | **Eliminação de Inline Hover** — CSS hover classes | ~8h | 🟠 ALTO |
+| 1 | ✅ **Primitivas de UI** — Button, Dialog, Input, IconButton | ~20h | 🔴 CRÍTICO |
+| 2 | ✅ **Eliminação de Inline Hover** — CSS hover classes | ~8h | 🟠 ALTO |
 | 3 | **Lazy Loading & Code Splitting** — Dynamic imports (Tauri-safe) | ~12h | 🔴 CRÍTICO |
 | 4 | **Store Selectors & Re-render Optimization** | ~15h | 🟠 ALTO |
 | 5 | **Async Optimization** — Promise.all, waterfalls | ~8h | 🟡 MÉDIO |

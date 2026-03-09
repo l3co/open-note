@@ -197,17 +197,12 @@ export function ContextMenu({
       {items.map((item, i) => (
         <button
           key={i}
-          className="flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px]"
+          className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] ${item.danger ? "interactive-danger" : "interactive-ghost"
+            }`}
           style={{
             color: item.danger ? "var(--danger)" : "var(--text-primary)",
           }}
           onClick={item.onClick}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = "transparent")
-          }
         >
           {item.icon}
           {item.label}

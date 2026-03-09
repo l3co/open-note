@@ -4,7 +4,7 @@ import {
   type WorkspaceNavigation,
 } from "./useMultiWorkspaceStore";
 
-export type ActiveView = "home" | "page" | "tags";
+export type ActiveView = "home" | "page" | "tags" | "section" | "notebook";
 
 interface NavigationStore {
   activeView: ActiveView;
@@ -19,6 +19,8 @@ interface NavigationStore {
   setActiveView: (view: ActiveView) => void;
   selectNotebook: (id: string) => void;
   selectSection: (id: string) => void;
+  openSectionOverview: (sectionId: string) => void;
+  openNotebookOverview: (notebookId: string) => void;
   selectPage: (id: string) => void;
   goBack: () => void;
   goForward: () => void;
@@ -97,6 +99,35 @@ export const useNavigationStore = create<NavigationStore>((set) => {
         const expanded = new Set(nav.expandedSections);
         expanded.add(id);
         return { ...nav, selectedSectionId: id, expandedSections: expanded };
+      });
+    },
+
+    openSectionOverview: (sectionId) => {
+      updateFocusedNav((nav) => {
+        const expanded = new Set(nav.expandedSections);
+        expanded.add(sectionId);
+        return {
+          ...nav,
+          activeView: "section",
+          selectedSectionId: sectionId,
+          selectedPageId: null,
+          expandedSections: expanded,
+        };
+      });
+    },
+
+    openNotebookOverview: (notebookId) => {
+      updateFocusedNav((nav) => {
+        const expanded = new Set(nav.expandedNotebooks);
+        expanded.add(notebookId);
+        return {
+          ...nav,
+          activeView: "notebook",
+          selectedNotebookId: notebookId,
+          selectedSectionId: null,
+          selectedPageId: null,
+          expandedNotebooks: expanded,
+        };
       });
     },
 

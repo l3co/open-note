@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
+import { Dialog, Button } from "@/components/ui";
 
 interface CreateDialogProps {
   title: string;
@@ -40,30 +41,13 @@ export function CreateDialog({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{ backgroundColor: "var(--overlay)" }}
-      onClick={onCancel}
+    <Dialog
+      open={true}
+      onClose={onCancel}
+      title={title}
+      data-testid="create-dialog"
     >
-      <div
-        className="w-80 rounded-lg border p-4 shadow-lg"
-        style={{
-          backgroundColor: "var(--bg-primary)",
-          borderColor: "var(--border)",
-          boxShadow: "var(--shadow-lg)",
-        }}
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        aria-label={title}
-      >
-        <h2
-          className="mb-3 text-sm font-semibold"
-          style={{ color: "var(--text-primary)" }}
-        >
-          {title}
-        </h2>
-
+      <div className="space-y-4">
         <input
           ref={inputRef}
           data-testid="create-dialog-input"
@@ -86,49 +70,31 @@ export function CreateDialog({
 
         {error && (
           <p
-            className="mt-1 text-xs"
-            style={{ color: "var(--danger)" }}
+            className="text-xs text-[var(--danger)]"
             data-testid="create-dialog-error"
           >
             {error}
           </p>
         )}
 
-        <div className="mt-4 flex justify-end gap-2">
-          <button
+        <div className="flex justify-end gap-2">
+          <Button
+            variant="ghost"
             onClick={onCancel}
             data-testid="create-dialog-cancel"
-            className="rounded px-3 py-1.5 text-xs"
-            style={{ color: "var(--text-secondary)" }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "transparent")
-            }
           >
             {t("common.cancel")}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary"
             onClick={handleSubmit}
             disabled={submitting}
             data-testid="create-dialog-confirm"
-            className="rounded px-3 py-1.5 text-xs font-medium disabled:opacity-50"
-            style={{
-              backgroundColor: "var(--accent)",
-              color: "var(--accent-text)",
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "var(--accent-hover)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "var(--accent)")
-            }
           >
             {t("common.create")}
-          </button>
+          </Button>
         </div>
       </div>
-    </div>
+    </Dialog>
   );
 }

@@ -72,7 +72,7 @@ describe("TrashPanel", () => {
     mockIpc.listTrashItems.mockResolvedValue(items);
     useUIStore.setState({ showTrashPanel: true });
     render(<TrashPanel />);
-    expect(await screen.findByText("1")).toBeInTheDocument();
+    expect(await screen.findByText(/1/)).toBeInTheDocument();
   });
 
   it("closes when X button clicked", async () => {

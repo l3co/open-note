@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useUIStore } from "@/stores/useUIStore";
+import { clsx } from "clsx";
 
 const FONT_FAMILIES = [
   { id: "System", label: "System Default" },
@@ -47,29 +48,12 @@ export function EditorSection() {
               key={size}
               onClick={() => setEditorConfig({ fontSize: size })}
               data-testid={`editor-font-size-${size}`}
-              className="rounded-md border px-2.5 py-1 text-xs font-medium transition-colors"
-              style={{
-                borderColor:
-                  editorConfig.fontSize === size
-                    ? "var(--accent)"
-                    : "var(--border)",
-                backgroundColor:
-                  editorConfig.fontSize === size
-                    ? "var(--accent-subtle)"
-                    : "transparent",
-                color:
-                  editorConfig.fontSize === size
-                    ? "var(--accent)"
-                    : "var(--text-secondary)",
-              }}
-              onMouseEnter={(e) => {
-                if (editorConfig.fontSize !== size)
-                  e.currentTarget.style.backgroundColor = "var(--bg-hover)";
-              }}
-              onMouseLeave={(e) => {
-                if (editorConfig.fontSize !== size)
-                  e.currentTarget.style.backgroundColor = "transparent";
-              }}
+              className={clsx(
+                "interactive-ghost rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
+                editorConfig.fontSize === size ? "border-[var(--accent)]" : "border-[var(--border)]",
+                editorConfig.fontSize !== size && "text-[var(--text-secondary)]"
+              )}
+              data-active={editorConfig.fontSize === size}
             >
               {size}px
             </button>
@@ -88,52 +72,24 @@ export function EditorSection() {
           <button
             onClick={() => setEditorConfig({ spellCheckEnabled: true })}
             data-testid="spell-check-on"
-            className="rounded-md border px-3 py-1.5 text-xs font-medium transition-colors"
-            style={{
-              borderColor: editorConfig.spellCheckEnabled
-                ? "var(--accent)"
-                : "var(--border)",
-              backgroundColor: editorConfig.spellCheckEnabled
-                ? "var(--accent-subtle)"
-                : "transparent",
-              color: editorConfig.spellCheckEnabled
-                ? "var(--accent)"
-                : "var(--text-secondary)",
-            }}
-            onMouseEnter={(e) => {
-              if (!editorConfig.spellCheckEnabled)
-                e.currentTarget.style.backgroundColor = "var(--bg-hover)";
-            }}
-            onMouseLeave={(e) => {
-              if (!editorConfig.spellCheckEnabled)
-                e.currentTarget.style.backgroundColor = "transparent";
-            }}
+            className={clsx(
+              "interactive-ghost rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
+              editorConfig.spellCheckEnabled ? "border-[var(--accent)]" : "border-[var(--border)]",
+              !editorConfig.spellCheckEnabled && "text-[var(--text-secondary)]"
+            )}
+            data-active={editorConfig.spellCheckEnabled}
           >
             {t("common.yes")}
           </button>
           <button
             onClick={() => setEditorConfig({ spellCheckEnabled: false })}
             data-testid="spell-check-off"
-            className="rounded-md border px-3 py-1.5 text-xs font-medium transition-colors"
-            style={{
-              borderColor: !editorConfig.spellCheckEnabled
-                ? "var(--accent)"
-                : "var(--border)",
-              backgroundColor: !editorConfig.spellCheckEnabled
-                ? "var(--accent-subtle)"
-                : "transparent",
-              color: !editorConfig.spellCheckEnabled
-                ? "var(--accent)"
-                : "var(--text-secondary)",
-            }}
-            onMouseEnter={(e) => {
-              if (editorConfig.spellCheckEnabled)
-                e.currentTarget.style.backgroundColor = "var(--bg-hover)";
-            }}
-            onMouseLeave={(e) => {
-              if (editorConfig.spellCheckEnabled)
-                e.currentTarget.style.backgroundColor = "transparent";
-            }}
+            className={clsx(
+              "interactive-ghost rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
+              !editorConfig.spellCheckEnabled ? "border-[var(--accent)]" : "border-[var(--border)]",
+              editorConfig.spellCheckEnabled && "text-[var(--text-secondary)]"
+            )}
+            data-active={!editorConfig.spellCheckEnabled}
           >
             {t("common.no")}
           </button>

@@ -257,7 +257,7 @@ describe("NotebookTree", () => {
     const item = screen
       .getByText("NB")
       .closest('[role="button"]') as HTMLElement;
-    expect(item.style.backgroundColor).toBe("var(--accent-subtle)");
+    expect(item).toHaveAttribute("data-active", "true");
   });
 
   it("shows empty tree when no notebooks", () => {

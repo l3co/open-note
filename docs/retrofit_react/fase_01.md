@@ -88,11 +88,11 @@ interface IconButtonProps {
 ```
 
 **Critérios:**
-- [ ] Hover via CSS pseudo-class (zero `onMouseEnter`/`onMouseLeave`)
-- [ ] Suporte a `active`, `disabled`, `loading` states
-- [ ] `aria-label` obrigatório quando não há texto visível
-- [ ] `title` para tooltip nativo
-- [ ] Testes: render, click, disabled, active state, keyboard (Enter/Space)
+- [x] Hover via CSS pseudo-class (zero `onMouseEnter`/`onMouseLeave`)
+- [x] Suporte a `active`, `disabled`, `loading` states
+- [x] `aria-label` obrigatório quando não há texto visível
+- [x] `title` para tooltip nativo
+- [x] Testes: render, click, disabled, active state, keyboard (Enter/Space)
 
 ---
 
@@ -126,12 +126,12 @@ interface ButtonProps {
 - Botões de deletar → `<Button variant="danger">Delete</Button>`
 
 **Critérios:**
-- [ ] Todas as variantes com hover CSS puro
-- [ ] Slot para `icon` (esquerda/direita)
-- [ ] Slot para `badge` (à direita, como em ActionButton)
-- [ ] Slot para `shortcut` (como em QuickAction, renderiza `<kbd>`)
-- [ ] `fullWidth` para lista de ações
-- [ ] Testes: todas as variantes, disabled, loading, keyboard
+- [x] Todas as variantes com hover CSS puro
+- [x] Slot para `icon` (esquerda/direita)
+- [x] Slot para `badge` (à direita, como em ActionButton)
+- [x] Slot para `shortcut` (como em QuickAction, renderiza `<kbd>`)
+- [x] `fullWidth` para lista de ações
+- [x] Testes: todas as variantes, disabled, loading, keyboard
 
 ---
 
@@ -178,13 +178,13 @@ Dialog.Footer  // Ações (botões)
 ```
 
 **Critérios:**
-- [ ] Focus trap funcional (Tab + Shift+Tab)
-- [ ] Escape fecha
-- [ ] Backdrop click fecha (configurável)
-- [ ] Animação enter/exit
-- [ ] `role="dialog"` + `aria-modal="true"` + `aria-label`
-- [ ] Return focus ao fechar
-- [ ] Testes: open/close, focus trap, escape, backdrop, acessibilidade
+- [x] Focus trap funcional (Tab + Shift+Tab)
+- [x] Escape fecha
+- [x] Backdrop click fecha (configurável)
+- [x] Animação enter/exit
+- [x] `role="dialog"` + `aria-modal="true"` + `aria-label`
+- [x] Return focus ao fechar
+- [x] Testes: open/close, focus trap, escape, backdrop, acessibilidade
 
 ---
 
@@ -208,11 +208,11 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
 - Form inputs (WorkspacePicker) → `<Input fullWidth />`
 
 **Critérios:**
-- [ ] Estilo consistente em toda a app
-- [ ] Focus ring com `var(--accent)` 
-- [ ] Error state com borda vermelha
-- [ ] Slot para ícone (left/right)
-- [ ] Testes: render, focus, error state, icon
+- [x] Estilo consistente em toda a app
+- [x] Focus ring com `var(--accent)` 
+- [x] Error state com borda vermelha
+- [x] Slot para ícone (left/right)
+- [x] Testes: render, focus, error state, icon
 
 ---
 
@@ -245,10 +245,10 @@ interface MenuItemProps {
 - `role="menu"` + `role="menuitem"`
 
 **Critérios:**
-- [ ] Keyboard navigation completa
-- [ ] Viewport boundary: não corta na borda da tela
-- [ ] ARIA roles corretos
-- [ ] Testes: keyboard nav, click outside, escape
+- [x] Keyboard navigation completa
+- [x] Viewport boundary: não corta na borda da tela
+- [x] ARIA roles corretos
+- [x] Testes: keyboard nav, click outside, escape
 
 ---
 
@@ -265,8 +265,8 @@ export { ContextMenuPrimitive, MenuItem } from "./ContextMenuPrimitive";
 ```
 
 **Critérios:**
-- [ ] Importação limpa: `import { Button, Dialog } from "@/components/ui"`
-- [ ] Nenhuma dependência circular
+- [x] Importação limpa: `import { Button, Dialog } from "@/components/ui"`
+- [x] Nenhuma dependência circular
 
 ---
 
@@ -283,9 +283,9 @@ export { ContextMenuPrimitive, MenuItem } from "./ContextMenuPrimitive";
 | `ContextMenuPrimitive` | keyboard nav, viewport bounds, escape, click outside |
 
 **Critérios:**
-- [ ] Coverage ≥ 90% para cada primitiva
-- [ ] Testes de acessibilidade com `@testing-library/jest-dom`
-- [ ] Zero manipulação de style inline nos testes
+- [x] Coverage ≥ 90% para cada primitiva
+- [x] Testes de acessibilidade com `@testing-library/jest-dom`
+- [x] Zero manipulação de style inline nos testes
 
 ---
 
@@ -326,11 +326,11 @@ Nenhum componente existente é alterado nesta fase. As primitivas são adicionai
 
 ## Critérios de Aceitação
 
-- [ ] 5 componentes primitivos criados e testados
-- [ ] Zero `onMouseEnter`/`onMouseLeave` inline nas primitivas
-- [ ] Dialog com focus trap funcional
-- [ ] ContextMenu com keyboard navigation
-- [ ] `npm run test` passa
-- [ ] `npm run typecheck` sem erros
-- [ ] `npm run lint` limpo
-- [ ] PR review aprovado
+- [x] 5 componentes primitivos criados e testados
+- [x] Zero `onMouseEnter`/`onMouseLeave` inline nas primitivas
+- [x] Dialog com focus trap funcional
+- [x] ContextMenu com keyboard navigation
+- [x] `npm run test` passa
+- [x] `npm run typecheck` sem erros
+- [x] `npm run lint` limpo
+- [x] PR review aprovado

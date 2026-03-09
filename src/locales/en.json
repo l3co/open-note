@@ -283,6 +283,36 @@
       "duplicate": "Duplicate",
       "new_section": "New Section",
       "new_page": "New Page"
+    },
+    "section_overview": {
+      "new_page": "New Page",
+      "untitled": "Untitled",
+      "grid_view": "Grid view",
+      "list_view": "List view",
+      "empty_title": "No pages yet",
+      "empty_description": "Create your first page in this section"
+    },
+    "editor": {
+      "youtube": {
+        "loading_meta": "Loading info...",
+        "untitled": "YouTube Video",
+        "open_external": "Open on YouTube",
+        "url_prompt": "Paste YouTube URL:"
+      },
+      "slash": {
+        "youtube": "YouTube",
+        "youtube_desc": "Embed a YouTube video"
+      }
+    },
+    "notebook_overview": {
+      "new_section": "New Section",
+      "new_section_default": "New Section",
+      "grid_view": "Grid view",
+      "list_view": "List view",
+      "empty_title": "No sections yet",
+      "empty_description": "Create your first section in this notebook",
+      "pages": "page",
+      "pages_plural": "pages"
     }
   }
 }

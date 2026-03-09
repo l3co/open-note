@@ -36,7 +36,7 @@ export function SidebarFooter() {
           <FooterButton
             icon={<Search size={16} />}
             label={t("sidebar.search")}
-            onClick={() => {}}
+            onClick={() => { }}
             disabled
           />
           <FooterButton
@@ -98,15 +98,7 @@ function FooterButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      className="flex h-7 w-7 items-center justify-center rounded disabled:opacity-30"
-      style={{ color: "var(--text-secondary)" }}
-      onMouseEnter={(e) => {
-        if (!disabled)
-          e.currentTarget.style.backgroundColor = "var(--bg-hover)";
-      }}
-      onMouseLeave={(e) =>
-        (e.currentTarget.style.backgroundColor = "transparent")
-      }
+      className="interactive-ghost flex h-7 w-7 items-center justify-center rounded disabled:opacity-30 text-[var(--text-secondary)]"
       aria-label={label}
       title={label}
     >

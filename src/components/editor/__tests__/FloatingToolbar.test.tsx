@@ -157,6 +157,6 @@ describe("FloatingToolbar", () => {
       <FloatingToolbar editor={mockEditor as import("@tiptap/react").Editor} />,
     );
     const boldBtn = screen.getByTitle("Negrito (Cmd+B)");
-    expect(boldBtn.style.backgroundColor).toBe("var(--accent-subtle)");
+    expect(boldBtn).toHaveAttribute("data-active", "true");
   });
 });

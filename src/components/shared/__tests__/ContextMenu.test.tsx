@@ -94,7 +94,7 @@ describe("ContextMenu", () => {
     const user = userEvent.setup();
     render(<ContextMenu {...defaultProps} />);
     await user.click(screen.getByText("Excluir"));
-    expect(screen.getByRole("alertdialog")).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
     expect(screen.getByText(/My Notebook/)).toBeInTheDocument();
   });
 

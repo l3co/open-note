@@ -28,13 +28,7 @@ export function ShortcutsSection() {
       {SHORTCUTS.map((shortcut) => (
         <div
           key={shortcut.keys}
-          className="flex items-center justify-between rounded-md px-2 py-2"
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = "transparent")
-          }
+          className="flex items-center justify-between rounded-md px-2 py-2 hover:bg-[var(--bg-hover)] transition-colors"
         >
           <span className="text-sm" style={{ color: "var(--text-primary)" }}>
             {t(shortcut.labelKey)}

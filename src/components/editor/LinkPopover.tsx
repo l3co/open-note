@@ -75,14 +75,7 @@ export function LinkPopover({
             type="button"
             onClick={onRemove}
             title={t("editor.link.remove")}
-            className="flex h-7 w-7 items-center justify-center rounded"
-            style={{ color: "var(--text-tertiary)" }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "transparent")
-            }
+            className="interactive-ghost flex h-7 w-7 items-center justify-center rounded text-[var(--text-tertiary)]"
           >
             <Trash2 size={14} />
           </button>

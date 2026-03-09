@@ -4,6 +4,8 @@ import { useNavigationStore } from "@/stores/useNavigationStore";
 import { HomePage } from "@/components/pages/HomePage";
 import { TagsPage } from "@/components/pages/TagsPage";
 import { PageView } from "@/components/pages/PageView";
+import { SectionOverview } from "@/components/pages/SectionOverview";
+import { NotebookOverview } from "@/components/pages/NotebookOverview";
 import { Loader2 } from "lucide-react";
 
 export function ContentArea() {
@@ -31,10 +33,14 @@ export function ContentArea() {
 
   let content: React.ReactNode;
 
-  if (activeView === "home" || (!selectedPageId && activeView !== "tags")) {
+  if (activeView === "home" || (!selectedPageId && activeView !== "tags" && activeView !== "section" && activeView !== "notebook")) {
     content = <HomePage />;
   } else if (activeView === "tags") {
     content = <TagsPage />;
+  } else if (activeView === "notebook") {
+    content = <NotebookOverview />;
+  } else if (activeView === "section") {
+    content = <SectionOverview />;
   } else if (!currentPage) {
     content = <HomePage />;
   } else {

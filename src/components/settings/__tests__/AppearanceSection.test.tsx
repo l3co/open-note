@@ -69,7 +69,7 @@ describe("AppearanceSection", () => {
     });
     render(<AppearanceSection />);
     const darkBtn = screen.getByText("Escuro");
-    expect(darkBtn.style.borderColor).toBe("var(--accent)");
+    expect(darkBtn).toHaveAttribute("data-active", "true");
   });
 
   it("highlights active chrome tint", () => {
@@ -82,6 +82,6 @@ describe("AppearanceSection", () => {
     });
     render(<AppearanceSection />);
     const tintedBtn = screen.getByText("Colorido");
-    expect(tintedBtn.style.borderColor).toBe("var(--accent)");
+    expect(tintedBtn).toHaveAttribute("data-active", "true");
   });
 });

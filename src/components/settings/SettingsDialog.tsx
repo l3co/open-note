@@ -16,6 +16,8 @@ import { EditorSection } from "@/components/settings/EditorSection";
 import { SyncSection } from "@/components/settings/SyncSection";
 import { ShortcutsSection } from "@/components/settings/ShortcutsSection";
 import { AboutSection } from "@/components/settings/AboutSection";
+import { Dialog, IconButton } from "@/components/ui";
+import { clsx } from "clsx";
 
 type SettingsTab =
   | "general"
@@ -63,27 +65,17 @@ export function SettingsDialog() {
   ];
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{ backgroundColor: "var(--overlay)" }}
-      onClick={close}
+    <Dialog
+      open={show}
+      onClose={close}
+      size="lg"
+      showCloseButton={false}
+      data-testid="settings-dialog"
     >
-      <div
-        className="flex h-[560px] w-[720px] overflow-hidden rounded-xl border shadow-xl"
-        style={{
-          backgroundColor: "var(--bg-primary)",
-          borderColor: "var(--border)",
-          boxShadow: "var(--shadow-lg)",
-        }}
-        onClick={(e) => e.stopPropagation()}
-        role="dialog"
-        aria-modal="true"
-        aria-label={t("settings.title")}
-        data-testid="settings-dialog"
-      >
+      <div className="flex h-[560px] w-full overflow-hidden">
         {/* Sidebar */}
         <div
-          className="flex w-[200px] flex-col border-r py-4"
+          className="flex w-[200px] flex-shrink-0 flex-col border-r py-4"
           style={{
             backgroundColor: "var(--bg-secondary)",
             borderColor: "var(--border)",
@@ -101,25 +93,11 @@ export function SettingsDialog() {
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 data-testid={`settings-tab-${tab.id}`}
-                className="flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-[13px] transition-colors"
-                style={{
-                  backgroundColor:
-                    activeTab === tab.id
-                      ? "var(--accent-subtle)"
-                      : "transparent",
-                  color:
-                    activeTab === tab.id
-                      ? "var(--accent)"
-                      : "var(--text-secondary)",
-                }}
-                onMouseEnter={(e) => {
-                  if (activeTab !== tab.id)
-                    e.currentTarget.style.backgroundColor = "var(--bg-hover)";
-                }}
-                onMouseLeave={(e) => {
-                  if (activeTab !== tab.id)
-                    e.currentTarget.style.backgroundColor = "transparent";
-                }}
+                className={clsx(
+                  "interactive-ghost flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-[13px] transition-colors",
+                  activeTab !== tab.id && "text-[var(--text-secondary)]"
+                )}
+                data-active={activeTab === tab.id}
               >
                 {tab.icon}
                 {tab.label}
@@ -140,20 +118,12 @@ export function SettingsDialog() {
             >
               {tabs.find((t) => t.id === activeTab)?.label}
             </h3>
-            <button
+            <IconButton
+              size="sm"
+              icon={<X size={14} />}
               onClick={close}
-              className="flex h-6 w-6 items-center justify-center rounded"
-              style={{ color: "var(--text-tertiary)" }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.backgroundColor = "transparent")
-              }
               aria-label={t("common.close")}
-            >
-              <X size={14} />
-            </button>
+            />
           </div>
 
           <div
@@ -169,6 +139,6 @@ export function SettingsDialog() {
           </div>
         </div>
       </div>
-    </div>
+    </Dialog>
   );
 }

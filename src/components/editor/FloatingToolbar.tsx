@@ -15,6 +15,7 @@ import {
 import { BubbleMenu } from "@tiptap/react/menus";
 import type { Editor } from "@tiptap/react";
 import { LinkPopover } from "@/components/editor/LinkPopover";
+import { IconButton } from "@/components/ui";
 
 interface FloatingToolbarProps {
   editor: Editor;
@@ -84,85 +85,75 @@ export function FloatingToolbar({ editor }: FloatingToolbarProps) {
           borderColor: "var(--border)",
         }}
       >
-        <ToolbarButton
+        <IconButton
           onClick={toggleBold}
           active={editor.isActive("bold")}
           title={`${t("editor.toolbar.bold")} (Cmd+B)`}
-        >
-          <Bold size={14} />
-        </ToolbarButton>
-        <ToolbarButton
+          icon={<Bold size={14} />}
+        />
+        <IconButton
           onClick={toggleItalic}
           active={editor.isActive("italic")}
           title={`${t("editor.toolbar.italic")} (Cmd+I)`}
-        >
-          <Italic size={14} />
-        </ToolbarButton>
-        <ToolbarButton
+          icon={<Italic size={14} />}
+        />
+        <IconButton
           onClick={toggleUnderline}
           active={editor.isActive("underline")}
           title={`${t("editor.toolbar.underline")} (Cmd+U)`}
-        >
-          <Underline size={14} />
-        </ToolbarButton>
-        <ToolbarButton
+          icon={<Underline size={14} />}
+        />
+        <IconButton
           onClick={toggleStrike}
           active={editor.isActive("strike")}
           title={`${t("editor.toolbar.strike")} (Cmd+Shift+S)`}
-        >
-          <Strikethrough size={14} />
-        </ToolbarButton>
-        <ToolbarButton
+          icon={<Strikethrough size={14} />}
+        />
+        <IconButton
           onClick={toggleCode}
           active={editor.isActive("code")}
           title={`${t("editor.toolbar.code")} (Cmd+E)`}
-        >
-          <Code size={14} />
-        </ToolbarButton>
+          icon={<Code size={14} />}
+        />
 
         <Separator />
 
-        <ToolbarButton
+        <IconButton
           onClick={() => setShowLinkPopover(!showLinkPopover)}
           active={editor.isActive("link")}
           title={`${t("editor.toolbar.link")} (Cmd+K)`}
-        >
-          <Link size={14} />
-        </ToolbarButton>
+          icon={<Link size={14} />}
+        />
 
         <Separator />
 
-        <ToolbarButton
+        <IconButton
           onClick={() => toggleHeading(1)}
           active={editor.isActive("heading", { level: 1 })}
           title={t("editor.toolbar.heading1")}
-        >
-          <Heading1 size={14} />
-        </ToolbarButton>
-        <ToolbarButton
+          icon={<Heading1 size={14} />}
+        />
+        <IconButton
           onClick={() => toggleHeading(2)}
           active={editor.isActive("heading", { level: 2 })}
           title={t("editor.toolbar.heading2")}
-        >
-          <Heading2 size={14} />
-        </ToolbarButton>
-        <ToolbarButton
+          icon={<Heading2 size={14} />}
+        />
+        <IconButton
           onClick={() => toggleHeading(3)}
           active={editor.isActive("heading", { level: 3 })}
           title={t("editor.toolbar.heading3")}
-        >
-          <Heading3 size={14} />
-        </ToolbarButton>
+          icon={<Heading3 size={14} />}
+        />
 
         <Separator />
 
-        <ToolbarButton
+        <IconButton
           onClick={toggleBlockquote}
           active={editor.isActive("blockquote")}
           title={t("editor.toolbar.blockquote")}
-        >
-          <Quote size={14} />
-        </ToolbarButton>
+          icon={<Quote size={14} />}
+        />
       </div>
 
       {showLinkPopover && (
@@ -177,38 +168,6 @@ export function FloatingToolbar({ editor }: FloatingToolbarProps) {
   );
 }
 
-function ToolbarButton({
-  onClick,
-  active = false,
-  title,
-  children,
-}: {
-  onClick: () => void;
-  active?: boolean;
-  title?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={title}
-      className="flex h-7 w-7 items-center justify-center rounded"
-      style={{
-        backgroundColor: active ? "var(--accent-subtle)" : "transparent",
-        color: active ? "var(--accent)" : "var(--text-secondary)",
-      }}
-      onMouseEnter={(e) => {
-        if (!active) e.currentTarget.style.backgroundColor = "var(--bg-hover)";
-      }}
-      onMouseLeave={(e) => {
-        if (!active) e.currentTarget.style.backgroundColor = "transparent";
-      }}
-    >
-      {children}
-    </button>
-  );
-}
 
 function Separator() {
   return (

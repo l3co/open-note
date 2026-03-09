@@ -5,7 +5,7 @@ import type { Section } from "@/types/bindings/Section";
 import type { Workspace } from "@/types/bindings/Workspace";
 import * as ipc from "@/lib/ipc";
 
-export type ActiveView = "home" | "page" | "tags";
+export type ActiveView = "home" | "page" | "tags" | "section" | "notebook";
 
 export interface WorkspaceNavigation {
   activeView: ActiveView;
