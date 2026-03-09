@@ -20,6 +20,7 @@ import {
 import type { Editor } from "@tiptap/react";
 import type { TFunction } from "i18next";
 import { open } from "@tauri-apps/plugin-dialog";
+import { convertFileSrc } from "@tauri-apps/api/core";
 
 interface SlashCommand {
   id: string;
@@ -138,7 +139,8 @@ function buildCommands(t: TFunction): SlashCommand[] {
           ],
         });
         if (selected) {
-          editor.chain().focus().setImage({ src: selected }).run();
+          const assetUrl = convertFileSrc(selected);
+          editor.chain().focus().setImage({ src: assetUrl }).run();
         }
       },
     },
