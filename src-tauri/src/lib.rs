@@ -1,4 +1,5 @@
 mod commands;
+mod error;
 mod state;
 
 use commands::assets::{delete_asset, import_asset, import_asset_from_bytes, read_asset_base64};

@@ -1,3 +1,4 @@
+use log::warn;
 use tauri::State;
 
 use opennote_core::block::Block;
@@ -6,21 +7,50 @@ use opennote_core::page::{Page, PageSummary};
 use opennote_search::engine::PageIndexData;
 use opennote_storage::engine::FsStorageEngine;
 
+use crate::error::CommandError;
 use crate::state::AppManagedState;
+
+fn try_index_page(state: &AppManagedState, root: &std::path::Path, page: &Page) {
+    if let Err(error) = state.ensure_search_engine() {
+        warn!("Search engine is unavailable for page indexing: {}", error);
+        return;
+    }
+
+    match super::search::resolve_page_context(root, page.section_id) {
+        Ok(context) => {
+            let data = PageIndexData {
+                page: page.clone(),
+                notebook_name: context.notebook_name,
+                section_name: context.section_name,
+                notebook_id: context.notebook_id,
+                section_id: context.section_id,
+            };
+
+            if let Err(error) = state
+                .with_search_engine(|engine| engine.index_page(&data).map_err(CommandError::from))
+            {
+                warn!("Failed to index page {}: {}", page.id, error);
+            }
+        }
+        Err(error) => {
+            warn!("Could not resolve page context for indexing: {}", error);
+        }
+    }
+}
 
 #[tauri::command]
 pub fn list_pages(
     state: State<AppManagedState>,
     section_id: SectionId,
-) -> Result<Vec<PageSummary>, String> {
+) -> Result<Vec<PageSummary>, CommandError> {
     let root = state.get_workspace_root()?;
-    FsStorageEngine::list_pages(&root, section_id).map_err(|e| e.to_string())
+    FsStorageEngine::list_pages(&root, section_id).map_err(CommandError::from)
 }
 
 #[tauri::command]
-pub fn load_page(state: State<AppManagedState>, page_id: PageId) -> Result<Page, String> {
+pub fn load_page(state: State<AppManagedState>, page_id: PageId) -> Result<Page, CommandError> {
     let root = state.get_workspace_root()?;
-    FsStorageEngine::load_page(&root, page_id).map_err(|e| e.to_string())
+    FsStorageEngine::load_page(&root, page_id).map_err(CommandError::from)
 }
 
 #[tauri::command]
@@ -28,42 +58,23 @@ pub fn create_page(
     state: State<AppManagedState>,
     section_id: SectionId,
     title: String,
-) -> Result<Page, String> {
+) -> Result<Page, CommandError> {
     let root = state.get_workspace_root()?;
-    let page = FsStorageEngine::create_page(&root, section_id, &title).map_err(|e| e.to_string())?;
-    
-    // Reindex
-    if let Ok((notebook_name, section_name, notebook_id, sect_id)) = super::search::resolve_page_context(&root, page.section_id) {
-        let data = PageIndexData {
-            page: page.clone(),
-            notebook_name,
-            section_name,
-            notebook_id,
-            section_id: sect_id,
-        };
-        let _ = state.with_search_engine(|engine| engine.index_page(&data).map_err(|e| e.to_string()));
-    }
-    
+    let page =
+        FsStorageEngine::create_page(&root, section_id, &title).map_err(CommandError::from)?;
+
+    try_index_page(&state, &root, &page);
+
     Ok(page)
 }
 
 #[tauri::command]
-pub fn update_page(state: State<AppManagedState>, page: Page) -> Result<(), String> {
+pub fn update_page(state: State<AppManagedState>, page: Page) -> Result<(), CommandError> {
     let root = state.get_workspace_root()?;
-    FsStorageEngine::update_page(&root, &page).map_err(|e| e.to_string())?;
+    FsStorageEngine::update_page(&root, &page).map_err(CommandError::from)?;
 
-    // Reindex
-    if let Ok((notebook_name, section_name, notebook_id, sect_id)) = super::search::resolve_page_context(&root, page.section_id) {
-        let data = PageIndexData {
-            page: page.clone(),
-            notebook_name,
-            section_name,
-            notebook_id,
-            section_id: sect_id,
-        };
-        let _ = state.with_search_engine(|engine| engine.index_page(&data).map_err(|e| e.to_string()));
-    }
-    
+    try_index_page(&state, &root, &page);
+
     Ok(())
 }
 
@@ -72,38 +83,34 @@ pub fn update_page_blocks(
     state: State<AppManagedState>,
     page_id: PageId,
     blocks: Vec<Block>,
-) -> Result<Page, String> {
+) -> Result<Page, CommandError> {
     let root = state.get_workspace_root()?;
-    state.save_coordinator.with_page_lock(page_id, || {
-        let mut page = FsStorageEngine::load_page(&root, page_id).map_err(|e| e.to_string())?;
-        page.blocks = blocks.clone();
-        page.updated_at = chrono::Utc::now();
-        FsStorageEngine::update_page(&root, &page).map_err(|e| e.to_string())?;
 
-        // Reindex
-        if let Ok((notebook_name, section_name, notebook_id, sect_id)) = super::search::resolve_page_context(&root, page.section_id) {
-            let data = PageIndexData {
-                page: page.clone(),
-                notebook_name,
-                section_name,
-                notebook_id,
-                section_id: sect_id,
-            };
-            let _ = state.with_search_engine(|engine| engine.index_page(&data).map_err(|e| e.to_string()));
-        }
-        
+    state.save_coordinator.with_page_lock(page_id, || {
+        let mut page = FsStorageEngine::load_page(&root, page_id).map_err(CommandError::from)?;
+        page.blocks = blocks;
+        page.updated_at = chrono::Utc::now();
+        FsStorageEngine::update_page(&root, &page).map_err(CommandError::from)?;
+
+        try_index_page(&state, &root, &page);
+
         Ok(page)
     })
 }
 
 #[tauri::command]
-pub fn delete_page(state: State<AppManagedState>, page_id: PageId) -> Result<(), String> {
+pub fn delete_page(state: State<AppManagedState>, page_id: PageId) -> Result<(), CommandError> {
     let root = state.get_workspace_root()?;
-    FsStorageEngine::delete_page(&root, page_id).map_err(|e| e.to_string())?;
-    
-    // Remove from index
-    let _ = state.with_search_engine(|engine| engine.remove_page(&page_id.to_string()).map_err(|e| e.to_string()));
-    
+    FsStorageEngine::delete_page(&root, page_id).map_err(CommandError::from)?;
+
+    if let Err(error) = state.with_search_engine(|engine| {
+        engine
+            .remove_page(&page_id.to_string())
+            .map_err(CommandError::from)
+    }) {
+        warn!("Failed to remove page {} from index: {}", page_id, error);
+    }
+
     Ok(())
 }
 
@@ -112,21 +119,12 @@ pub fn move_page(
     state: State<AppManagedState>,
     page_id: PageId,
     target_section_id: SectionId,
-) -> Result<Page, String> {
+) -> Result<Page, CommandError> {
     let root = state.get_workspace_root()?;
-    let page = FsStorageEngine::move_page(&root, page_id, target_section_id).map_err(|e| e.to_string())?;
-    
-    // Reindex immediately after moving to ensure paths inside Search motor are up to date
-    if let Ok((notebook_name, section_name, notebook_id, sect_id)) = super::search::resolve_page_context(&root, page.section_id) {
-        let data = PageIndexData {
-            page: page.clone(),
-            notebook_name,
-            section_name,
-            notebook_id,
-            section_id: sect_id,
-        };
-        let _ = state.with_search_engine(|engine| engine.index_page(&data).map_err(|e| e.to_string()));
-    }
+    let page = FsStorageEngine::move_page(&root, page_id, target_section_id)
+        .map_err(CommandError::from)?;
+
+    try_index_page(&state, &root, &page);
 
     Ok(page)
 }
@@ -136,61 +134,47 @@ pub fn import_pdf(
     state: State<AppManagedState>,
     section_id: SectionId,
     file_path: String,
-) -> Result<(String, String, u32), String> {
+) -> Result<(String, String, u32), CommandError> {
     let root = state.get_workspace_root()?;
     let source = std::path::Path::new(&file_path);
+
     if !source.exists() {
-        return Err("PDF file not found".to_string());
+        return Err(CommandError::NotFound("PDF file not found".to_string()));
     }
 
     let (_nb_dir, section_path) =
-        FsStorageEngine::find_section_dir(&root, section_id).map_err(|e| e.to_string())?;
+        FsStorageEngine::find_section_dir(&root, section_id).map_err(CommandError::from)?;
     let assets_dir = section_path.join("assets");
     std::fs::create_dir_all(&assets_dir)
-        .map_err(|e| format!("Failed to create assets dir: {e}"))?;
+        .map_err(|error| CommandError::Storage(format!("Failed to create assets dir: {error}")))?;
 
     let uuid = uuid::Uuid::new_v4();
     let dest_name = format!("{uuid}.pdf");
     let dest_path = assets_dir.join(&dest_name);
-    std::fs::copy(source, &dest_path).map_err(|e| format!("Failed to copy PDF: {e}"))?;
+    std::fs::copy(source, &dest_path)
+        .map_err(|error| CommandError::Storage(format!("Failed to copy PDF: {error}")))?;
 
     let asset_rel = format!("assets/{dest_name}");
     let absolute_path = dest_path.to_string_lossy().to_string();
 
-    // Page count: read file and count PDF pages via cross-reference
     let page_count = count_pdf_pages(&dest_path).unwrap_or(0);
 
     Ok((asset_rel, absolute_path, page_count))
 }
 
 fn count_pdf_pages(path: &std::path::Path) -> Option<u32> {
-    let content = std::fs::read(path).ok()?;
-    let text = String::from_utf8_lossy(&content);
-    // Simple heuristic: count /Type /Page entries (not /Pages)
-    let count = text.matches("/Type /Page\n").count()
-        + text.matches("/Type /Page\r").count()
-        + text.matches("/Type /Page ").count()
-        + text.matches("/Type/Page\n").count()
-        + text.matches("/Type/Page\r").count()
-        + text.matches("/Type/Page ").count();
-    if count > 0 {
-        Some(count as u32)
-    } else {
-        // Fallback: look for /Count N in the page tree
-        text.find("/Count ").and_then(|pos| {
-            let rest = &text[pos + 7..];
-            let num_str: String = rest.chars().take_while(|c| c.is_ascii_digit()).collect();
-            num_str.parse::<u32>().ok()
-        })
-    }
+    let document = lopdf::Document::load(path).ok()?;
+    Some(document.get_pages().len() as u32)
 }
 
 #[tauri::command]
-pub fn read_file_content(path: String) -> Result<String, String> {
-    std::fs::read_to_string(&path).map_err(|e| format!("Failed to read file: {e}"))
+pub fn read_file_content(path: String) -> Result<String, CommandError> {
+    std::fs::read_to_string(&path)
+        .map_err(|error| CommandError::Storage(format!("Failed to read file: {error}")))
 }
 
 #[tauri::command]
-pub fn save_file_content(path: String, content: String) -> Result<(), String> {
-    std::fs::write(&path, &content).map_err(|e| format!("Failed to write file: {e}"))
+pub fn save_file_content(path: String, content: String) -> Result<(), CommandError> {
+    std::fs::write(&path, &content)
+        .map_err(|error| CommandError::Storage(format!("Failed to write file: {error}")))
 }

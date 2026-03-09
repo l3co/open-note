@@ -278,7 +278,7 @@ fn test_search_case_and_diacritic_insensitivity() {
     );
     engine.index_page(&make_index_data(page)).unwrap();
 
-    // Folding: ç→c, ã→a
+    // Folding: accented characters become ASCII equivalents.
     let r1 = engine
         .search(&SearchQuery {
             text: "educacao".to_string(),
@@ -295,7 +295,7 @@ fn test_search_case_and_diacritic_insensitivity() {
         "Should find 'Educação' when searching 'educacao'"
     );
 
-    // Folding: í→i
+    // Folding: accented characters become ASCII equivalents.
     let r2 = engine
         .search(&SearchQuery {
             text: "curriculo".to_string(),

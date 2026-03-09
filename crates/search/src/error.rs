@@ -2,6 +2,9 @@ use thiserror::Error;
 
 #[derive(Debug, Error)]
 pub enum SearchError {
+    #[error("Search index lock was poisoned")]
+    LockPoisoned,
+
     #[error("Tantivy error: {0}")]
     Tantivy(#[from] tantivy::TantivyError),
 

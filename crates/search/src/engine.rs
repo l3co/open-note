@@ -2,7 +2,7 @@ use std::path::Path;
 use std::sync::Mutex;
 
 use serde::{Deserialize, Serialize};
-use tantivy::collector::TopDocs;
+use tantivy::collector::{Count, TopDocs};
 use tantivy::query::{BooleanQuery, Occur, QueryParser, TermQuery};
 use tantivy::schema::IndexRecordOption;
 use tantivy::schema::Value;
@@ -13,7 +13,7 @@ use tantivy::{doc, Index, IndexReader, IndexWriter, ReloadPolicy, TantivyDocumen
 
 use opennote_core::page::Page;
 
-use crate::error::SearchResult;
+use crate::error::{SearchError, SearchResult};
 use crate::extract::extract_text_from_page;
 use crate::schema::SearchSchema;
 
@@ -24,8 +24,6 @@ pub struct SearchEngine {
     reader: IndexReader,
     writer: Mutex<IndexWriter<TantivyDocument>>,
     schema: SearchSchema,
-    #[allow(dead_code)]
-    index_path: std::path::PathBuf,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -109,12 +107,11 @@ impl SearchEngine {
             reader,
             writer: Mutex::new(writer),
             schema: schema_def,
-            index_path: index_dir.to_path_buf(),
         })
     }
 
     pub fn index_page(&self, data: &PageIndexData) -> SearchResult<()> {
-        let mut writer = self.writer.lock().unwrap();
+        let mut writer = self.writer.lock().map_err(|_| SearchError::LockPoisoned)?;
         let s = &self.schema;
 
         let page_id_str = data.page.id.to_string();
@@ -143,7 +140,7 @@ impl SearchEngine {
     }
 
     pub fn remove_page(&self, page_id: &str) -> SearchResult<()> {
-        let mut writer = self.writer.lock().unwrap();
+        let mut writer = self.writer.lock().map_err(|_| SearchError::LockPoisoned)?;
         let term = Term::from_field_text(self.schema.page_id, page_id);
         writer.delete_term(term);
         writer.commit()?;
@@ -152,7 +149,7 @@ impl SearchEngine {
     }
 
     pub fn rebuild(&self, pages: &[PageIndexData]) -> SearchResult<()> {
-        let mut writer = self.writer.lock().unwrap();
+        let mut writer = self.writer.lock().map_err(|_| SearchError::LockPoisoned)?;
         writer.delete_all_documents()?;
         writer.commit()?;
 
@@ -201,7 +198,7 @@ impl SearchEngine {
             let nb_query = TermQuery::new(nb_term, IndexRecordOption::Basic);
             must_clauses.push(Box::new(nb_query));
         }
-        
+
         if let Some(ref sec_id) = query.section_id {
             let sec_term = Term::from_field_text(s.section_id, sec_id);
             let sec_query = TermQuery::new(sec_term, IndexRecordOption::Basic);
@@ -225,9 +222,12 @@ impl SearchEngine {
             Box::new(BooleanQuery::new(boolean_clauses))
         };
 
-        let top_docs = searcher.search(
+        let (total_count, top_docs) = searcher.search(
             &*final_query,
-            &TopDocs::with_limit(query.limit).and_offset(query.offset),
+            &(
+                Count,
+                TopDocs::with_limit(query.limit).and_offset(query.offset),
+            ),
         )?;
 
         let mut items = Vec::with_capacity(top_docs.len());
@@ -257,7 +257,7 @@ impl SearchEngine {
         let elapsed = start.elapsed().as_millis() as u64;
 
         Ok(SearchResults {
-            total: items.len() as u64,
+            total: total_count as u64,
             items,
             query_time_ms: elapsed,
         })
@@ -272,8 +272,8 @@ impl SearchEngine {
         let s = &self.schema;
 
         let mut parser = QueryParser::for_index(&self.index, vec![s.title, s.content, s.tags]);
-        parser.set_field_boost(s.title, 2.0); // Prioriza título
-        parser.set_field_boost(s.tags, 1.5);  // Prioriza tags 
+        parser.set_field_boost(s.title, 2.0); // Boost title relevance above content.
+        parser.set_field_boost(s.tags, 1.5); // Tags are a strong relevance signal.
 
         let query = if query_text.trim().is_empty() {
             Box::new(tantivy::query::AllQuery) as Box<dyn tantivy::query::Query>
@@ -378,9 +378,9 @@ mod tests {
     fn test_content_search_query() {
         let temp_dir = tempfile::tempdir().unwrap();
         let engine = SearchEngine::open_or_create(temp_dir.path()).unwrap();
-        
+
         let mut page = Page::new(opennote_core::id::SectionId::new(), "My title").unwrap();
-        
+
         // Add a block
         let json = serde_json::json!({
             "type": "doc",
@@ -393,7 +393,8 @@ mod tests {
                 }
             ]
         });
-        page.add_block(opennote_core::block::Block::new_text(0, json)).unwrap();
+        page.add_block(opennote_core::block::Block::new_text(0, json))
+            .unwrap();
 
         let data = PageIndexData {
             page: page.clone(),

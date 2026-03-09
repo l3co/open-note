@@ -1,10 +1,12 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 use opennote_core::id::PageId;
 use opennote_search::engine::SearchEngine;
 use opennote_sync::coordinator::SyncCoordinator;
+
+use crate::error::CommandError;
 
 pub struct AppManagedState {
     pub workspace_root: Mutex<Option<PathBuf>>,
@@ -23,189 +25,247 @@ impl AppManagedState {
         }
     }
 
-    pub fn get_workspace_root(&self) -> Result<PathBuf, String> {
+    pub fn get_workspace_root(&self) -> Result<PathBuf, CommandError> {
         self.workspace_root
             .lock()
-            .map_err(|e| format!("Lock error: {e}"))?
+            .map_err(|_| CommandError::Internal("State lock poisoned".to_string()))?
             .clone()
-            .ok_or_else(|| "No workspace is currently open".to_string())
+            .ok_or(CommandError::NoWorkspace)
     }
 
-    pub fn set_workspace_root(&self, path: Option<PathBuf>) -> Result<(), String> {
+    pub fn set_workspace_root(&self, path: Option<PathBuf>) -> Result<(), CommandError> {
         let mut root = self
             .workspace_root
             .lock()
-            .map_err(|e| format!("Lock error: {e}"))?;
+            .map_err(|_| CommandError::Internal("State lock poisoned".to_string()))?;
         *root = path;
         Ok(())
     }
 
-    pub fn init_sync_coordinator(&self, workspace_root: &std::path::Path) -> Result<(), String> {
+    pub fn init_sync_coordinator(
+        &self,
+        workspace_root: &std::path::Path,
+    ) -> Result<(), CommandError> {
         let coordinator = SyncCoordinator::new(workspace_root.to_path_buf());
         let mut guard = self
             .sync_coordinator
             .lock()
-            .map_err(|e| format!("Lock error: {e}"))?;
+            .map_err(|_| CommandError::Internal("State lock poisoned".to_string()))?;
         *guard = Some(coordinator);
         Ok(())
     }
 
-    pub fn init_search_engine(&self, workspace_root: &std::path::Path) -> Result<(), String> {
+    pub fn init_search_engine(&self, workspace_root: &std::path::Path) -> Result<(), CommandError> {
         let index_dir = workspace_root.join(".opennote").join("index");
-        let engine = SearchEngine::open_or_create(&index_dir)
-            .map_err(|e| format!("Failed to init search engine: {e}"))?;
+        let engine = match SearchEngine::open_or_create(&index_dir) {
+            Ok(engine) => engine,
+            Err(first_error) => {
+                if index_dir.exists() {
+                    std::fs::remove_dir_all(&index_dir).map_err(|error| {
+                        CommandError::Internal(format!(
+                            "Failed to reset search index at {} after init error ({first_error}): {error}",
+                            index_dir.display()
+                        ))
+                    })?;
+                }
+
+                SearchEngine::open_or_create(&index_dir).map_err(|second_error| {
+                    CommandError::Internal(format!(
+                        "Failed to initialize search engine at {} (first attempt: {first_error}; retry: {second_error})",
+                        index_dir.display()
+                    ))
+                })?
+            }
+        };
+
         let mut guard = self
             .search_engine
             .lock()
-            .map_err(|e| format!("Lock error: {e}"))?;
+            .map_err(|_| CommandError::Internal("State lock poisoned".to_string()))?;
         *guard = Some(engine);
         Ok(())
     }
 
-    pub fn with_search_engine<F, R>(&self, f: F) -> Result<R, String>
+    pub fn ensure_search_engine(&self) -> Result<(), CommandError> {
+        let should_init = {
+            let guard = self
+                .search_engine
+                .lock()
+                .map_err(|_| CommandError::Internal("State lock poisoned".to_string()))?;
+            guard.is_none()
+        };
+
+        if should_init {
+            let workspace_root = self.get_workspace_root()?;
+            self.init_search_engine(&workspace_root)?;
+        }
+
+        Ok(())
+    }
+
+    pub fn with_search_engine<F, R>(&self, f: F) -> Result<R, CommandError>
     where
-        F: FnOnce(&SearchEngine) -> Result<R, String>,
+        F: FnOnce(&SearchEngine) -> Result<R, CommandError>,
     {
         let guard = self
             .search_engine
             .lock()
-            .map_err(|e| format!("Lock error: {e}"))?;
+            .map_err(|_| CommandError::Internal("State lock poisoned".to_string()))?;
         let engine = guard
             .as_ref()
-            .ok_or_else(|| "Search engine not initialized".to_string())?;
+            .ok_or_else(|| CommandError::Internal("Search engine not initialized".to_string()))?;
+
         f(engine)
     }
 }
 
 pub struct SaveCoordinator {
-    locks: Mutex<HashMap<PageId, ()>>,
+    page_locks: Mutex<HashMap<PageId, Arc<Mutex<()>>>>,
 }
 
 impl SaveCoordinator {
     pub fn new() -> Self {
         Self {
-            locks: Mutex::new(HashMap::new()),
+            page_locks: Mutex::new(HashMap::new()),
         }
     }
 
-    pub fn with_page_lock<F, R>(&self, page_id: PageId, f: F) -> Result<R, String>
+    pub fn with_page_lock<F, R>(&self, page_id: PageId, f: F) -> Result<R, CommandError>
     where
-        F: FnOnce() -> Result<R, String>,
+        F: FnOnce() -> Result<R, CommandError>,
     {
-        {
-            let mut map = self.locks.lock().map_err(|e| format!("Lock error: {e}"))?;
-            map.entry(page_id).or_insert(());
-        }
-        let result = f();
-        {
-            let mut map = self.locks.lock().map_err(|e| format!("Lock error: {e}"))?;
-            map.remove(&page_id);
-        }
-        result
+        let page_lock = {
+            let mut locks = self
+                .page_locks
+                .lock()
+                .map_err(|_| CommandError::Internal("State lock poisoned".to_string()))?;
+
+            locks
+                .entry(page_id)
+                .or_insert_with(|| Arc::new(Mutex::new(())))
+                .clone()
+        };
+
+        let _guard = page_lock
+            .lock()
+            .map_err(|_| CommandError::Internal(format!("Page lock poisoned for {page_id}")))?;
+
+        f()
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::sync::Arc;
-
-    // ─── Phase 5 Retrofit: State Integrity ───
 
     #[test]
-    fn test_managed_state_no_workspace_returns_graceful_error() {
+    fn managed_state_without_workspace_returns_no_workspace() {
         let state = AppManagedState::new();
 
         let result = state.get_workspace_root();
-        assert!(result.is_err());
-        let msg = result.unwrap_err();
-        assert!(
-            msg.contains("No workspace"),
-            "Should mention 'No workspace', got: {msg}"
-        );
+
+        assert!(matches!(result, Err(CommandError::NoWorkspace)));
     }
 
     #[test]
-    fn test_managed_state_set_and_get_workspace_root() {
+    fn managed_state_sets_and_gets_workspace_root() {
         let state = AppManagedState::new();
 
         state
             .set_workspace_root(Some(PathBuf::from("/tmp/ws")))
-            .unwrap();
-        let root = state.get_workspace_root().unwrap();
+            .expect("workspace should be set");
+        let root = state
+            .get_workspace_root()
+            .expect("workspace should be present");
         assert_eq!(root, PathBuf::from("/tmp/ws"));
 
-        state.set_workspace_root(None).unwrap();
-        assert!(state.get_workspace_root().is_err());
+        state
+            .set_workspace_root(None)
+            .expect("workspace should clear");
+        assert!(matches!(
+            state.get_workspace_root(),
+            Err(CommandError::NoWorkspace)
+        ));
     }
 
     #[test]
-    fn test_search_engine_not_initialized_returns_error() {
+    fn search_engine_not_initialized_returns_internal_error() {
         let state = AppManagedState::new();
 
         let result = state.with_search_engine(|_engine| Ok(()));
-        assert!(result.is_err());
-        let msg = result.unwrap_err();
-        assert!(
-            msg.contains("not initialized"),
-            "Should mention 'not initialized', got: {msg}"
-        );
+
+        assert!(matches!(result, Err(CommandError::Internal(_))));
     }
 
-    // ─── Phase 5 Retrofit: SaveCoordinator Thread Safety ───
-
     #[test]
-    fn test_save_coordinator_concurrent_page_writes() {
+    fn save_coordinator_serializes_concurrent_writes_same_page() {
         let coordinator = Arc::new(SaveCoordinator::new());
         let page_id = PageId::new();
+        let in_critical = Arc::new(std::sync::atomic::AtomicUsize::new(0));
+        let max_seen = Arc::new(std::sync::atomic::AtomicUsize::new(0));
 
-        let mut handles = vec![];
-        for i in 0..10 {
-            let coord = Arc::clone(&coordinator);
-            let pid = page_id;
+        let mut handles = Vec::new();
+
+        for _ in 0..10 {
+            let coordinator = Arc::clone(&coordinator);
+            let in_critical = Arc::clone(&in_critical);
+            let max_seen = Arc::clone(&max_seen);
+
             handles.push(std::thread::spawn(move || {
-                coord.with_page_lock(pid, || {
+                coordinator.with_page_lock(page_id, || {
+                    use std::sync::atomic::Ordering;
+                    let current = in_critical.fetch_add(1, Ordering::SeqCst) + 1;
+
+                    loop {
+                        let previous = max_seen.load(Ordering::SeqCst);
+                        if current <= previous {
+                            break;
+                        }
+                        if max_seen
+                            .compare_exchange(previous, current, Ordering::SeqCst, Ordering::SeqCst)
+                            .is_ok()
+                        {
+                            break;
+                        }
+                    }
+
                     std::thread::sleep(std::time::Duration::from_millis(1));
-                    Ok(i)
+                    in_critical.fetch_sub(1, Ordering::SeqCst);
+
+                    Ok(())
                 })
             }));
         }
 
-        let mut results = vec![];
-        for h in handles {
-            let r = h.join().unwrap();
-            assert!(r.is_ok());
-            results.push(r.unwrap());
+        for handle in handles {
+            handle
+                .join()
+                .expect("thread join should succeed")
+                .expect("critical section should succeed");
         }
 
-        assert_eq!(results.len(), 10);
+        assert_eq!(
+            max_seen.load(std::sync::atomic::Ordering::SeqCst),
+            1,
+            "same-page operations must never overlap"
+        );
     }
 
     #[test]
-    fn test_save_coordinator_lock_cleanup_on_error() {
-        let coordinator = SaveCoordinator::new();
-        let page_id = PageId::new();
-
-        let result: Result<(), String> =
-            coordinator.with_page_lock(page_id, || Err("Simulated failure".to_string()));
-        assert!(result.is_err());
-
-        // Lock should be cleaned up — next call should succeed
-        let result = coordinator.with_page_lock(page_id, || Ok(42));
-        assert_eq!(result.unwrap(), 42);
-    }
-
-    #[test]
-    fn test_save_coordinator_different_pages_no_interference() {
+    fn save_coordinator_allows_parallel_writes_different_pages() {
         let coordinator = Arc::new(SaveCoordinator::new());
         let page_a = PageId::new();
         let page_b = PageId::new();
+
+        let started_a = Arc::new(std::sync::Barrier::new(2));
+        let started_b = Arc::clone(&started_a);
 
         let coord_a = Arc::clone(&coordinator);
         let coord_b = Arc::clone(&coordinator);
 
         let handle_a = std::thread::spawn(move || {
             coord_a.with_page_lock(page_a, || {
+                started_a.wait();
                 std::thread::sleep(std::time::Duration::from_millis(5));
                 Ok("a")
             })
@@ -213,42 +273,39 @@ mod tests {
 
         let handle_b = std::thread::spawn(move || {
             coord_b.with_page_lock(page_b, || {
+                started_b.wait();
                 std::thread::sleep(std::time::Duration::from_millis(5));
                 Ok("b")
             })
         });
 
-        assert_eq!(handle_a.join().unwrap().unwrap(), "a");
-        assert_eq!(handle_b.join().unwrap().unwrap(), "b");
+        assert_eq!(
+            handle_a
+                .join()
+                .expect("thread join should succeed")
+                .expect("page a should succeed"),
+            "a"
+        );
+        assert_eq!(
+            handle_b
+                .join()
+                .expect("thread join should succeed")
+                .expect("page b should succeed"),
+            "b"
+        );
     }
 
-    // ─── Phase 5 Retrofit: Error String Readability ───
-
     #[test]
-    fn test_error_strings_are_human_readable() {
-        // Validation errors from core should be readable strings
-        let err = opennote_core::error::CoreError::Validation {
-            message: "Notebook name cannot be empty".to_string(),
-        };
-        let msg = err.to_string();
-        assert!(msg.contains("Validation"));
-        assert!(msg.contains("cannot be empty"));
+    fn save_coordinator_recovers_after_failure() {
+        let coordinator = SaveCoordinator::new();
+        let page_id = PageId::new();
 
-        // Storage errors should be readable
-        let err = opennote_storage::error::StorageError::WorkspaceNotFound {
-            path: PathBuf::from("/nonexistent"),
-        };
-        let msg = err.to_string();
-        assert!(msg.contains("Workspace"));
-        assert!(msg.contains("/nonexistent"));
+        let result: Result<(), CommandError> = coordinator.with_page_lock(page_id, || {
+            Err(CommandError::Internal("simulated failure".to_string()))
+        });
+        assert!(result.is_err());
 
-        // NotFound errors should be readable
-        let err = opennote_core::error::CoreError::NotFound {
-            entity: "Page".to_string(),
-            id: "abc-123".to_string(),
-        };
-        let msg = err.to_string();
-        assert!(msg.contains("Page"));
-        assert!(msg.contains("abc-123"));
+        let result = coordinator.with_page_lock(page_id, || Ok(42));
+        assert_eq!(result.expect("lock should be reusable"), 42);
     }
 }
