@@ -5,9 +5,19 @@ import { SidebarFooter } from "../SidebarFooter";
 import { useUIStore } from "@/stores/useUIStore";
 
 vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn() }));
+
+const mockCloseWorkspace = vi.fn().mockResolvedValue(undefined);
 vi.mock("@/stores/useWorkspaceStore", () => ({
   useWorkspaceStore: () => ({
     createNotebook: vi.fn(),
+    closeWorkspace: mockCloseWorkspace,
+  }),
+}));
+
+const mockResetNavigation = vi.fn();
+vi.mock("@/stores/useNavigationStore", () => ({
+  useNavigationStore: () => ({
+    reset: mockResetNavigation,
   }),
 }));
 
@@ -57,7 +67,21 @@ describe("SidebarFooter", () => {
   it("opens workspace picker on workspace button click", async () => {
     const user = userEvent.setup();
     render(<SidebarFooter />);
-    await user.click(screen.getByLabelText(/workspace|abrir/i));
+    await user.click(screen.getByLabelText(/abrir workspace/i));
+    expect(useUIStore.getState().showWorkspacePicker).toBe(true);
+  });
+
+  it("renders close workspace button", () => {
+    render(<SidebarFooter />);
+    expect(screen.getByLabelText(/fechar workspace/i)).toBeInTheDocument();
+  });
+
+  it("closes workspace and opens picker on close click", async () => {
+    const user = userEvent.setup();
+    render(<SidebarFooter />);
+    await user.click(screen.getByLabelText(/fechar workspace/i));
+    expect(mockCloseWorkspace).toHaveBeenCalled();
+    expect(mockResetNavigation).toHaveBeenCalled();
     expect(useUIStore.getState().showWorkspacePicker).toBe(true);
   });
 

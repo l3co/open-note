@@ -18,6 +18,7 @@
       "create_path_placeholder": "Choose folder...",
       "choose_folder": "Choose folder",
       "none_open": "No workspace open",
+      "close": "Close workspace",
       "remove_recent": "Remove from recent",
       "cloud_connect": "Connect to cloud",
       "cloud_coming_soon": "Coming soon"

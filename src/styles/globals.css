@@ -144,10 +144,17 @@ body {
 
 .editor-content {
   outline: none;
-  min-height: 200px;
+  width: 100%;
+  min-height: 60vh;
   font-size: 16px;
   line-height: 1.7;
   color: var(--text-primary);
+}
+
+.editor-content .ProseMirror {
+  outline: none;
+  width: 100%;
+  min-height: 60vh;
 }
 
 .editor-content p {

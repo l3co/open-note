@@ -102,20 +102,20 @@ export function PageEditor({ page }: PageEditorProps) {
 
   return (
     <div
-      className="page-editor mx-auto max-w-3xl px-8 py-6"
+      className="page-editor w-full py-4"
       data-testid="page-editor"
       onBlur={() => {
         forceSave();
       }}
     >
-      <div className="mb-4 flex items-center justify-between">
-        <TitleEditor
-          title={page.title}
-          onTitleChange={handleTitleChange}
-          editorRef={editorRef}
-        />
+      <div className="mb-1 flex justify-end">
         <EditorModeToggle mode={mode} onChange={handleModeChange} />
       </div>
+      <TitleEditor
+        title={page.title}
+        onTitleChange={handleTitleChange}
+        editorRef={editorRef}
+      />
 
       <div ref={contentAreaRef} className="relative mt-4">
         <InkOverlay contentRef={contentAreaRef} />

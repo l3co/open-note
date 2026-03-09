@@ -12,7 +12,7 @@ export function PageView({ page }: PageViewProps) {
       className="flex flex-1 flex-col overflow-y-auto"
       style={{ backgroundColor: "var(--bg-primary)" }}
     >
-      <div className="mx-auto w-full max-w-3xl px-8 py-6">
+      <div className="mx-auto w-10/12 max-w-6xl px-8 py-6">
         <div className="mb-2">
           <TagEditor pageId={page.id} tags={page.tags} />
         </div>
@@ -26,9 +26,9 @@ export function PageView({ page }: PageViewProps) {
             Atualizado: {new Date(page.updated_at).toLocaleDateString()}
           </span>
         </div>
-      </div>
 
-      <PageEditor page={page} />
+        <PageEditor page={page} />
+      </div>
     </div>
   );
 }

@@ -22,15 +22,18 @@ describe("ContextMenu", () => {
     useWorkspaceStore.setState({
       renameNotebook: vi.fn().mockResolvedValue(undefined),
       deleteNotebook: vi.fn().mockResolvedValue(undefined),
-      createSection: vi.fn().mockResolvedValue(undefined),
+      createSection: vi.fn().mockResolvedValue({ id: "sec-new", notebook_id: "nb-1" }),
       renameSection: vi.fn().mockResolvedValue(undefined),
       deleteSection: vi.fn().mockResolvedValue(undefined),
     });
     usePageStore.setState({
       createPage: vi.fn().mockResolvedValue({ id: "new-page" }),
       deletePage: vi.fn().mockResolvedValue(undefined),
+      loadPage: vi.fn().mockResolvedValue(undefined),
     });
     useNavigationStore.setState({
+      selectNotebook: vi.fn(),
+      selectSection: vi.fn(),
       selectPage: vi.fn(),
     });
   });
@@ -110,7 +113,7 @@ describe("ContextMenu", () => {
     expect(usePageStore.getState().deletePage).toHaveBeenCalledWith("p-1");
   });
 
-  it("calls createSection on 'Nova Seção' click", async () => {
+  it("calls createSection and expands notebook on 'Nova Seção' click", async () => {
     const user = userEvent.setup();
     render(<ContextMenu {...defaultProps} />);
     await user.click(screen.getByText("Nova Seção"));
@@ -118,16 +121,22 @@ describe("ContextMenu", () => {
       "nb-1",
       "Nova Seção",
     );
+    expect(useNavigationStore.getState().selectNotebook).toHaveBeenCalledWith("nb-1");
+    expect(useNavigationStore.getState().selectSection).toHaveBeenCalledWith("sec-new");
   });
 
-  it("calls createPage on 'Nova Página' click for section", async () => {
+  it("calls createPage, expands section, and loads page on 'Nova Página' click", async () => {
     const user = userEvent.setup();
-    render(<ContextMenu {...defaultProps} type="section" id="sec-1" />);
+    render(<ContextMenu {...defaultProps} type="section" id="sec-1" notebookId="nb-1" />);
     await user.click(screen.getByText("Nova Página"));
     expect(usePageStore.getState().createPage).toHaveBeenCalledWith(
       "sec-1",
       "Nova Página",
     );
+    expect(useNavigationStore.getState().selectNotebook).toHaveBeenCalledWith("nb-1");
+    expect(useNavigationStore.getState().selectSection).toHaveBeenCalledWith("sec-1");
+    expect(useNavigationStore.getState().selectPage).toHaveBeenCalledWith("new-page");
+    expect(usePageStore.getState().loadPage).toHaveBeenCalledWith("new-page");
   });
 
   it("shows rename input on rename click", async () => {

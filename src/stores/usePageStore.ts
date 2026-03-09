@@ -61,9 +61,14 @@ export const usePageStore = create<PageStore>((set, get) => ({
   },
 
   createPage: async (sectionId, title) => {
-    const page = await ipc.createPage(sectionId, title);
-    await get().loadPages(sectionId);
-    return page;
+    try {
+      const page = await ipc.createPage(sectionId, title);
+      await get().loadPages(sectionId);
+      return page;
+    } catch (e) {
+      set({ error: String(e) });
+      throw e;
+    }
   },
 
   updatePage: async (page) => {

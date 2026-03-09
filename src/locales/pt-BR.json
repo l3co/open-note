@@ -18,6 +18,7 @@
       "create_path_placeholder": "Escolher pasta...",
       "choose_folder": "Escolher pasta",
       "none_open": "Nenhum workspace aberto",
+      "close": "Fechar workspace",
       "remove_recent": "Remover dos recentes",
       "cloud_connect": "Conectar à nuvem",
       "cloud_coming_soon": "Em breve"

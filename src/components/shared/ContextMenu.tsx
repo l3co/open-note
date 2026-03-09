@@ -33,8 +33,8 @@ export function ContextMenu({
     renameSection,
     deleteSection,
   } = useWorkspaceStore();
-  const { createPage, deletePage } = usePageStore();
-  const { selectPage } = useNavigationStore();
+  const { createPage, deletePage, loadPage } = usePageStore();
+  const { selectNotebook, selectSection, selectPage } = useNavigationStore();
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
@@ -76,12 +76,23 @@ export function ContextMenu({
   };
 
   const handleAddChild = async () => {
-    if (type === "notebook") {
-      await createSection(id, t("section.new"));
-    }
-    if (type === "section") {
-      const page = await createPage(id, t("page.new"));
-      selectPage(page.id);
+    try {
+      if (type === "notebook") {
+        const section = await createSection(id, t("section.new"));
+        selectNotebook(id);
+        if (section) {
+          selectSection(section.id);
+        }
+      }
+      if (type === "section") {
+        const page = await createPage(id, t("page.new"));
+        if (_notebookId) selectNotebook(_notebookId);
+        selectSection(id);
+        selectPage(page.id);
+        await loadPage(page.id);
+      }
+    } catch {
+      /* errors are handled by store */
     }
     onClose();
   };

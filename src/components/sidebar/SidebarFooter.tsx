@@ -1,13 +1,15 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Plus, Search, Trash2, FolderSync, Settings } from "lucide-react";
+import { Plus, Search, Trash2, FolderSync, Settings, LogOut } from "lucide-react";
 import { useUIStore } from "@/stores/useUIStore";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
+import { useNavigationStore } from "@/stores/useNavigationStore";
 import { CreateDialog } from "@/components/shared/CreateDialog";
 
 export function SidebarFooter() {
   const { openWorkspacePicker, openTrashPanel, openSettings } = useUIStore();
-  const { createNotebook } = useWorkspaceStore();
+  const { createNotebook, closeWorkspace } = useWorkspaceStore();
+  const { reset: resetNavigation } = useNavigationStore();
   const [showCreate, setShowCreate] = useState(false);
   const { t } = useTranslation();
 
@@ -41,11 +43,22 @@ export function SidebarFooter() {
             onClick={openSettings}
           />
         </div>
-        <FooterButton
-          icon={<FolderSync size={16} />}
-          label={t("workspace.open")}
-          onClick={openWorkspacePicker}
-        />
+        <div className="flex items-center gap-1">
+          <FooterButton
+            icon={<LogOut size={16} />}
+            label={t("workspace.close")}
+            onClick={async () => {
+              await closeWorkspace();
+              resetNavigation();
+              openWorkspacePicker();
+            }}
+          />
+          <FooterButton
+            icon={<FolderSync size={16} />}
+            label={t("workspace.open")}
+            onClick={openWorkspacePicker}
+          />
+        </div>
       </div>
 
       {showCreate && (

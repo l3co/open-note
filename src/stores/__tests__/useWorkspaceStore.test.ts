@@ -195,13 +195,24 @@ describe("useWorkspaceStore", () => {
     expect(useWorkspaceStore.getState().sections.get("nb-1")).toEqual(secs);
   });
 
-  it("createSection creates and reloads sections", async () => {
-    mockIpc.createSection.mockResolvedValue({});
-    mockIpc.listSections.mockResolvedValue([]);
+  it("createSection creates, reloads, and returns section", async () => {
+    const created = makeSection("sec-new", "nb-1");
+    mockIpc.createSection.mockResolvedValue(created);
+    mockIpc.listSections.mockResolvedValue([created]);
 
-    await useWorkspaceStore.getState().createSection("nb-1", "New Section");
+    const result = await useWorkspaceStore.getState().createSection("nb-1", "New Section");
 
     expect(mockIpc.createSection).toHaveBeenCalledWith("nb-1", "New Section");
+    expect(result).toEqual(created);
+  });
+
+  it("createSection returns undefined on error", async () => {
+    mockIpc.createSection.mockRejectedValue(new Error("fail"));
+
+    const result = await useWorkspaceStore.getState().createSection("nb-1", "X");
+
+    expect(result).toBeUndefined();
+    expect(useWorkspaceStore.getState().error).toContain("fail");
   });
 
   it("renameSection renames and reloads", async () => {

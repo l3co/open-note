@@ -28,7 +28,7 @@ interface WorkspaceStore {
   deleteNotebook: (id: string) => Promise<void>;
   reorderNotebooks: (order: [string, number][]) => Promise<void>;
   loadSections: (notebookId: string) => Promise<void>;
-  createSection: (notebookId: string, name: string) => Promise<void>;
+  createSection: (notebookId: string, name: string) => Promise<Section | undefined>;
   renameSection: (id: string, name: string) => Promise<void>;
   deleteSection: (id: string) => Promise<void>;
   reorderSections: (order: [string, number][]) => Promise<void>;
@@ -134,10 +134,12 @@ export const useWorkspaceStore = create<WorkspaceStore>((set, get) => ({
 
   createSection: async (notebookId, name) => {
     try {
-      await ipc.createSection(notebookId, name);
+      const section = await ipc.createSection(notebookId, name);
       await get().loadSections(notebookId);
+      return section;
     } catch (e) {
       handleError(e, set);
+      return undefined;
     }
   },
 
