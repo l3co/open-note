@@ -6,7 +6,9 @@ import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 import { useUIStore } from "@/stores/useUIStore";
 import * as ipc from "@/lib/ipc";
 import { BackgroundPattern } from "@/components/shared/BackgroundPattern";
+import { Illustration } from "@/components/shared/Illustration";
 import logoSrc from "@/assets/logo.png";
+import folderOpenSvg from "@/assets/illustrations/folders/folder-open.svg";
 import type { AppState } from "@/types/bindings/AppState";
 
 export function WorkspacePicker() {
@@ -122,7 +124,7 @@ export function WorkspacePicker() {
           </div>
         ) : (
           <>
-            {appState && appState.recent_workspaces.length > 0 && (
+            {appState && appState.recent_workspaces.length > 0 ? (
               <div className="mb-4">
                 <h2
                   className="mb-2 text-xs font-medium tracking-wide uppercase"
@@ -144,8 +146,10 @@ export function WorkspacePicker() {
                         (e.currentTarget.style.backgroundColor = "transparent")
                       }
                     >
-                      <FolderOpen
-                        size={16}
+                      <Illustration
+                        src={folderOpenSvg}
+                        alt=""
+                        size={20}
                         className="mr-3 shrink-0"
                         style={{ color: "var(--text-tertiary)" }}
                       />
@@ -185,6 +189,21 @@ export function WorkspacePicker() {
                     </div>
                   ))}
                 </div>
+              </div>
+            ) : (
+              <div className="mb-4 flex flex-col items-center py-6">
+                <Illustration
+                  src={folderOpenSvg}
+                  alt=""
+                  size={64}
+                  style={{ color: "var(--text-tertiary)", opacity: 0.4 }}
+                />
+                <p
+                  className="mt-3 text-sm"
+                  style={{ color: "var(--text-tertiary)" }}
+                >
+                  {t("workspace.no_recent")}
+                </p>
               </div>
             )}
 

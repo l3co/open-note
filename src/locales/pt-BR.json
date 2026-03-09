@@ -146,7 +146,10 @@
       "new_notebook": "Novo Notebook",
       "search": "Buscar...",
       "settings": "Configurações",
-      "trash": "Lixeira"
+      "trash": "Lixeira",
+      "no_sections": "Nenhuma seção",
+      "no_pages": "Nenhuma página",
+      "no_notebooks": "Crie um notebook para começar"
     },
     "toolbar": {
       "toggle_sidebar": "Alternar sidebar"

@@ -1,6 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Trash2, RotateCcw, X } from "lucide-react";
+import { Illustration } from "@/components/shared/Illustration";
+import folderSimpleSvg from "@/assets/illustrations/folders/folder-simple.svg";
 import { useUIStore } from "@/stores/useUIStore";
 import * as ipc from "@/lib/ipc";
 import type { TrashItem } from "@/types/bindings/TrashItem";
@@ -131,10 +133,15 @@ export function TrashPanel() {
             </div>
           ) : items.length === 0 ? (
             <div
-              className="flex h-full flex-col items-center justify-center gap-2"
+              className="flex h-full flex-col items-center justify-center gap-3"
               style={{ color: "var(--text-tertiary)" }}
             >
-              <Trash2 size={32} className="opacity-30" />
+              <Illustration
+                src={folderSimpleSvg}
+                alt=""
+                size={48}
+                style={{ color: "var(--text-tertiary)", opacity: 0.3 }}
+              />
               <span className="text-sm">{t("trash.empty")}</span>
             </div>
           ) : (

@@ -7,6 +7,9 @@ import {
   ChevronRight,
   ChevronDown,
 } from "lucide-react";
+import { Illustration } from "@/components/shared/Illustration";
+import notesStackSvg from "@/assets/illustrations/notes/notes-stack.svg";
+import notesListSvg from "@/assets/illustrations/notes/notes-list.svg";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { usePageStore } from "@/stores/usePageStore";
@@ -155,6 +158,13 @@ export function NotebookTree() {
               onRename={(name) => handleRename("notebook", nb.id, name)}
             />
 
+            {isExpanded && nbSections.length === 0 && (
+              <EmptyHint
+                src={notesStackSvg}
+                label={t("sidebar.no_sections")}
+                depth={1}
+              />
+            )}
             {isExpanded &&
               nbSections.map((sec) => (
                 <SectionNode
@@ -219,6 +229,8 @@ function SectionNode({
   notebookId: string;
   onRename: (name: string) => void;
 }) {
+  const { t } = useTranslation();
+
   return (
     <div role="treeitem" aria-expanded={isExpanded}>
       <TreeItem
@@ -234,6 +246,13 @@ function SectionNode({
         onRename={onRename}
       />
 
+      {isExpanded && pages.length === 0 && (
+        <EmptyHint
+          src={notesListSvg}
+          label={t("sidebar.no_pages")}
+          depth={2}
+        />
+      )}
       {isExpanded &&
         pages.map((page) => (
           <TreeItem
@@ -246,6 +265,33 @@ function SectionNode({
             onContextMenu={(e) => onContextMenu(e, "page", page.id, page.title, notebookId)}
           />
         ))}
+    </div>
+  );
+}
+
+function EmptyHint({
+  src,
+  label,
+  depth,
+}: {
+  src: string;
+  label: string;
+  depth: number;
+}) {
+  return (
+    <div
+      className="flex items-center gap-2 py-2"
+      style={{ paddingLeft: 8 + depth * 16 }}
+    >
+      <Illustration
+        src={src}
+        alt=""
+        size={20}
+        style={{ color: "var(--text-tertiary)", opacity: 0.4 }}
+      />
+      <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>
+        {label}
+      </span>
     </div>
   );
 }
