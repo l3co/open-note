@@ -23,7 +23,15 @@ pub fn create_workspace(
     name: String,
 ) -> Result<Workspace, String> {
     info!("Creating workspace '{}' at {}", name, path);
-    let root = std::path::PathBuf::from(&path);
+    let parent = std::path::PathBuf::from(&path);
+    let slug = opennote_storage::slug::slugify(&name);
+    let slug = if slug.is_empty() { "workspace".to_string() } else { slug };
+    let root = parent.join(&slug);
+
+    if root.exists() && root.join("workspace.json").exists() {
+        return Err(format!("Workspace already exists at {}", root.display()));
+    }
+
     let workspace = FsStorageEngine::create_workspace(&root, &name).map_err(|e| e.to_string())?;
 
     let mut app_state = FsStorageEngine::load_app_state().map_err(|e| e.to_string())?;
