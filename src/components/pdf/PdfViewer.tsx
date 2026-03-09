@@ -23,7 +23,7 @@ interface PdfViewerProps {
 
 export function PdfViewer({
   src,
-  totalPages,
+  totalPages: initialTotalPages,
   displayMode,
   currentPage,
   scale,
@@ -34,90 +34,122 @@ export function PdfViewer({
   const containerRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [pageCount, setPageCount] = useState(initialTotalPages);
   const canvasRefs = useRef<Map<number, HTMLCanvasElement>>(new Map());
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const pdfDocRef = useRef<any>(null);
+  const pdfBytesRef = useRef<Uint8Array | null>(null);
 
-  const renderPage = useCallback(
-    async (pageNum: number, canvas: HTMLCanvasElement) => {
+  useEffect(() => {
+    if (!src) return;
+    let cancelled = false;
+
+    const loadPdf = async () => {
       try {
+        setLoading(true);
+        setError(null);
+
         const pdfjsLib = await import("pdfjs-dist");
         pdfjsLib.GlobalWorkerOptions.workerSrc = new URL(
           "pdfjs-dist/build/pdf.worker.min.mjs",
           import.meta.url,
         ).toString();
 
-        let pdfSource: string | { data: Uint8Array } = src;
-        if (src.startsWith("data:")) {
-          const base64 = src.split(",")[1];
-          if (base64) {
-            const binary = atob(base64);
-            const bytes = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i++) {
-              bytes[i] = binary.charCodeAt(i);
-            }
-            pdfSource = { data: bytes };
+        if (!pdfBytesRef.current) {
+          if (src.startsWith("data:")) {
+            const response = await fetch(src);
+            const arrayBuffer = await response.arrayBuffer();
+            pdfBytesRef.current = new Uint8Array(arrayBuffer);
           }
         }
+
+        const pdfSource = pdfBytesRef.current
+          ? { data: pdfBytesRef.current.slice() }
+          : src;
+
         const pdf = await pdfjsLib.getDocument(pdfSource).promise;
-        const page = await pdf.getPage(pageNum);
-        const viewport = page.getViewport({ scale });
+        if (cancelled) return;
 
-        const dpr = window.devicePixelRatio || 1;
-        canvas.width = viewport.width * dpr;
-        canvas.height = viewport.height * dpr;
-        canvas.style.width = `${viewport.width}px`;
-        canvas.style.height = `${viewport.height}px`;
-
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-
-        await page.render({ canvas, canvasContext: ctx, viewport }).promise;
+        pdfDocRef.current = pdf;
+        if (pdf.numPages > 0 && pdf.numPages !== pageCount) {
+          setPageCount(pdf.numPages);
+        }
       } catch (err) {
-        setError(`Erro ao renderizar página ${pageNum}`);
-        console.error("PDF render error:", err);
+        if (!cancelled) {
+          setError("Erro ao carregar PDF");
+          console.error("PDF load error:", err);
+          setLoading(false);
+        }
       }
-    },
-    [src, scale],
-  );
+    };
+
+    pdfBytesRef.current = null;
+    pdfDocRef.current = null;
+    loadPdf();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [src]);
 
   useEffect(() => {
-    if (!src) return;
-    setLoading(true);
-    setError(null);
+    const pdf = pdfDocRef.current;
+    if (!pdf || !src) return;
+    let cancelled = false;
 
     const renderPages = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        if (displayMode === "single") {
-          const canvas = canvasRefs.current.get(currentPage);
-          if (canvas) {
-            await renderPage(currentPage, canvas);
-          }
-        } else {
-          for (let i = 1; i <= totalPages; i++) {
-            const canvas = canvasRefs.current.get(i);
-            if (canvas) {
-              await renderPage(i, canvas);
-            }
-          }
+        const pages =
+          displayMode === "single"
+            ? [currentPage]
+            : Array.from({ length: pageCount }, (_, i) => i + 1);
+
+        for (const pageNum of pages) {
+          if (cancelled) return;
+          const canvas = canvasRefs.current.get(pageNum);
+          if (!canvas) continue;
+
+          const page = await pdf.getPage(pageNum);
+          const viewport = page.getViewport({ scale });
+
+          const dpr = window.devicePixelRatio || 1;
+          canvas.width = viewport.width * dpr;
+          canvas.height = viewport.height * dpr;
+          canvas.style.width = `${viewport.width}px`;
+          canvas.style.height = `${viewport.height}px`;
+
+          const ctx = canvas.getContext("2d");
+          if (!ctx) continue;
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+          await page.render({ canvas, canvasContext: ctx, viewport }).promise;
         }
       } catch (err) {
-        setError("Erro ao carregar PDF");
-        console.error("PDF load error:", err);
+        if (!cancelled) {
+          setError("Erro ao renderizar PDF");
+          console.error("PDF render error:", err);
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     renderPages();
-  }, [src, displayMode, currentPage, totalPages, scale, renderPage]);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [src, displayMode, currentPage, pageCount, scale]);
 
   const handlePrev = useCallback(() => {
     if (currentPage > 1) onPageChange(currentPage - 1);
   }, [currentPage, onPageChange]);
 
   const handleNext = useCallback(() => {
-    if (currentPage < totalPages) onPageChange(currentPage + 1);
-  }, [currentPage, totalPages, onPageChange]);
+    if (currentPage < pageCount) onPageChange(currentPage + 1);
+  }, [currentPage, pageCount, onPageChange]);
 
   const handleZoomIn = useCallback(() => {
     onScaleChange(Math.min(scale + 0.25, 3.0));
@@ -141,7 +173,7 @@ export function PdfViewer({
   const pagesToRender =
     displayMode === "single"
       ? [currentPage]
-      : Array.from({ length: totalPages }, (_, i) => i + 1);
+      : Array.from({ length: pageCount }, (_, i) => i + 1);
 
   return (
     <div className="pdf-viewer flex flex-col">
@@ -164,11 +196,11 @@ export function PdfViewer({
             className="min-w-[80px] text-center text-xs"
             style={{ color: "var(--text-secondary)" }}
           >
-            {currentPage} / {totalPages}
+            {currentPage} / {pageCount}
           </span>
           <NavButton
             onClick={handleNext}
-            disabled={currentPage >= totalPages}
+            disabled={currentPage >= pageCount}
             title="Próxima página"
           >
             <ChevronRight size={16} />
