@@ -14,22 +14,15 @@ export function Illustration({
   style,
 }: IllustrationProps) {
   return (
-    <div
+    <img
+      src={src}
+      alt={alt}
       className={className}
-      role="img"
-      aria-label={alt}
+      width={size}
+      height={size}
+      draggable={false}
       style={{
-        width: size,
-        height: size,
-        backgroundColor: "currentColor",
-        maskImage: `url(${src})`,
-        WebkitMaskImage: `url(${src})`,
-        maskSize: "contain",
-        WebkitMaskSize: "contain",
-        maskRepeat: "no-repeat",
-        WebkitMaskRepeat: "no-repeat",
-        maskPosition: "center",
-        WebkitMaskPosition: "center",
+        objectFit: "contain",
         ...style,
       }}
     />

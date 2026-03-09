@@ -2,8 +2,10 @@ import { useState, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import {
   BookOpen,
+  Book,
   FileText,
   FolderOpen,
+  FolderClosed,
   ChevronRight,
   ChevronDown,
 } from "lucide-react";
@@ -142,7 +144,7 @@ export function NotebookTree() {
         return (
           <div key={nb.id} role="treeitem" aria-expanded={isExpanded}>
             <TreeItem
-              icon={<BookOpen size={14} />}
+              icon={isExpanded ? <BookOpen size={14} /> : <Book size={14} />}
               label={nb.name}
               isExpanded={isExpanded}
               isSelected={selectedNotebookId === nb.id}
@@ -234,7 +236,7 @@ function SectionNode({
   return (
     <div role="treeitem" aria-expanded={isExpanded}>
       <TreeItem
-        icon={<FolderOpen size={14} />}
+        icon={isExpanded ? <FolderOpen size={14} /> : <FolderClosed size={14} />}
         label={section.name}
         isExpanded={isExpanded}
         isSelected={isSelected}
