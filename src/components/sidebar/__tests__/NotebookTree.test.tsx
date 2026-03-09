@@ -92,19 +92,18 @@ describe("NotebookTree", () => {
     expect(screen.getByText("Notebook B")).toBeInTheDocument();
   });
 
-  it("clicking notebook calls selectNotebook, toggleNotebook and loadSections", async () => {
-    const selectNotebook = vi.fn();
+  it("clicking notebook sets selectedNotebookId, calls toggleNotebook and loadSections", async () => {
     const toggleNotebook = vi.fn();
     const loadSections = vi.fn();
     useWorkspaceStore.setState({
       notebooks: [makeNotebook("nb-1", "NB")] as never,
       loadSections,
     });
-    useNavigationStore.setState({ selectNotebook, toggleNotebook });
+    useNavigationStore.setState({ toggleNotebook });
     const user = userEvent.setup();
     render(<NotebookTree />);
     await user.click(screen.getByText("NB"));
-    expect(selectNotebook).toHaveBeenCalledWith("nb-1");
+    expect(useNavigationStore.getState().selectedNotebookId).toBe("nb-1");
     expect(toggleNotebook).toHaveBeenCalledWith("nb-1");
     expect(loadSections).toHaveBeenCalledWith("nb-1");
   });
@@ -137,8 +136,7 @@ describe("NotebookTree", () => {
     expect(screen.queryByText("Section 1")).not.toBeInTheDocument();
   });
 
-  it("clicking section calls selectSection, toggleSection and loadPages", async () => {
-    const selectSection = vi.fn();
+  it("clicking section sets selectedSectionId, calls toggleSection and loadPages", async () => {
     const toggleSection = vi.fn();
     const loadPages = vi.fn();
     useWorkspaceStore.setState({
@@ -149,14 +147,13 @@ describe("NotebookTree", () => {
     });
     useNavigationStore.setState({
       expandedNotebooks: new Set(["nb-1"]),
-      selectSection,
       toggleSection,
     });
     usePageStore.setState({ loadPages });
     const user = userEvent.setup();
     render(<NotebookTree />);
     await user.click(screen.getByText("Sec"));
-    expect(selectSection).toHaveBeenCalledWith("sec-1");
+    expect(useNavigationStore.getState().selectedSectionId).toBe("sec-1");
     expect(toggleSection).toHaveBeenCalledWith("sec-1");
     expect(loadPages).toHaveBeenCalledWith("sec-1");
   });
@@ -315,18 +312,18 @@ describe("NotebookTree", () => {
   });
 
   it("Enter triggers click on tree item", () => {
-    const selectNotebook = vi.fn();
     const toggleNotebook = vi.fn();
     const loadSections = vi.fn();
     useWorkspaceStore.setState({
       notebooks: [makeNotebook("nb-1", "NB")] as never,
       loadSections,
     });
-    useNavigationStore.setState({ selectNotebook, toggleNotebook });
+    useNavigationStore.setState({ toggleNotebook });
     render(<NotebookTree />);
     const item = screen.getByText("NB").closest('[role="button"]')!;
     fireEvent.keyDown(item, { key: "Enter" });
-    expect(selectNotebook).toHaveBeenCalledWith("nb-1");
+    expect(useNavigationStore.getState().selectedNotebookId).toBe("nb-1");
+    expect(toggleNotebook).toHaveBeenCalledWith("nb-1");
   });
 
   it("supports drag and drop on notebooks", () => {

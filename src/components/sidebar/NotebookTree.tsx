@@ -31,9 +31,7 @@ export function NotebookTree() {
     expandedNotebooks,
     expandedSections,
     toggleNotebook,
-    selectNotebook,
     toggleSection,
-    selectSection,
     selectPage,
   } = useNavigationStore();
   const { loadPages, loadPage, pages } = usePageStore();
@@ -52,20 +50,20 @@ export function NotebookTree() {
 
   const handleNotebookClick = useCallback(
     (id: string) => {
-      selectNotebook(id);
+      useNavigationStore.setState({ selectedNotebookId: id });
       toggleNotebook(id);
       loadSections(id);
     },
-    [selectNotebook, toggleNotebook, loadSections],
+    [toggleNotebook, loadSections],
   );
 
   const handleSectionClick = useCallback(
     (sectionId: string) => {
-      selectSection(sectionId);
+      useNavigationStore.setState({ selectedSectionId: sectionId });
       toggleSection(sectionId);
       loadPages(sectionId);
     },
-    [selectSection, toggleSection, loadPages],
+    [toggleSection, loadPages],
   );
 
   const handlePageClick = useCallback(
