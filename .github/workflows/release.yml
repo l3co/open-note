@@ -142,7 +142,7 @@ jobs:
     needs: validate
     runs-on: ubuntu-latest
     container:
-      image: fedora:41
+      image: fedora:43
       options: --user root
     permissions:
       contents: write
