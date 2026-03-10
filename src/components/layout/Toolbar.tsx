@@ -8,6 +8,7 @@ import {
 import { useUIStore } from "@/stores/useUIStore";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { Breadcrumb } from "@/components/layout/Breadcrumb";
+import { IconButton } from "@/components/ui";
 
 export function Toolbar() {
   const { sidebarOpen, toggleSidebar } = useUIStore();
@@ -27,54 +28,30 @@ export function Toolbar() {
       }}
       data-testid="toolbar"
     >
-      <button
+      <IconButton
         onClick={toggleSidebar}
-        className="flex h-7 w-7 items-center justify-center rounded"
-        style={{ color: "var(--text-secondary)" }}
-        onMouseEnter={(e) =>
-          (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-        }
-        onMouseLeave={(e) =>
-          (e.currentTarget.style.backgroundColor = "transparent")
+        icon={
+          sidebarOpen ? <PanelLeftClose size={16} /> : <PanelLeft size={16} />
         }
         aria-label={t("toolbar.toggle_sidebar")}
-      >
-        {sidebarOpen ? <PanelLeftClose size={16} /> : <PanelLeft size={16} />}
-      </button>
+        variant="subtle"
+      />
 
       <div className="ml-1 flex items-center gap-0.5">
-        <button
+        <IconButton
           onClick={goBack}
           disabled={!canGoBack}
-          className="flex h-7 w-7 items-center justify-center rounded disabled:opacity-30"
-          style={{ color: "var(--text-secondary)" }}
-          onMouseEnter={(e) => {
-            if (canGoBack)
-              e.currentTarget.style.backgroundColor = "var(--bg-hover)";
-          }}
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = "transparent")
-          }
+          icon={<ChevronLeft size={16} />}
           aria-label="Back"
-        >
-          <ChevronLeft size={16} />
-        </button>
-        <button
+          variant="subtle"
+        />
+        <IconButton
           onClick={goForward}
           disabled={!canGoForward}
-          className="flex h-7 w-7 items-center justify-center rounded disabled:opacity-30"
-          style={{ color: "var(--text-secondary)" }}
-          onMouseEnter={(e) => {
-            if (canGoForward)
-              e.currentTarget.style.backgroundColor = "var(--bg-hover)";
-          }}
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = "transparent")
-          }
+          icon={<ChevronRight size={16} />}
           aria-label="Forward"
-        >
-          <ChevronRight size={16} />
-        </button>
+          variant="subtle"
+        />
       </div>
 
       <div className="ml-3 flex-1" data-testid="breadcrumb">

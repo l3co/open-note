@@ -8,8 +8,8 @@ use commands::notebook::{
     create_notebook, delete_notebook, list_notebooks, rename_notebook, reorder_notebooks,
 };
 use commands::page::{
-    create_page, delete_page, import_pdf, list_pages, load_page, move_page, read_file_content,
-    save_file_content, update_page, update_page_blocks,
+    create_page, create_pdf_canvas_page, delete_page, import_pdf, list_pages, load_page, move_page,
+    read_file_content, save_file_content, update_page, update_page_annotations, update_page_blocks,
 };
 use commands::search::{
     get_index_status, quick_open, rebuild_index, reindex_page, search_all_workspaces, search_pages,
@@ -81,8 +81,10 @@ pub fn run() {
             create_page,
             update_page,
             update_page_blocks,
+            update_page_annotations,
             delete_page,
             move_page,
+            create_pdf_canvas_page,
             // File I/O
             read_file_content,
             save_file_content,

@@ -282,7 +282,54 @@
       "move": "Move to...",
       "duplicate": "Duplicate",
       "new_section": "New Section",
-      "new_page": "New Page"
+      "new_page": "New Page",
+      "import_pdf": "Import PDF"
+    },
+    "pdf_canvas": {
+      "prev_page": "Previous page",
+      "next_page": "Next page",
+      "zoom_in": "Zoom in",
+      "zoom_out": "Zoom out",
+      "tool_scroll": "Scroll mode",
+      "tool_pen": "Pen",
+      "tool_eraser": "Eraser",
+      "undo": "Undo",
+      "redo": "Redo",
+      "load_error": "Failed to load PDF",
+      "untitled": "Untitled",
+      "tool_highlighter": "Highlighter",
+      "size": "Size"
+    },
+    "section_overview": {
+      "new_page": "New Page",
+      "import_pdf": "Import PDF",
+      "untitled": "Untitled",
+      "grid_view": "Grid view",
+      "list_view": "List view",
+      "empty_title": "No pages yet",
+      "empty_description": "Create your first page in this section"
+    },
+    "editor": {
+      "youtube": {
+        "loading_meta": "Loading info...",
+        "untitled": "YouTube Video",
+        "open_external": "Open on YouTube",
+        "url_prompt": "Paste YouTube URL:"
+      },
+      "slash": {
+        "youtube": "YouTube",
+        "youtube_desc": "Embed a YouTube video"
+      }
+    },
+    "notebook_overview": {
+      "new_section": "New Section",
+      "new_section_default": "New Section",
+      "grid_view": "Grid view",
+      "list_view": "List view",
+      "empty_title": "No sections yet",
+      "empty_description": "Create your first section in this notebook",
+      "pages": "page",
+      "pages_plural": "pages"
     }
   }
 }

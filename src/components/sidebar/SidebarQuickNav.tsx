@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { Search, Home, CalendarDays, Tag } from "lucide-react";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { useUIStore } from "@/stores/useUIStore";
+import { clsx } from "clsx";
 
 export function SidebarQuickNav() {
   const { t } = useTranslation();
@@ -59,18 +60,11 @@ function QuickNavItem({
     <button
       onClick={onClick}
       disabled={disabled}
-      className="flex h-8 w-full items-center gap-2.5 rounded-md px-2.5 text-[14px] font-medium transition-colors disabled:opacity-40"
-      style={{
-        color: active ? "var(--accent)" : "var(--text-secondary)",
-        backgroundColor: active ? "var(--accent-subtle)" : "transparent",
-      }}
-      onMouseEnter={(e) => {
-        if (!active && !disabled)
-          e.currentTarget.style.backgroundColor = "var(--bg-hover)";
-      }}
-      onMouseLeave={(e) => {
-        if (!active) e.currentTarget.style.backgroundColor = "transparent";
-      }}
+      className={clsx(
+        "interactive-ghost flex h-8 w-full items-center gap-2.5 rounded-md px-2.5 text-[14px] font-medium transition-colors disabled:opacity-40",
+        active ? "text-[var(--accent)]" : "text-[var(--text-secondary)]",
+      )}
+      data-active={active}
     >
       <span className="flex h-4 w-4 shrink-0 items-center justify-center">
         {icon}

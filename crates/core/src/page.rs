@@ -21,6 +21,10 @@ pub struct Page {
     pub blocks: Vec<Block>,
     pub annotations: PageAnnotations,
     pub editor_preferences: EditorPreferences,
+    #[serde(default)]
+    pub pdf_asset: Option<String>,
+    #[serde(default)]
+    pub pdf_total_pages: Option<u32>,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
     pub schema_version: u32,
@@ -44,6 +48,45 @@ impl Page {
             blocks: Vec::new(),
             annotations: PageAnnotations::default(),
             editor_preferences: EditorPreferences::default(),
+            pdf_asset: None,
+            pdf_total_pages: None,
+            created_at: now,
+            updated_at: now,
+            schema_version: CURRENT_SCHEMA_VERSION,
+        })
+    }
+
+    pub fn new_pdf_canvas(
+        section_id: SectionId,
+        title: &str,
+        pdf_asset: &str,
+        pdf_total_pages: u32,
+    ) -> Result<Self, CoreError> {
+        let title = title.trim().to_string();
+        if title.is_empty() {
+            return Err(CoreError::Validation {
+                message: "Page title cannot be empty".to_string(),
+            });
+        }
+        if pdf_asset.is_empty() {
+            return Err(CoreError::Validation {
+                message: "PDF asset path cannot be empty".to_string(),
+            });
+        }
+        let now = Utc::now();
+        Ok(Self {
+            id: PageId::new(),
+            section_id,
+            title,
+            tags: Vec::new(),
+            blocks: Vec::new(),
+            annotations: PageAnnotations::default(),
+            editor_preferences: EditorPreferences {
+                mode: EditorMode::PdfCanvas,
+                split_view: false,
+            },
+            pdf_asset: Some(pdf_asset.to_string()),
+            pdf_total_pages: Some(pdf_total_pages),
             created_at: now,
             updated_at: now,
             schema_version: CURRENT_SCHEMA_VERSION,
@@ -167,6 +210,7 @@ impl Default for EditorPreferences {
 pub enum EditorMode {
     RichText,
     Markdown,
+    PdfCanvas,
 }
 
 #[cfg(test)]

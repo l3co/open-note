@@ -101,11 +101,18 @@ Definido em `crates/core/src/page.rs`.
 | `title` | `String` | Título (não vazio, trimmed) |
 | `tags` | `Vec<String>` | Tags livres (lowercase, unique) |
 | `blocks` | `Vec<Block>` | Blocos de conteúdo ordenados |
-| `annotations` | `PageAnnotations` | Strokes e highlights |
+| `annotations` | `PageAnnotations` | Strokes e highlights por página PDF |
 | `editor_preferences` | `EditorPreferences` | Modo de edição por page |
+| `pdf_asset` | `Option<String>` | Caminho absoluto do PDF (só em `EditorMode::PdfCanvas`) |
+| `pdf_total_pages` | `Option<u32>` | Número de páginas do PDF |
 | `created_at` | `DateTime<Utc>` | Data de criação |
 | `updated_at` | `DateTime<Utc>` | Última atualização |
 | `schema_version` | `u32` | Versão do schema (atual: 1) |
+
+**`EditorPreferences.editor_mode`:**
+- `Rich` — editor rich-text TipTap (padrão)
+- `Markdown` — editor CodeMirror markdown
+- `PdfCanvas` — anotação direta sobre PDF com ferramentas de escrita à mão
 
 **Constantes:**
 - `SOFT_BLOCK_LIMIT = 200` — warning no StatusBar

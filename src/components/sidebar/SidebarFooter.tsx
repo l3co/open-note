@@ -98,15 +98,7 @@ function FooterButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      className="flex h-7 w-7 items-center justify-center rounded disabled:opacity-30"
-      style={{ color: "var(--text-secondary)" }}
-      onMouseEnter={(e) => {
-        if (!disabled)
-          e.currentTarget.style.backgroundColor = "var(--bg-hover)";
-      }}
-      onMouseLeave={(e) =>
-        (e.currentTarget.style.backgroundColor = "transparent")
-      }
+      className="interactive-ghost flex h-7 w-7 items-center justify-center rounded text-[var(--text-secondary)] disabled:opacity-30"
       aria-label={label}
       title={label}
     >

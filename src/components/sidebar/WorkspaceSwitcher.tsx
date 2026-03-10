@@ -92,14 +92,7 @@ export function WorkspaceSwitcher({
       <button
         ref={triggerRef}
         onClick={handleToggle}
-        className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium"
-        style={{ color: "var(--text-primary)" }}
-        onMouseEnter={(e) =>
-          (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-        }
-        onMouseLeave={(e) =>
-          (e.currentTarget.style.backgroundColor = "transparent")
-        }
+        className="interactive-ghost flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm font-medium text-[var(--text-primary)]"
         aria-expanded={isOpen}
         aria-haspopup="listbox"
         title={focused?.workspace.root_path}
@@ -180,14 +173,7 @@ export function WorkspaceSwitcher({
                 role="option"
                 aria-selected={isFocused}
                 onClick={() => handleFocus(id)}
-                className="group flex w-full items-center gap-2 px-3 py-2 text-sm"
-                style={{ color: "var(--text-primary)" }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.backgroundColor = "transparent")
-                }
+                className="interactive-ghost group flex w-full items-center gap-2 px-3 py-2 text-sm text-[var(--text-primary)]"
                 title={t("workspace.switch_to", { name: slice.workspace.name })}
                 data-testid={`workspace-item-${id}`}
               >
@@ -209,16 +195,7 @@ export function WorkspaceSwitcher({
                 </span>
                 <button
                   onClick={(e) => handleClose(e, id)}
-                  className="flex h-5 w-5 shrink-0 items-center justify-center rounded opacity-0 group-hover:opacity-100"
-                  style={{ color: "var(--text-tertiary)" }}
-                  onMouseEnter={(e) => {
-                    e.stopPropagation();
-                    e.currentTarget.style.backgroundColor = "var(--bg-active)";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.stopPropagation();
-                    e.currentTarget.style.backgroundColor = "transparent";
-                  }}
+                  className="interactive-subtle flex h-5 w-5 shrink-0 items-center justify-center rounded text-[var(--text-tertiary)] opacity-0 group-hover:opacity-100"
                   aria-label={t("workspace.close_workspace")}
                   data-testid={`workspace-close-${id}`}
                 >
@@ -235,14 +212,7 @@ export function WorkspaceSwitcher({
 
           <button
             onClick={handleOpenNew}
-            className="flex w-full items-center gap-2 px-3 py-2 text-sm"
-            style={{ color: "var(--text-secondary)" }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "transparent")
-            }
+            className="interactive-ghost flex w-full items-center gap-2 px-3 py-2 text-sm text-[var(--text-secondary)]"
             data-testid="workspace-open-another"
           >
             <FolderOpen size={14} />
@@ -250,14 +220,7 @@ export function WorkspaceSwitcher({
           </button>
           <button
             onClick={handleCreateNew}
-            className="flex w-full items-center gap-2 px-3 py-2 text-sm"
-            style={{ color: "var(--text-secondary)" }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "transparent")
-            }
+            className="interactive-ghost flex w-full items-center gap-2 px-3 py-2 text-sm text-[var(--text-secondary)]"
             data-testid="workspace-create-another"
           >
             <Plus size={14} />

@@ -21,6 +21,9 @@ vi.mock("@tiptap/react", () => {
     destroy: vi.fn(),
     state: { doc: { textContent: "" } },
   };
+  const NodeMock = {
+    create: (config: Record<string, unknown>) => ({ ...config, _isMock: true }),
+  };
   return {
     useEditor: (opts: {
       onUpdate?: (p: { editor: typeof mockEditor }) => void;
@@ -32,6 +35,7 @@ vi.mock("@tiptap/react", () => {
     },
     EditorContent: ({ editor }: { editor: unknown }) =>
       editor ? <div data-testid="editor-content">Editor Content</div> : null,
+    Node: NodeMock,
   };
 });
 

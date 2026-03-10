@@ -129,18 +129,11 @@ export function TagEditor({ tags }: TagEditorProps) {
               {suggestions.map((s) => (
                 <li
                   key={s}
-                  className="cursor-pointer px-3 py-1 text-xs"
-                  style={{ color: "var(--text-primary)" }}
+                  className="interactive-ghost cursor-pointer px-3 py-1 text-xs text-[var(--text-primary)]"
                   onMouseDown={(e) => {
                     e.preventDefault();
                     addTag(s);
                   }}
-                  onMouseEnter={(e) =>
-                    (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-                  }
-                  onMouseLeave={(e) =>
-                    (e.currentTarget.style.backgroundColor = "transparent")
-                  }
                 >
                   {s}
                 </li>
@@ -151,14 +144,7 @@ export function TagEditor({ tags }: TagEditorProps) {
       ) : (
         <button
           onClick={() => setIsAdding(true)}
-          className="flex items-center gap-1 rounded-full px-2 py-0.5 text-xs"
-          style={{ color: "var(--text-tertiary)" }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = "transparent")
-          }
+          className="interactive-ghost flex items-center gap-1 rounded-full px-2 py-0.5 text-xs text-[var(--text-tertiary)]"
         >
           <Plus size={10} />
           tag

@@ -18,6 +18,7 @@ import { usePageStore } from "@/stores/usePageStore";
 import { ContextMenu } from "@/components/shared/ContextMenu";
 import type { Section } from "@/types/bindings/Section";
 import type { PageSummary } from "@/types/bindings/PageSummary";
+import { clsx } from "clsx";
 
 export function NotebookTree() {
   const { t } = useTranslation();
@@ -35,9 +36,9 @@ export function NotebookTree() {
     selectedPageId,
     expandedNotebooks,
     expandedSections,
-    toggleNotebook,
-    toggleSection,
     selectPage,
+    openSectionOverview,
+    openNotebookOverview,
   } = useNavigationStore();
   const { loadPages, loadPage, pages } = usePageStore();
 
@@ -55,20 +56,18 @@ export function NotebookTree() {
 
   const handleNotebookClick = useCallback(
     (id: string) => {
-      useNavigationStore.setState({ selectedNotebookId: id });
-      toggleNotebook(id);
+      openNotebookOverview(id);
       loadSections(id);
     },
-    [toggleNotebook, loadSections],
+    [openNotebookOverview, loadSections],
   );
 
   const handleSectionClick = useCallback(
     (sectionId: string) => {
-      useNavigationStore.setState({ selectedSectionId: sectionId });
-      toggleSection(sectionId);
+      openSectionOverview(sectionId);
       loadPages(sectionId);
     },
-    [toggleSection, loadPages],
+    [openSectionOverview, loadPages],
   );
 
   const handlePageClick = useCallback(
@@ -351,20 +350,16 @@ function TreeItem({
     }
   };
 
-  const bgColor = isDragOver
-    ? "var(--accent-subtle)"
-    : isSelected
-      ? "var(--accent-subtle)"
-      : "transparent";
-
   return (
     <div
-      className="group flex h-8 cursor-pointer items-center gap-2 rounded-md pr-1 text-[14px]"
-      style={{
-        paddingLeft,
-        backgroundColor: bgColor,
-        color: isSelected ? "var(--accent)" : "var(--text-primary)",
-      }}
+      className={clsx(
+        "interactive-ghost group flex h-8 cursor-pointer items-center gap-2 rounded-md pr-1 text-[14px]",
+        (isSelected || isDragOver) &&
+          "bg-[var(--accent-subtle)] text-[var(--accent)]",
+        !isSelected && !isDragOver && "text-[var(--text-primary)]",
+      )}
+      style={{ paddingLeft }}
+      data-active={isSelected || isDragOver}
       onClick={onClick}
       onContextMenu={onContextMenu}
       onDoubleClick={(e) => {
@@ -373,14 +368,6 @@ function TreeItem({
           setDraft(label);
           setRenaming(true);
         }
-      }}
-      onMouseEnter={(e) => {
-        if (!isSelected && !isDragOver)
-          e.currentTarget.style.backgroundColor = "var(--bg-hover)";
-      }}
-      onMouseLeave={(e) => {
-        if (!isSelected && !isDragOver)
-          e.currentTarget.style.backgroundColor = "transparent";
       }}
       role="button"
       tabIndex={0}

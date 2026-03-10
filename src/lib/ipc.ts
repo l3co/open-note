@@ -10,6 +10,7 @@ import type { PageId } from "@/types/bindings/PageId";
 import type { PageSummary } from "@/types/bindings/PageSummary";
 import type { Section } from "@/types/bindings/Section";
 import type { SectionId } from "@/types/bindings/SectionId";
+import type { PageAnnotations } from "@/types/bindings/PageAnnotations";
 import type { TrashItem } from "@/types/bindings/TrashItem";
 import type { Workspace } from "@/types/bindings/Workspace";
 import type { WorkspaceSettings } from "@/types/bindings/WorkspaceSettings";
@@ -172,6 +173,32 @@ export const importPdf = (
   invoke<[string, string, number]>("import_pdf", {
     sectionId,
     filePath,
+    workspaceId,
+  });
+
+export const createPdfCanvasPage = (
+  sectionId: SectionId,
+  title: string,
+  pdfAsset: string,
+  pdfTotalPages: number,
+  workspaceId?: string,
+) =>
+  invoke<Page>("create_pdf_canvas_page", {
+    sectionId,
+    title,
+    pdfAsset,
+    pdfTotalPages,
+    workspaceId,
+  });
+
+export const updatePageAnnotations = (
+  pageId: PageId,
+  annotations: PageAnnotations,
+  workspaceId?: string,
+) =>
+  invoke<void>("update_page_annotations", {
+    pageId,
+    annotations,
     workspaceId,
   });
 

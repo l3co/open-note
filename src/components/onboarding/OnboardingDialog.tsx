@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import { BackgroundPattern } from "@/components/shared/BackgroundPattern";
 import logoSrc from "@/assets/logo.png";
+import { Button, Dialog } from "@/components/ui";
 
 interface OnboardingDialogProps {
   onComplete: () => void;
@@ -46,7 +47,6 @@ const TOUR_STEPS: TourStep[] = [
 ];
 
 export function OnboardingDialog({ onComplete }: OnboardingDialogProps) {
-  const { t } = useTranslation();
   const [step, setStep] = useState<"welcome" | number>("welcome");
 
   const handleStartTour = () => {
@@ -70,22 +70,14 @@ export function OnboardingDialog({ onComplete }: OnboardingDialogProps) {
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{ backgroundColor: "var(--overlay)" }}
+    <Dialog
+      open={true}
+      onClose={onComplete}
+      data-testid="onboarding-dialog"
+      showCloseButton={false}
+      className="w-[480px] p-0"
     >
-      <div
-        className="relative w-[480px] overflow-hidden rounded-xl border shadow-xl"
-        style={{
-          backgroundColor: "var(--bg-primary)",
-          borderColor: "var(--border)",
-          boxShadow: "var(--shadow-lg)",
-        }}
-        role="dialog"
-        aria-modal="true"
-        aria-label={t("onboarding.welcome")}
-        data-testid="onboarding-dialog"
-      >
+      <div className="relative">
         <BackgroundPattern />
         {step === "welcome" ? (
           <WelcomeStep onStart={handleStartTour} onSkip={onComplete} />
@@ -100,7 +92,7 @@ export function OnboardingDialog({ onComplete }: OnboardingDialogProps) {
           />
         )}
       </div>
-    </div>
+    </Dialog>
   );
 }
 
@@ -136,38 +128,25 @@ function WelcomeStep({
       </p>
 
       <div className="mt-8 flex w-full flex-col gap-3">
-        <button
+        <Button
+          variant="primary"
           onClick={onStart}
           data-testid="onboarding-start"
-          className="flex items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-colors"
-          style={{
-            backgroundColor: "var(--accent)",
-            color: "var(--accent-text)",
-          }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor = "var(--accent-hover)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = "var(--accent)")
-          }
+          fullWidth
+          className="py-2.5"
+          icon={<ArrowRight size={16} />}
+          iconPosition="right"
         >
           {t("onboarding.start_local")}
-          <ArrowRight size={16} />
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
           onClick={onSkip}
           data-testid="onboarding-skip"
-          className="rounded-lg px-4 py-2 text-sm transition-colors"
-          style={{ color: "var(--text-tertiary)" }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = "transparent")
-          }
+          fullWidth
         >
           {t("common.close")}
-        </button>
+        </Button>
       </div>
     </div>
   );
@@ -240,48 +219,23 @@ function TourStepView({
 
       {/* Navigation */}
       <div className="mt-6 flex items-center justify-between">
-        <button
+        <Button
+          variant="ghost"
           onClick={onBack}
           data-testid="onboarding-back"
-          className="flex items-center gap-1 rounded-lg px-3 py-2 text-sm transition-colors"
-          style={{ color: "var(--text-secondary)" }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = "transparent")
-          }
+          icon={<ArrowLeft size={14} />}
         >
-          <ArrowLeft size={14} />
           {t("common.cancel")}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="primary"
           onClick={onNext}
           data-testid="onboarding-next"
-          className="flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors"
-          style={{
-            backgroundColor: "var(--accent)",
-            color: "var(--accent-text)",
-          }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.backgroundColor = "var(--accent-hover)")
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.backgroundColor = "var(--accent)")
-          }
+          icon={isLast ? <Check size={14} /> : <ArrowRight size={14} />}
+          iconPosition="right"
         >
-          {isLast ? (
-            <>
-              {t("common.confirm")}
-              <Check size={14} />
-            </>
-          ) : (
-            <>
-              {t("common.ok")}
-              <ArrowRight size={14} />
-            </>
-          )}
-        </button>
+          {isLast ? t("common.confirm") : t("common.ok")}
+        </Button>
       </div>
     </div>
   );

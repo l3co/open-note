@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { useUIStore } from "@/stores/useUIStore";
 import { ACCENT_PALETTES } from "@/lib/theme";
+import { clsx } from "clsx";
 
 export function AppearanceSection() {
   const { t } = useTranslation();
@@ -40,27 +41,14 @@ export function AppearanceSection() {
             <button
               key={th.id}
               onClick={() => handleBaseTheme(th.id)}
-              className="rounded-md border px-3 py-1.5 text-xs font-medium transition-colors"
-              style={{
-                borderColor:
-                  theme.baseTheme === th.id ? "var(--accent)" : "var(--border)",
-                backgroundColor:
-                  theme.baseTheme === th.id
-                    ? "var(--accent-subtle)"
-                    : "transparent",
-                color:
-                  theme.baseTheme === th.id
-                    ? "var(--accent)"
-                    : "var(--text-secondary)",
-              }}
-              onMouseEnter={(e) => {
-                if (theme.baseTheme !== th.id)
-                  e.currentTarget.style.backgroundColor = "var(--bg-hover)";
-              }}
-              onMouseLeave={(e) => {
-                if (theme.baseTheme !== th.id)
-                  e.currentTarget.style.backgroundColor = "transparent";
-              }}
+              className={clsx(
+                "interactive-ghost rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
+                theme.baseTheme === th.id
+                  ? "border-[var(--accent)]"
+                  : "border-[var(--border)]",
+                theme.baseTheme !== th.id && "text-[var(--text-secondary)]",
+              )}
+              data-active={theme.baseTheme === th.id}
             >
               {th.label}
             </button>
@@ -95,57 +83,27 @@ export function AppearanceSection() {
         <div className="flex gap-2">
           <button
             onClick={() => handleChromeTint("neutral")}
-            className="rounded-md border px-3 py-1.5 text-xs font-medium transition-colors"
-            style={{
-              borderColor:
-                theme.chromeTint === "neutral"
-                  ? "var(--accent)"
-                  : "var(--border)",
-              backgroundColor:
-                theme.chromeTint === "neutral"
-                  ? "var(--accent-subtle)"
-                  : "transparent",
-              color:
-                theme.chromeTint === "neutral"
-                  ? "var(--accent)"
-                  : "var(--text-secondary)",
-            }}
-            onMouseEnter={(e) => {
-              if (theme.chromeTint !== "neutral")
-                e.currentTarget.style.backgroundColor = "var(--bg-hover)";
-            }}
-            onMouseLeave={(e) => {
-              if (theme.chromeTint !== "neutral")
-                e.currentTarget.style.backgroundColor = "transparent";
-            }}
+            className={clsx(
+              "interactive-ghost rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
+              theme.chromeTint === "neutral"
+                ? "border-[var(--accent)]"
+                : "border-[var(--border)]",
+              theme.chromeTint !== "neutral" && "text-[var(--text-secondary)]",
+            )}
+            data-active={theme.chromeTint === "neutral"}
           >
             {t("settings.chrome_neutral")}
           </button>
           <button
             onClick={() => handleChromeTint("tinted")}
-            className="rounded-md border px-3 py-1.5 text-xs font-medium transition-colors"
-            style={{
-              borderColor:
-                theme.chromeTint === "tinted"
-                  ? "var(--accent)"
-                  : "var(--border)",
-              backgroundColor:
-                theme.chromeTint === "tinted"
-                  ? "var(--accent-subtle)"
-                  : "transparent",
-              color:
-                theme.chromeTint === "tinted"
-                  ? "var(--accent)"
-                  : "var(--text-secondary)",
-            }}
-            onMouseEnter={(e) => {
-              if (theme.chromeTint !== "tinted")
-                e.currentTarget.style.backgroundColor = "var(--bg-hover)";
-            }}
-            onMouseLeave={(e) => {
-              if (theme.chromeTint !== "tinted")
-                e.currentTarget.style.backgroundColor = "transparent";
-            }}
+            className={clsx(
+              "interactive-ghost rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
+              theme.chromeTint === "tinted"
+                ? "border-[var(--accent)]"
+                : "border-[var(--border)]",
+              theme.chromeTint !== "tinted" && "text-[var(--text-secondary)]",
+            )}
+            data-active={theme.chromeTint === "tinted"}
           >
             {t("settings.chrome_tinted")}
           </button>

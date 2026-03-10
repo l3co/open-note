@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import i18n from "@/lib/i18n";
 import { useUIStore } from "@/stores/useUIStore";
+import { clsx } from "clsx";
 
 const DOCUMENT_LANGUAGES = [
   { id: "pt-BR", label: "Português (BR)" },
@@ -93,18 +94,12 @@ function LangButton({
   return (
     <button
       onClick={onClick}
-      className="rounded-md border px-3 py-1.5 text-xs font-medium transition-colors"
-      style={{
-        borderColor: active ? "var(--accent)" : "var(--border)",
-        backgroundColor: active ? "var(--accent-subtle)" : "transparent",
-        color: active ? "var(--accent)" : "var(--text-secondary)",
-      }}
-      onMouseEnter={(e) => {
-        if (!active) e.currentTarget.style.backgroundColor = "var(--bg-hover)";
-      }}
-      onMouseLeave={(e) => {
-        if (!active) e.currentTarget.style.backgroundColor = "transparent";
-      }}
+      className={clsx(
+        "interactive-ghost rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
+        active ? "border-[var(--accent)]" : "border-[var(--border)]",
+        !active && "text-[var(--text-secondary)]",
+      )}
+      data-active={active}
     >
       {label}
     </button>

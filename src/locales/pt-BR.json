@@ -282,7 +282,54 @@
       "move": "Mover para...",
       "duplicate": "Duplicar",
       "new_section": "Nova Seção",
-      "new_page": "Nova Página"
+      "new_page": "Nova Página",
+      "import_pdf": "Importar PDF"
+    },
+    "pdf_canvas": {
+      "prev_page": "Página anterior",
+      "next_page": "Próxima página",
+      "zoom_in": "Aumentar zoom",
+      "zoom_out": "Diminuir zoom",
+      "tool_scroll": "Modo rolagem",
+      "tool_pen": "Caneta",
+      "tool_eraser": "Borracha",
+      "undo": "Desfazer",
+      "redo": "Refazer",
+      "load_error": "Erro ao carregar PDF",
+      "untitled": "Sem título",
+      "tool_highlighter": "Marcador",
+      "size": "Espessura"
+    },
+    "section_overview": {
+      "new_page": "Nova Página",
+      "import_pdf": "Importar PDF",
+      "untitled": "Sem título",
+      "grid_view": "Visualização em grade",
+      "list_view": "Visualização em lista",
+      "empty_title": "Nenhuma página ainda",
+      "empty_description": "Crie sua primeira página nesta seção"
+    },
+    "editor": {
+      "youtube": {
+        "loading_meta": "Carregando informações...",
+        "untitled": "Vídeo do YouTube",
+        "open_external": "Abrir no YouTube",
+        "url_prompt": "Cole a URL do YouTube:"
+      },
+      "slash": {
+        "youtube": "YouTube",
+        "youtube_desc": "Incorporar vídeo do YouTube"
+      }
+    },
+    "notebook_overview": {
+      "new_section": "Nova Seção",
+      "new_section_default": "Nova Seção",
+      "grid_view": "Visualização em grade",
+      "list_view": "Visualização em lista",
+      "empty_title": "Nenhuma seção ainda",
+      "empty_description": "Crie sua primeira seção neste notebook",
+      "pages": "página",
+      "pages_plural": "páginas"
     }
   }
 }

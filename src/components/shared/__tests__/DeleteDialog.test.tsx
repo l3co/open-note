@@ -19,7 +19,7 @@ describe("DeleteDialog", () => {
 
   it("renders dialog with delete title", () => {
     render(<DeleteDialog {...defaultProps} />);
-    expect(screen.getByRole("alertdialog")).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
   it("shows item name in confirmation text", () => {
@@ -51,12 +51,12 @@ describe("DeleteDialog", () => {
 
   it("renders for section type", () => {
     render(<DeleteDialog {...defaultProps} itemType="section" />);
-    expect(screen.getByRole("alertdialog")).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
   it("renders for page type", () => {
     render(<DeleteDialog {...defaultProps} itemType="page" />);
-    expect(screen.getByRole("alertdialog")).toBeInTheDocument();
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
   });
 
   it("disables confirm button while submitting", async () => {

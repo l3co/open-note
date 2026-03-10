@@ -58,7 +58,9 @@ describe("CreateDialog", () => {
     const user = userEvent.setup();
     render(<CreateDialog {...defaultProps} />);
     await user.type(screen.getByTestId("create-dialog-input"), "Test{Enter}");
-    expect(defaultProps.onConfirm).toHaveBeenCalledWith("Test");
+    await vi.waitFor(() => {
+      expect(defaultProps.onConfirm).toHaveBeenCalledWith("Test");
+    });
   });
 
   it("cancels on Escape key", async () => {

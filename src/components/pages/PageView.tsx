@@ -1,12 +1,17 @@
 import type { Page } from "@/types/bindings/Page";
 import { PageEditor } from "@/components/editor/PageEditor";
 import { TagEditor } from "@/components/pages/TagEditor";
+import { PdfCanvasPage } from "@/components/pdf/PdfCanvasPage";
 
 interface PageViewProps {
   page: Page;
 }
 
 export function PageView({ page }: PageViewProps) {
+  if (page.editor_preferences.mode === "pdf_canvas") {
+    return <PdfCanvasPage page={page} />;
+  }
+
   return (
     <div
       className="flex flex-1 flex-col overflow-y-auto"

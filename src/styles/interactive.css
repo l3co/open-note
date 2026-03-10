@@ -1,0 +1,92 @@
+/* src/styles/interactive.css */
+.interactive-ghost {
+  background-color: transparent;
+  transition:
+    background-color 100ms ease,
+    color 100ms ease;
+  outline: none;
+}
+.interactive-ghost:hover:not(:disabled) {
+  background-color: var(--bg-hover);
+}
+.interactive-ghost:focus-visible {
+  background-color: var(--bg-hover);
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.interactive-ghost[data-active="true"],
+.interactive-ghost.active {
+  background-color: var(--accent-subtle);
+  color: var(--accent);
+}
+.interactive-ghost:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.interactive-subtle {
+  background-color: transparent;
+  transition:
+    background-color 100ms ease,
+    color 100ms ease;
+  outline: none;
+}
+.interactive-subtle:hover:not(:disabled) {
+  background-color: var(--bg-hover);
+}
+.interactive-subtle:focus-visible {
+  background-color: var(--bg-active);
+  outline: 2px solid var(--accent);
+  outline-offset: -2px;
+}
+.interactive-subtle[data-active="true"] {
+  background-color: var(--bg-active);
+}
+.interactive-subtle:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.interactive-danger {
+  background-color: transparent;
+  transition:
+    background-color 100ms ease,
+    color 100ms ease;
+  outline: none;
+}
+.interactive-danger:hover:not(:disabled) {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: rgb(239, 68, 68);
+}
+.interactive-danger:focus-visible {
+  background-color: rgba(239, 68, 68, 0.1);
+  outline: 2px solid rgb(239, 68, 68);
+  outline-offset: -2px;
+}
+.interactive-danger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.interactive-accent {
+  background-color: var(--accent);
+  color: white;
+  transition:
+    opacity 100ms ease,
+    transform 100ms ease;
+  outline: none;
+}
+.interactive-accent:hover:not(:disabled) {
+  opacity: 0.9;
+}
+.interactive-accent:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.interactive-accent:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+.interactive-accent:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

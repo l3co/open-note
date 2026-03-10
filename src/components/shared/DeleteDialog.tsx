@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { AlertTriangle } from "lucide-react";
+import { Dialog, Button } from "@/components/ui";
 
 interface DeleteDialogProps {
   itemType: "notebook" | "section" | "page";
@@ -44,25 +45,10 @@ export function DeleteDialog({
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      style={{ backgroundColor: "var(--overlay)" }}
-      onClick={onCancel}
-    >
-      <div
-        className="w-80 rounded-lg border p-4 shadow-lg"
-        style={{
-          backgroundColor: "var(--bg-primary)",
-          borderColor: "var(--border)",
-          boxShadow: "var(--shadow-lg)",
-        }}
-        onClick={(e) => e.stopPropagation()}
-        role="alertdialog"
-        aria-modal="true"
-        aria-label={t(deleteKey)}
-      >
+    <Dialog open={true} onClose={onCancel} size="sm" showCloseButton={false}>
+      <Dialog.Body>
         <div className="mb-3 flex items-center gap-2">
-          <AlertTriangle size={16} style={{ color: "var(--danger)" }} />
+          <AlertTriangle size={16} className="text-red-500" />
           <h2
             className="text-sm font-semibold"
             style={{ color: "var(--text-primary)" }}
@@ -74,42 +60,27 @@ export function DeleteDialog({
         <p className="text-sm" style={{ color: "var(--text-secondary)" }}>
           {t(confirmKey, { name: itemName })}
         </p>
+      </Dialog.Body>
 
-        <div className="mt-4 flex justify-end gap-2">
-          <button
-            onClick={onCancel}
-            data-testid="delete-dialog-cancel"
-            className="rounded px-3 py-1.5 text-xs"
-            style={{ color: "var(--text-secondary)" }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "var(--bg-hover)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "transparent")
-            }
-          >
-            {t("common.cancel")}
-          </button>
-          <button
-            onClick={handleConfirm}
-            disabled={submitting}
-            data-testid="delete-dialog-confirm"
-            className="rounded px-3 py-1.5 text-xs font-medium disabled:opacity-50"
-            style={{
-              backgroundColor: "var(--danger)",
-              color: "#ffffff",
-            }}
-            onMouseEnter={(e) =>
-              (e.currentTarget.style.backgroundColor = "var(--danger-hover)")
-            }
-            onMouseLeave={(e) =>
-              (e.currentTarget.style.backgroundColor = "var(--danger)")
-            }
-          >
-            {t("common.delete")}
-          </button>
-        </div>
-      </div>
-    </div>
+      <Dialog.Footer>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={onCancel}
+          data-testid="delete-dialog-cancel"
+        >
+          {t("common.cancel")}
+        </Button>
+        <Button
+          variant="danger"
+          size="sm"
+          onClick={handleConfirm}
+          loading={submitting}
+          data-testid="delete-dialog-confirm"
+        >
+          {t("common.delete")}
+        </Button>
+      </Dialog.Footer>
+    </Dialog>
   );
 }
