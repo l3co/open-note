@@ -150,7 +150,7 @@ jobs:
       - name: Install system dependencies
         run: |
           dnf install -y \
-            git curl tar \
+            git curl tar gcc make \
             webkit2gtk4.1-devel \
             openssl-devel \
             gtk3-devel \
