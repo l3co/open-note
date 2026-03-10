@@ -408,7 +408,7 @@ describe("NotebookTree", () => {
           id: "nb-drop:nb-2",
           data: { current: { type: "notebook", id: "nb-2", label: "B" } },
         },
-      } as DragEndEvent);
+      } as unknown as DragEndEvent);
     });
     expect(reorderNotebooks).toHaveBeenCalled();
   });
