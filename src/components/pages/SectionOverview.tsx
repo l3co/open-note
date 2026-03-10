@@ -1,7 +1,15 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { open } from "@tauri-apps/plugin-dialog";
-import { LayoutGrid, List, FileText, Clock, Tag, FilePlus, FileImage } from "lucide-react";
+import {
+  LayoutGrid,
+  List,
+  FileText,
+  Clock,
+  Tag,
+  FilePlus,
+  FileImage,
+} from "lucide-react";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { usePageStore } from "@/stores/usePageStore";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
@@ -79,8 +87,10 @@ export function SectionOverview() {
         selected as string,
       );
       const fileName =
-        (selected as string).split("/").pop()?.replace(/\.pdf$/i, "") ??
-        t("pdf_canvas.untitled");
+        (selected as string)
+          .split("/")
+          .pop()
+          ?.replace(/\.pdf$/i, "") ?? t("pdf_canvas.untitled");
       const page = await createPdfCanvasPage(
         selectedSectionId,
         fileName,
