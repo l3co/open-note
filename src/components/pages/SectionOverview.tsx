@@ -1,13 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  LayoutGrid,
-  List,
-  FileText,
-  Clock,
-  Tag,
-  FilePlus,
-} from "lucide-react";
+import { LayoutGrid, List, FileText, Clock, Tag, FilePlus } from "lucide-react";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { usePageStore } from "@/stores/usePageStore";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
@@ -24,7 +17,9 @@ export function SectionOverview() {
   const { sections } = useWorkspaceStore();
 
   const [layout, setLayout] = useState<Layout>(() => {
-    return (localStorage.getItem("section-overview-layout") as Layout) ?? "grid";
+    return (
+      (localStorage.getItem("section-overview-layout") as Layout) ?? "grid"
+    );
   });
   const [currentPaginaPage, setCurrentPaginaPage] = useState(1);
 
@@ -44,6 +39,7 @@ export function SectionOverview() {
   useEffect(() => {
     if (selectedSectionId) {
       loadPages(selectedSectionId);
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setCurrentPaginaPage(1);
     }
   }, [selectedSectionId, loadPages]);
@@ -60,7 +56,10 @@ export function SectionOverview() {
 
   const handleNewPage = async () => {
     if (!selectedSectionId) return;
-    const page = await createPage(selectedSectionId, t("section_overview.untitled"));
+    const page = await createPage(
+      selectedSectionId,
+      t("section_overview.untitled"),
+    );
     selectPage(page.id);
     loadPage(page.id);
   };
@@ -176,7 +175,11 @@ function GridView({
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
       {pages.map((page) => (
-        <GridCard key={page.id} page={page} onClick={() => onPageClick(page.id)} />
+        <GridCard
+          key={page.id}
+          page={page}
+          onClick={() => onPageClick(page.id)}
+        />
       ))}
     </div>
   );
@@ -209,7 +212,7 @@ function GridCard({
 
       {/* Title */}
       <span
-        className="mb-2 line-clamp-2 text-sm font-medium leading-snug"
+        className="mb-2 line-clamp-2 text-sm leading-snug font-medium"
         style={{ color: "var(--text-primary)" }}
       >
         {page.title || t("section_overview.untitled")}
@@ -259,7 +262,11 @@ function ListView({
   return (
     <div className="flex flex-col gap-1">
       {pages.map((page) => (
-        <ListRow key={page.id} page={page} onClick={() => onPageClick(page.id)} />
+        <ListRow
+          key={page.id}
+          page={page}
+          onClick={() => onPageClick(page.id)}
+        />
       ))}
     </div>
   );
@@ -338,10 +345,7 @@ function EmptyState({ onNewPage }: { onNewPage: () => void }) {
       >
         {t("section_overview.empty_title")}
       </p>
-      <p
-        className="mb-4 text-xs"
-        style={{ color: "var(--text-tertiary)" }}
-      >
+      <p className="mb-4 text-xs" style={{ color: "var(--text-tertiary)" }}>
         {t("section_overview.empty_description")}
       </p>
       <button

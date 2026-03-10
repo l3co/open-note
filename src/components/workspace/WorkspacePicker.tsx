@@ -125,7 +125,11 @@ export function WorkspacePicker({
         >
           <AlertCircle size={14} />
           <span className="flex-1">{error}</span>
-          <IconButton size="sm" onClick={() => setError(null)} icon={<X size={12} />} />
+          <IconButton
+            size="sm"
+            onClick={() => setError(null)}
+            icon={<X size={12} />}
+          />
         </div>
       )}
 
@@ -255,16 +259,18 @@ export function WorkspacePicker({
                     });
                     if (selected) setNewPath(selected);
                   }}
-                  icon={<FolderOpen size={14} className="text-[var(--text-secondary)]" />}
+                  icon={
+                    <FolderOpen
+                      size={14}
+                      className="text-[var(--text-secondary)]"
+                    />
+                  }
                 >
                   {t("workspace.choose_folder")}
                 </Button>
               </div>
               <div className="flex justify-end gap-2">
-                <Button
-                  variant="ghost"
-                  onClick={() => setShowCreate(false)}
-                >
+                <Button variant="ghost" onClick={() => setShowCreate(false)}>
                   {t("common.cancel")}
                 </Button>
                 <Button
@@ -280,7 +286,9 @@ export function WorkspacePicker({
             <div className="space-y-1">
               <Button
                 variant="ghost"
-                icon={<Plus size={16} className="text-[var(--text-secondary)]" />}
+                icon={
+                  <Plus size={16} className="text-[var(--text-secondary)]" />
+                }
                 onClick={() => setShowCreate(true)}
                 data-testid="workspace-create-btn"
                 fullWidth
@@ -290,7 +298,9 @@ export function WorkspacePicker({
               </Button>
               <Button
                 variant="ghost"
-                icon={<Cloud size={16} className="text-[var(--text-secondary)]" />}
+                icon={
+                  <Cloud size={16} className="text-[var(--text-secondary)]" />
+                }
                 disabled
                 badge={t("workspace.cloud_coming_soon")}
                 data-testid="workspace-cloud-btn"
@@ -301,7 +311,12 @@ export function WorkspacePicker({
               </Button>
               <Button
                 variant="ghost"
-                icon={<FolderOpen size={16} className="text-[var(--text-secondary)]" />}
+                icon={
+                  <FolderOpen
+                    size={16}
+                    className="text-[var(--text-secondary)]"
+                  />
+                }
                 data-testid="workspace-open-btn"
                 fullWidth
                 className="!justify-start"

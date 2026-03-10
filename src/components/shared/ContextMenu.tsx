@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pencil, Trash2, Plus } from "lucide-react";
+import { Pencil, Trash2, Plus, FileImage } from "lucide-react";
+import { open } from "@tauri-apps/plugin-dialog";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 import { usePageStore } from "@/stores/usePageStore";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { DeleteDialog } from "@/components/shared/DeleteDialog";
+import { importPdf, createPdfCanvasPage } from "@/lib/ipc";
 
 interface ContextMenuProps {
   x: number;
@@ -105,6 +107,36 @@ export function ContextMenu({
     onClose();
   };
 
+  const handleImportPdf = async () => {
+    onClose();
+    if (type !== "section") return;
+    try {
+      const selected = await open({
+        multiple: false,
+        filters: [{ name: "PDF", extensions: ["pdf"] }],
+      });
+      if (!selected) return;
+      const [, absolutePath, pageCount] = await importPdf(id, selected);
+      const fileName =
+        (selected as string)
+          .split("/")
+          .pop()
+          ?.replace(/\.pdf$/i, "") ?? t("pdf_canvas.untitled");
+      const page = await createPdfCanvasPage(
+        id,
+        fileName,
+        absolutePath,
+        pageCount,
+      );
+      if (_notebookId) selectNotebook(_notebookId);
+      selectSection(id);
+      selectPage(page.id);
+      await loadPage(page.id);
+    } catch (err) {
+      console.error("[ContextMenu] import PDF failed:", err);
+    }
+  };
+
   if (showDeleteConfirm) {
     return (
       <DeleteDialog
@@ -167,6 +199,14 @@ export function ContextMenu({
     });
   }
 
+  if (type === "section") {
+    items.push({
+      icon: <FileImage size={14} />,
+      label: t("context_menu.import_pdf"),
+      onClick: handleImportPdf,
+    });
+  }
+
   if (type !== "page") {
     items.push({
       icon: <Pencil size={14} />,
@@ -197,8 +237,9 @@ export function ContextMenu({
       {items.map((item, i) => (
         <button
           key={i}
-          className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] ${item.danger ? "interactive-danger" : "interactive-ghost"
-            }`}
+          className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] ${
+            item.danger ? "interactive-danger" : "interactive-ghost"
+          }`}
           style={{
             color: item.danger ? "var(--danger)" : "var(--text-primary)",
           }}

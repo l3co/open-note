@@ -118,6 +118,8 @@ const makePage = () => ({
   schema_version: 1,
   editor_preferences: { mode: "rich_text" as const, split_view: false },
   annotations: { strokes: [], highlights: [], svg_cache: null },
+  pdf_asset: null,
+  pdf_total_pages: null,
 });
 
 describe("PageEditor", () => {

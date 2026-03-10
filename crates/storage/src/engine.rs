@@ -360,6 +360,19 @@ impl FsStorageEngine {
         Ok(page)
     }
 
+    pub fn create_page_from(
+        workspace_root: &Path,
+        section_id: SectionId,
+        page: Page,
+    ) -> StorageResult<Page> {
+        let (_nb_dir, sec_dir) = Self::find_section_dir(workspace_root, section_id)?;
+        let existing_slugs = Self::existing_page_slugs(&sec_dir)?;
+        let slug = unique_slug(&page.title, &existing_slugs);
+        let page_path = sec_dir.join(format!("{slug}.{PAGE_EXTENSION}"));
+        atomic_write_json(&page_path, &page)?;
+        Ok(page)
+    }
+
     pub fn update_page(workspace_root: &Path, page: &Page) -> StorageResult<()> {
         let path = Self::find_page_file(workspace_root, page.id)?;
         atomic_write_json(&path, page)

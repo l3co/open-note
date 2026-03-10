@@ -30,7 +30,8 @@ export function NotebookOverview() {
   const [creating, setCreating] = useState(false);
 
   const notebook = notebooks.find((n) => n.id === selectedNotebookId);
-  const notebookSections: Section[] = sections.get(selectedNotebookId ?? "") ?? [];
+  const notebookSections: Section[] =
+    sections.get(selectedNotebookId ?? "") ?? [];
 
   useEffect(() => {
     if (selectedNotebookId) {
@@ -207,7 +208,7 @@ function GridCard({
 
       {/* Name */}
       <span
-        className="mb-2 line-clamp-2 text-sm font-medium leading-snug"
+        className="mb-2 line-clamp-2 text-sm leading-snug font-medium"
         style={{ color: "var(--text-primary)" }}
       >
         {section.name}

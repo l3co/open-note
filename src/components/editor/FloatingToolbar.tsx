@@ -168,7 +168,6 @@ export function FloatingToolbar({ editor }: FloatingToolbarProps) {
   );
 }
 
-
 function Separator() {
   return (
     <div

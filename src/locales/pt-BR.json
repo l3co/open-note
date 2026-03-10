@@ -282,7 +282,23 @@
       "move": "Mover para...",
       "duplicate": "Duplicar",
       "new_section": "Nova Seção",
-      "new_page": "Nova Página"
+      "new_page": "Nova Página",
+      "import_pdf": "Importar PDF"
+    },
+    "pdf_canvas": {
+      "prev_page": "Página anterior",
+      "next_page": "Próxima página",
+      "zoom_in": "Aumentar zoom",
+      "zoom_out": "Diminuir zoom",
+      "tool_scroll": "Modo rolagem",
+      "tool_pen": "Caneta",
+      "tool_eraser": "Borracha",
+      "undo": "Desfazer",
+      "redo": "Refazer",
+      "load_error": "Erro ao carregar PDF",
+      "untitled": "Sem título",
+      "tool_highlighter": "Marcador",
+      "size": "Espessura"
     },
     "section_overview": {
       "new_page": "Nova Página",

@@ -55,21 +55,21 @@ describe("FloatingToolbar", () => {
     render(
       <FloatingToolbar editor={mockEditor as import("@tiptap/react").Editor} />,
     );
-    expect(screen.getByTitle("Negrito (Cmd+B)")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Cmd\+B/i })).toBeInTheDocument();
   });
 
   it("renders italic button", () => {
     render(
       <FloatingToolbar editor={mockEditor as import("@tiptap/react").Editor} />,
     );
-    expect(screen.getByTitle("Itálico (Cmd+I)")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Cmd\+I/i })).toBeInTheDocument();
   });
 
   it("renders underline button", () => {
     render(
       <FloatingToolbar editor={mockEditor as import("@tiptap/react").Editor} />,
     );
-    expect(screen.getByTitle("Sublinhado (Cmd+U)")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Cmd\+U/i })).toBeInTheDocument();
   });
 
   it("calls toggleBold on bold button click", async () => {
@@ -77,7 +77,7 @@ describe("FloatingToolbar", () => {
     render(
       <FloatingToolbar editor={mockEditor as import("@tiptap/react").Editor} />,
     );
-    await user.click(screen.getByTitle("Negrito (Cmd+B)"));
+    await user.click(screen.getByRole("button", { name: /Cmd\+B/i }));
     expect(mockRun).toHaveBeenCalled();
   });
 
@@ -86,7 +86,7 @@ describe("FloatingToolbar", () => {
     render(
       <FloatingToolbar editor={mockEditor as import("@tiptap/react").Editor} />,
     );
-    await user.click(screen.getByTitle("Itálico (Cmd+I)"));
+    await user.click(screen.getByRole("button", { name: /Cmd\+I/i }));
     expect(mockRun).toHaveBeenCalled();
   });
 
@@ -95,7 +95,7 @@ describe("FloatingToolbar", () => {
     render(
       <FloatingToolbar editor={mockEditor as import("@tiptap/react").Editor} />,
     );
-    await user.click(screen.getByTitle("Sublinhado (Cmd+U)"));
+    await user.click(screen.getByRole("button", { name: /Cmd\+U/i }));
     expect(mockRun).toHaveBeenCalled();
   });
 
@@ -104,7 +104,7 @@ describe("FloatingToolbar", () => {
     render(
       <FloatingToolbar editor={mockEditor as import("@tiptap/react").Editor} />,
     );
-    await user.click(screen.getByTitle("Tachado (Cmd+Shift+S)"));
+    await user.click(screen.getByRole("button", { name: /Cmd\+Shift\+S/i }));
     expect(mockRun).toHaveBeenCalled();
   });
 
@@ -113,7 +113,7 @@ describe("FloatingToolbar", () => {
     render(
       <FloatingToolbar editor={mockEditor as import("@tiptap/react").Editor} />,
     );
-    await user.click(screen.getByTitle("Código (Cmd+E)"));
+    await user.click(screen.getByRole("button", { name: /Cmd\+E/i }));
     expect(mockRun).toHaveBeenCalled();
   });
 
@@ -121,23 +121,23 @@ describe("FloatingToolbar", () => {
     render(
       <FloatingToolbar editor={mockEditor as import("@tiptap/react").Editor} />,
     );
-    expect(screen.getByTitle("Título 1")).toBeInTheDocument();
-    expect(screen.getByTitle("Título 2")).toBeInTheDocument();
-    expect(screen.getByTitle("Título 3")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /heading.*1|1.*heading|h1/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /heading.*2|2.*heading|h2/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /heading.*3|3.*heading|h3/i })).toBeInTheDocument();
   });
 
   it("renders blockquote button", () => {
     render(
       <FloatingToolbar editor={mockEditor as import("@tiptap/react").Editor} />,
     );
-    expect(screen.getByTitle("Citação")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /blockquote|cita/i })).toBeInTheDocument();
   });
 
   it("renders link button", () => {
     render(
       <FloatingToolbar editor={mockEditor as import("@tiptap/react").Editor} />,
     );
-    expect(screen.getByTitle("Link (Cmd+K)")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Cmd\+K/i })).toBeInTheDocument();
   });
 
   it("shows link popover on link button click", async () => {
@@ -145,7 +145,7 @@ describe("FloatingToolbar", () => {
     render(
       <FloatingToolbar editor={mockEditor as import("@tiptap/react").Editor} />,
     );
-    await user.click(screen.getByTitle("Link (Cmd+K)"));
+    await user.click(screen.getByRole("button", { name: /Cmd\+K/i }));
     expect(screen.getByPlaceholderText("https://...")).toBeInTheDocument();
   });
 
@@ -156,7 +156,7 @@ describe("FloatingToolbar", () => {
     render(
       <FloatingToolbar editor={mockEditor as import("@tiptap/react").Editor} />,
     );
-    const boldBtn = screen.getByTitle("Negrito (Cmd+B)");
+    const boldBtn = screen.getByRole("button", { name: /Cmd\+B/i });
     expect(boldBtn).toHaveAttribute("data-active", "true");
   });
 });

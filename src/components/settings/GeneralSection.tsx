@@ -97,7 +97,7 @@ function LangButton({
       className={clsx(
         "interactive-ghost rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
         active ? "border-[var(--accent)]" : "border-[var(--border)]",
-        !active && "text-[var(--text-secondary)]"
+        !active && "text-[var(--text-secondary)]",
       )}
       data-active={active}
     >

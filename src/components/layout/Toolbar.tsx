@@ -30,7 +30,9 @@ export function Toolbar() {
     >
       <IconButton
         onClick={toggleSidebar}
-        icon={sidebarOpen ? <PanelLeftClose size={16} /> : <PanelLeft size={16} />}
+        icon={
+          sidebarOpen ? <PanelLeftClose size={16} /> : <PanelLeft size={16} />
+        }
         aria-label={t("toolbar.toggle_sidebar")}
         variant="subtle"
       />

@@ -195,7 +195,7 @@ export function WorkspaceSwitcher({
                 </span>
                 <button
                   onClick={(e) => handleClose(e, id)}
-                  className="interactive-subtle flex h-5 w-5 shrink-0 items-center justify-center rounded opacity-0 group-hover:opacity-100 text-[var(--text-tertiary)]"
+                  className="interactive-subtle flex h-5 w-5 shrink-0 items-center justify-center rounded text-[var(--text-tertiary)] opacity-0 group-hover:opacity-100"
                   aria-label={t("workspace.close_workspace")}
                   data-testid={`workspace-close-${id}`}
                 >

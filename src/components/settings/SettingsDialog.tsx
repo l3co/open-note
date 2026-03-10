@@ -95,7 +95,7 @@ export function SettingsDialog() {
                 data-testid={`settings-tab-${tab.id}`}
                 className={clsx(
                   "interactive-ghost flex items-center gap-2.5 rounded-md px-3 py-2 text-left text-[13px] transition-colors",
-                  activeTab !== tab.id && "text-[var(--text-secondary)]"
+                  activeTab !== tab.id && "text-[var(--text-secondary)]",
                 )}
                 data-active={activeTab === tab.id}
               >

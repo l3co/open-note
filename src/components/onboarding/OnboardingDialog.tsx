@@ -75,7 +75,7 @@ export function OnboardingDialog({ onComplete }: OnboardingDialogProps) {
       onClose={onComplete}
       data-testid="onboarding-dialog"
       showCloseButton={false}
-      className="p-0 w-[480px]"
+      className="w-[480px] p-0"
     >
       <div className="relative">
         <BackgroundPattern />

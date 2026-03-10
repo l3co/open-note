@@ -20,7 +20,7 @@ export function TagEditor({ tags }: TagEditorProps) {
       ipc
         .listAllTags()
         .then(setAllTags)
-        .catch(() => { });
+        .catch(() => {});
       inputRef.current?.focus();
     }
   }, [isAdding]);

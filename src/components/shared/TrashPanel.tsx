@@ -134,9 +134,7 @@ function TrashItemRow({
         : "📓";
 
   return (
-    <div
-      className="group rounded-lg p-3 border-b border-[var(--border-subtle)] hover:bg-[var(--bg-hover)] transition-colors"
-    >
+    <div className="group rounded-lg border-b border-[var(--border-subtle)] p-3 transition-colors hover:bg-[var(--bg-hover)]">
       <div className="flex items-start justify-between">
         <div className="min-w-0 flex-1 cursor-default">
           <div className="flex items-center gap-1.5">
@@ -149,7 +147,7 @@ function TrashItemRow({
             </span>
           </div>
           <p
-            className="mt-0.5 text-xs truncate"
+            className="mt-0.5 truncate text-xs"
             style={{ color: "var(--text-tertiary)" }}
           >
             {item.original_path}

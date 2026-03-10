@@ -36,7 +36,7 @@ export function SidebarFooter() {
           <FooterButton
             icon={<Search size={16} />}
             label={t("sidebar.search")}
-            onClick={() => { }}
+            onClick={() => {}}
             disabled
           />
           <FooterButton
@@ -98,7 +98,7 @@ function FooterButton({
     <button
       onClick={onClick}
       disabled={disabled}
-      className="interactive-ghost flex h-7 w-7 items-center justify-center rounded disabled:opacity-30 text-[var(--text-secondary)]"
+      className="interactive-ghost flex h-7 w-7 items-center justify-center rounded text-[var(--text-secondary)] disabled:opacity-30"
       aria-label={label}
       title={label}
     >

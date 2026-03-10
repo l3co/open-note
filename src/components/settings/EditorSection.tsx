@@ -50,8 +50,11 @@ export function EditorSection() {
               data-testid={`editor-font-size-${size}`}
               className={clsx(
                 "interactive-ghost rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
-                editorConfig.fontSize === size ? "border-[var(--accent)]" : "border-[var(--border)]",
-                editorConfig.fontSize !== size && "text-[var(--text-secondary)]"
+                editorConfig.fontSize === size
+                  ? "border-[var(--accent)]"
+                  : "border-[var(--border)]",
+                editorConfig.fontSize !== size &&
+                  "text-[var(--text-secondary)]",
               )}
               data-active={editorConfig.fontSize === size}
             >
@@ -74,8 +77,10 @@ export function EditorSection() {
             data-testid="spell-check-on"
             className={clsx(
               "interactive-ghost rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
-              editorConfig.spellCheckEnabled ? "border-[var(--accent)]" : "border-[var(--border)]",
-              !editorConfig.spellCheckEnabled && "text-[var(--text-secondary)]"
+              editorConfig.spellCheckEnabled
+                ? "border-[var(--accent)]"
+                : "border-[var(--border)]",
+              !editorConfig.spellCheckEnabled && "text-[var(--text-secondary)]",
             )}
             data-active={editorConfig.spellCheckEnabled}
           >
@@ -86,8 +91,10 @@ export function EditorSection() {
             data-testid="spell-check-off"
             className={clsx(
               "interactive-ghost rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
-              !editorConfig.spellCheckEnabled ? "border-[var(--accent)]" : "border-[var(--border)]",
-              editorConfig.spellCheckEnabled && "text-[var(--text-secondary)]"
+              !editorConfig.spellCheckEnabled
+                ? "border-[var(--accent)]"
+                : "border-[var(--border)]",
+              editorConfig.spellCheckEnabled && "text-[var(--text-secondary)]",
             )}
             data-active={!editorConfig.spellCheckEnabled}
           >

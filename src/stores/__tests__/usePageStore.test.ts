@@ -29,6 +29,8 @@ const makePage = (overrides = {}) => ({
   sort_order: 0,
   editor_preferences: { mode: "rich_text" as const, split_view: false },
   annotations: { strokes: [], highlights: [], svg_cache: null },
+  pdf_asset: null,
+  pdf_total_pages: null,
   ...overrides,
 });
 

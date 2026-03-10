@@ -33,7 +33,13 @@ export function ContentArea() {
 
   let content: React.ReactNode;
 
-  if (activeView === "home" || (!selectedPageId && activeView !== "tags" && activeView !== "section" && activeView !== "notebook")) {
+  if (
+    activeView === "home" ||
+    (!selectedPageId &&
+      activeView !== "tags" &&
+      activeView !== "section" &&
+      activeView !== "notebook")
+  ) {
     content = <HomePage />;
   } else if (activeView === "tags") {
     content = <TagsPage />;

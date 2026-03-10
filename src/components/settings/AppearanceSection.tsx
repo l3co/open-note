@@ -43,8 +43,10 @@ export function AppearanceSection() {
               onClick={() => handleBaseTheme(th.id)}
               className={clsx(
                 "interactive-ghost rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
-                theme.baseTheme === th.id ? "border-[var(--accent)]" : "border-[var(--border)]",
-                theme.baseTheme !== th.id && "text-[var(--text-secondary)]"
+                theme.baseTheme === th.id
+                  ? "border-[var(--accent)]"
+                  : "border-[var(--border)]",
+                theme.baseTheme !== th.id && "text-[var(--text-secondary)]",
               )}
               data-active={theme.baseTheme === th.id}
             >
@@ -83,8 +85,10 @@ export function AppearanceSection() {
             onClick={() => handleChromeTint("neutral")}
             className={clsx(
               "interactive-ghost rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
-              theme.chromeTint === "neutral" ? "border-[var(--accent)]" : "border-[var(--border)]",
-              theme.chromeTint !== "neutral" && "text-[var(--text-secondary)]"
+              theme.chromeTint === "neutral"
+                ? "border-[var(--accent)]"
+                : "border-[var(--border)]",
+              theme.chromeTint !== "neutral" && "text-[var(--text-secondary)]",
             )}
             data-active={theme.chromeTint === "neutral"}
           >
@@ -94,8 +98,10 @@ export function AppearanceSection() {
             onClick={() => handleChromeTint("tinted")}
             className={clsx(
               "interactive-ghost rounded-md border px-3 py-1.5 text-xs font-medium transition-colors",
-              theme.chromeTint === "tinted" ? "border-[var(--accent)]" : "border-[var(--border)]",
-              theme.chromeTint !== "tinted" && "text-[var(--text-secondary)]"
+              theme.chromeTint === "tinted"
+                ? "border-[var(--accent)]"
+                : "border-[var(--border)]",
+              theme.chromeTint !== "tinted" && "text-[var(--text-secondary)]",
             )}
             data-active={theme.chromeTint === "tinted"}
           >

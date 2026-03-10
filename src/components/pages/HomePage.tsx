@@ -120,9 +120,9 @@ export function HomePage() {
               variant="secondary"
               icon={<Plus size={18} className="text-[var(--accent)]" />}
               shortcut="⌘N"
-              onClick={() => { }}
+              onClick={() => {}}
               fullWidth
-              className="!justify-start !py-6 border border-[var(--border)] hover:border-[var(--accent)] hover:shadow-sm"
+              className="!justify-start border border-[var(--border)] !py-6 hover:border-[var(--accent)] hover:shadow-sm"
             >
               {t("home.action_new_page")}
             </Button>
@@ -130,9 +130,9 @@ export function HomePage() {
               variant="secondary"
               icon={<BookOpen size={18} className="text-[var(--accent)]" />}
               shortcut="⌘⇧N"
-              onClick={() => { }}
+              onClick={() => {}}
               fullWidth
-              className="!justify-start !py-6 border border-[var(--border)] hover:border-[var(--accent)] hover:shadow-sm"
+              className="!justify-start border border-[var(--border)] !py-6 hover:border-[var(--accent)] hover:shadow-sm"
             >
               {t("home.action_new_notebook")}
             </Button>
@@ -142,7 +142,7 @@ export function HomePage() {
               shortcut="⌘K"
               onClick={openQuickOpen}
               fullWidth
-              className="!justify-start !py-6 border border-[var(--border)] hover:border-[var(--accent)] hover:shadow-sm"
+              className="!justify-start border border-[var(--border)] !py-6 hover:border-[var(--accent)] hover:shadow-sm"
             >
               {t("home.action_search")}
             </Button>
@@ -152,7 +152,7 @@ export function HomePage() {
               shortcut="⌘,"
               onClick={openSettings}
               fullWidth
-              className="!justify-start !py-6 border border-[var(--border)] hover:border-[var(--accent)] hover:shadow-sm"
+              className="!justify-start border border-[var(--border)] !py-6 hover:border-[var(--accent)] hover:shadow-sm"
             >
               {t("home.action_settings")}
             </Button>
@@ -162,5 +162,3 @@ export function HomePage() {
     </div>
   );
 }
-
-

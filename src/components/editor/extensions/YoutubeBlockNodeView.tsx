@@ -21,7 +21,10 @@ async function fetchOEmbed(url: string): Promise<OEmbedData | null> {
   }
 }
 
-export function YoutubeBlockNodeView({ node, updateAttributes }: NodeViewProps) {
+export function YoutubeBlockNodeView({
+  node,
+  updateAttributes,
+}: NodeViewProps) {
   const { videoId, url, title, thumbnailUrl, authorName } = node.attrs as {
     videoId: string;
     url: string;
@@ -43,6 +46,7 @@ export function YoutubeBlockNodeView({ node, updateAttributes }: NodeViewProps) 
     if (title || !url) return;
     let cancelled = false;
 
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMetaLoading(true);
     fetchOEmbed(url).then((data) => {
       if (cancelled || !data) {
@@ -152,13 +156,16 @@ export function YoutubeBlockNodeView({ node, updateAttributes }: NodeViewProps) 
                   className="animate-spin"
                   style={{ color: "var(--text-tertiary)" }}
                 />
-                <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>
+                <span
+                  className="text-xs"
+                  style={{ color: "var(--text-tertiary)" }}
+                >
                   {t("editor.youtube.loading_meta")}
                 </span>
               </div>
             ) : (
               <p
-                className="line-clamp-2 text-sm font-medium leading-snug"
+                className="line-clamp-2 text-sm leading-snug font-medium"
                 style={{ color: "var(--text-primary)" }}
               >
                 {title ?? t("editor.youtube.untitled")}

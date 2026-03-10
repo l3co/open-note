@@ -45,12 +45,7 @@ export function DeleteDialog({
   };
 
   return (
-    <Dialog
-      open={true}
-      onClose={onCancel}
-      size="sm"
-      showCloseButton={false}
-    >
+    <Dialog open={true} onClose={onCancel} size="sm" showCloseButton={false}>
       <Dialog.Body>
         <div className="mb-3 flex items-center gap-2">
           <AlertTriangle size={16} className="text-red-500" />

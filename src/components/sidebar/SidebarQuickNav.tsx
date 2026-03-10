@@ -62,7 +62,7 @@ function QuickNavItem({
       disabled={disabled}
       className={clsx(
         "interactive-ghost flex h-8 w-full items-center gap-2.5 rounded-md px-2.5 text-[14px] font-medium transition-colors disabled:opacity-40",
-        active ? "text-[var(--accent)]" : "text-[var(--text-secondary)]"
+        active ? "text-[var(--accent)]" : "text-[var(--text-secondary)]",
       )}
       data-active={active}
     >

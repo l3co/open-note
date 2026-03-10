@@ -1,6 +1,7 @@
 use log::warn;
 use tauri::State;
 
+use opennote_core::annotation::PageAnnotations;
 use opennote_core::block::Block;
 use opennote_core::id::{PageId, SectionId};
 use opennote_core::page::{Page, PageSummary};
@@ -191,6 +192,41 @@ pub fn import_pdf(
 fn count_pdf_pages(path: &std::path::Path) -> Option<u32> {
     let document = lopdf::Document::load(path).ok()?;
     Some(document.get_pages().len() as u32)
+}
+
+#[tauri::command]
+pub fn create_pdf_canvas_page(
+    state: State<AppManagedState>,
+    section_id: SectionId,
+    title: String,
+    pdf_asset: String,
+    pdf_total_pages: u32,
+    workspace_id: Option<String>,
+) -> Result<Page, CommandError> {
+    let root = resolve_root(&state, workspace_id)?;
+    let page = Page::new_pdf_canvas(section_id, &title, &pdf_asset, pdf_total_pages)
+        .map_err(CommandError::from)?;
+    let page =
+        FsStorageEngine::create_page_from(&root, section_id, page).map_err(CommandError::from)?;
+    try_index_page(&state, &root, &page);
+    Ok(page)
+}
+
+#[tauri::command]
+pub fn update_page_annotations(
+    state: State<AppManagedState>,
+    page_id: PageId,
+    annotations: PageAnnotations,
+    workspace_id: Option<String>,
+) -> Result<(), CommandError> {
+    let root = resolve_root(&state, workspace_id)?;
+    state.save_coordinator.with_page_lock(page_id, || {
+        let mut page = FsStorageEngine::load_page(&root, page_id).map_err(CommandError::from)?;
+        page.annotations = annotations;
+        page.updated_at = chrono::Utc::now();
+        FsStorageEngine::update_page(&root, &page).map_err(CommandError::from)?;
+        Ok(())
+    })
 }
 
 #[tauri::command]

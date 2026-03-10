@@ -15,13 +15,13 @@ Referência completa dos **46 IPC commands** registrados no Tauri. Cada command 
 | Notebook | 5 | `commands/notebook.rs` | CRUD notebooks |
 | Section | 5 | `commands/section.rs` | CRUD sections |
 | Page | 7 | `commands/page.rs` | CRUD pages + file I/O |
-| PDF | 1 | `commands/page.rs` | Import de PDF |
+| PDF Canvas | 3 | `commands/page.rs` | Import PDF + PDF Canvas pages + anotações |
 | Tags | 1 | `commands/tags.rs` | Listar tags |
 | Trash | 4 | `commands/trash.rs` | Lixeira |
 | Assets | 3 | `commands/assets.rs` | Import/delete assets |
 | Search | 5 | `commands/search.rs` | Busca full-text |
 | Sync | 6 | `commands/sync.rs` | Sincronização cloud |
-| **Total** | **47** | | |
+| **Total** | **49** | | |
 
 ---
 
@@ -388,7 +388,7 @@ Escreve conteúdo em arquivo.
 
 ---
 
-## PDF (1 command)
+## PDF Canvas (3 commands)
 
 ### `import_pdf`
 
@@ -397,10 +397,34 @@ Importa arquivo PDF como asset de uma section.
 | | Detalhe |
 |---|---|
 | **Rust** | `commands::page::import_pdf(state, section_id, file_path)` |
-| **Parâmetros** | `section_id: SectionId`, `file_path: String` — caminho do PDF |
-| **Retorno** | `(String, u32)` — (caminho relativo do asset, total de páginas) |
+| **Parâmetros** | `section_id: SectionId`, `file_path: String` — caminho absoluto do PDF |
+| **Retorno** | `(String, String, u32)` — (caminho relativo do asset, caminho absoluto, total de páginas) |
 | **Erros** | Arquivo não encontrado, I/O |
-| **TS** | `importPdf(sectionId, filePath): Promise<[string, number]>` |
+| **TS** | `importPdf(sectionId, filePath): Promise<[string, string, number]>` |
+
+### `create_pdf_canvas_page`
+
+Cria uma nova page do tipo `pdf_canvas` com o PDF já importado.
+
+| | Detalhe |
+|---|---|
+| **Rust** | `commands::page::create_pdf_canvas_page(state, section_id, title, pdf_asset, pdf_total_pages)` |
+| **Parâmetros** | `section_id: SectionId`, `title: String`, `pdf_asset: String` (caminho absoluto), `pdf_total_pages: u32` |
+| **Retorno** | `Page` — page criada com `editor_mode: PdfCanvas` |
+| **Erros** | Section não encontrada, I/O |
+| **TS** | `createPdfCanvasPage(sectionId, title, pdfAsset, pdfTotalPages): Promise<Page>` |
+
+### `update_page_annotations`
+
+Salva as anotações (ink strokes) de uma PDF Canvas Page.
+
+| | Detalhe |
+|---|---|
+| **Rust** | `commands::page::update_page_annotations(state, page_id, annotations)` |
+| **Parâmetros** | `page_id: PageId`, `annotations: PageAnnotations` — mapa `pdf_page → [AnchoredStroke]` |
+| **Retorno** | `()` |
+| **Erros** | Page não encontrada, I/O |
+| **TS** | `updatePageAnnotations(pageId, annotations): Promise<void>` |
 
 ---
 

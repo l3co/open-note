@@ -354,8 +354,9 @@ function TreeItem({
     <div
       className={clsx(
         "interactive-ghost group flex h-8 cursor-pointer items-center gap-2 rounded-md pr-1 text-[14px]",
-        (isSelected || isDragOver) && "bg-[var(--accent-subtle)] text-[var(--accent)]",
-        !isSelected && !isDragOver && "text-[var(--text-primary)]"
+        (isSelected || isDragOver) &&
+          "bg-[var(--accent-subtle)] text-[var(--accent)]",
+        !isSelected && !isDragOver && "text-[var(--text-primary)]",
       )}
       style={{ paddingLeft }}
       data-active={isSelected || isDragOver}

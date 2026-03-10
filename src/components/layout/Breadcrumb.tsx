@@ -4,8 +4,13 @@ import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 import { usePageStore } from "@/stores/usePageStore";
 
 export function Breadcrumb() {
-  const { selectedNotebookId, selectedSectionId, selectedPageId, openSectionOverview, openNotebookOverview } =
-    useNavigationStore();
+  const {
+    selectedNotebookId,
+    selectedSectionId,
+    selectedPageId,
+    openSectionOverview,
+    openNotebookOverview,
+  } = useNavigationStore();
   const { notebooks, sections } = useWorkspaceStore();
   const currentPage = usePageStore((s) => s.currentPage);
 
@@ -55,7 +60,10 @@ export function Breadcrumb() {
         return (
           <span key={i} className="flex items-center gap-1">
             {i > 0 && (
-              <ChevronRight size={12} style={{ color: "var(--text-tertiary)" }} />
+              <ChevronRight
+                size={12}
+                style={{ color: "var(--text-tertiary)" }}
+              />
             )}
             {item.onClick && !isLast ? (
               <button

@@ -1,8 +1,7 @@
 import React, { forwardRef } from "react";
 import { clsx } from "clsx";
 
-export interface IconButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface IconButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   icon: React.ReactNode;
   size?: "sm" | "md" | "lg";
   variant?: "ghost" | "subtle" | "danger";
@@ -25,7 +24,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
       title,
       ...props
     },
-    ref
+    ref,
   ) => {
     // Determine size classes
     const sizeClasses = {
@@ -58,17 +57,17 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         title={title}
         data-active={active}
         className={clsx(
-          "inline-flex items-center justify-center rounded transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-1 focus:ring-offset-[var(--bg-primary)] disabled:opacity-50 disabled:cursor-not-allowed",
+          "inline-flex items-center justify-center rounded transition-colors duration-150 focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-1 focus:ring-offset-[var(--bg-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50",
           sizeClasses,
           !active && variantClasses,
           activeClasses,
-          className
+          className,
         )}
         {...props}
       >
         {loading ? (
           <svg
-            className="animate-spin h-3/4 w-3/4 opacity-70"
+            className="h-3/4 w-3/4 animate-spin opacity-70"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -92,7 +91,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         )}
       </button>
     );
-  }
+  },
 );
 
 IconButton.displayName = "IconButton";

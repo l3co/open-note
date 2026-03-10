@@ -50,7 +50,7 @@ function AboutLink({ label, href }: { label: string; href: string }) {
       href={href}
       target="_blank"
       rel="noopener noreferrer"
-      className="interactive-ghost flex items-center justify-between rounded-md px-2 py-2 text-sm transition-colors text-[var(--accent)]"
+      className="interactive-ghost flex items-center justify-between rounded-md px-2 py-2 text-sm text-[var(--accent)] transition-colors"
     >
       {label}
       <ExternalLink size={14} style={{ color: "var(--text-tertiary)" }} />
