@@ -136,6 +136,72 @@ jobs:
           retention-days: 7
           if-no-files-found: warn
 
+  # Fedora — RPM package via container
+  build-linux-fedora:
+    name: Build Linux Fedora (RPM)
+    needs: validate
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:41
+      options: --user root
+    permissions:
+      contents: write
+    steps:
+      - name: Install system dependencies
+        run: |
+          dnf install -y \
+            git curl tar \
+            webkit2gtk4.1-devel \
+            openssl-devel \
+            gtk3-devel \
+            librsvg2-devel \
+            patchelf \
+            libappindicator-gtk3-devel \
+            rpm-build
+
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: fedora-x64-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: fedora-x64-cargo-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Tauri app (RPM)
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: ${{ github.event.inputs.tag }}
+          releaseName: Open Note ${{ github.event.inputs.tag }}
+          releaseDraft: true
+          prerelease: ${{ contains(github.event.inputs.tag, 'alpha') || contains(github.event.inputs.tag, 'beta') || contains(github.event.inputs.tag, 'rc') }}
+          args: --bundles rpm
+
+      - name: Upload artifacts (debug)
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: linux-fedora-rpm
+          path: src-tauri/target/release/bundle/**
+          retention-days: 7
+          if-no-files-found: warn
+
   # Windows — x86_64 nativo
   build-windows:
     name: Build Windows (x86_64)
@@ -185,13 +251,13 @@ jobs:
         with:
           name: windows-x86_64
           path: src-tauri/target/release/bundle/**
-          retention-days: 7
+          retention-days: 90
           if-no-files-found: warn
 
   # Publica o draft assim que todos os builds passarem
   publish-release:
     name: Publish Release
-    needs: [build-macos, build-linux, build-windows]
+    needs: [build-macos, build-linux, build-windows, build-linux-fedora]
     runs-on: ubuntu-latest
     permissions:
       contents: write
