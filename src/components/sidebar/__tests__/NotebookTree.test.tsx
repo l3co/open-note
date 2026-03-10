@@ -12,10 +12,17 @@ vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn() }));
 let capturedOnDragEnd: ((event: DragEndEvent) => void) | null = null;
 
 vi.mock("@dnd-kit/core", async () => {
-  const actual = await vi.importActual<typeof import("@dnd-kit/core")>("@dnd-kit/core");
+  const actual =
+    await vi.importActual<typeof import("@dnd-kit/core")>("@dnd-kit/core");
   return {
     ...actual,
-    DndContext: ({ children, onDragEnd }: { children: React.ReactNode; onDragEnd: (e: DragEndEvent) => void }) => {
+    DndContext: ({
+      children,
+      onDragEnd,
+    }: {
+      children: React.ReactNode;
+      onDragEnd: (e: DragEndEvent) => void;
+    }) => {
       capturedOnDragEnd = onDragEnd;
       return <>{children}</>;
     },
@@ -393,8 +400,14 @@ describe("NotebookTree", () => {
     expect(capturedOnDragEnd).not.toBeNull();
     await act(async () => {
       capturedOnDragEnd!({
-        active: { id: "nb:nb-1", data: { current: { type: "notebook", id: "nb-1", label: "A" } } },
-        over: { id: "nb-drop:nb-2", data: { current: { type: "notebook", id: "nb-2", label: "B" } } },
+        active: {
+          id: "nb:nb-1",
+          data: { current: { type: "notebook", id: "nb-1", label: "A" } },
+        },
+        over: {
+          id: "nb-drop:nb-2",
+          data: { current: { type: "notebook", id: "nb-2", label: "B" } },
+        },
       } as DragEndEvent);
     });
     expect(reorderNotebooks).toHaveBeenCalled();
