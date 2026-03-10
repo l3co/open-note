@@ -122,13 +122,19 @@ describe("FloatingToolbar", () => {
       <FloatingToolbar editor={mockEditor as import("@tiptap/react").Editor} />,
     );
     expect(
-      screen.getByRole("button", { name: /heading.*1|1.*heading|h1/i }),
+      screen.getByRole("button", {
+        name: /heading.*1|1.*heading|h1|t[ií]tulo.*1|1.*t[ií]tulo/i,
+      }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /heading.*2|2.*heading|h2/i }),
+      screen.getByRole("button", {
+        name: /heading.*2|2.*heading|h2|t[ií]tulo.*2|2.*t[ií]tulo/i,
+      }),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: /heading.*3|3.*heading|h3/i }),
+      screen.getByRole("button", {
+        name: /heading.*3|3.*heading|h3|t[ií]tulo.*3|3.*t[ií]tulo/i,
+      }),
     ).toBeInTheDocument();
   });
 

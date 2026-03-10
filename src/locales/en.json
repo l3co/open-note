@@ -106,7 +106,19 @@
         "image": "Image",
         "image_desc": "Insert image by URL",
         "embed": "Embed",
-        "embed_desc": "Embed link or video"
+        "embed_desc": "Embed link or video",
+        "youtube": "YouTube",
+        "youtube_desc": "Embed a YouTube video",
+        "pdf": "PDF",
+        "pdf_desc": "Import and annotate a PDF",
+        "ink": "Ink",
+        "ink_desc": "Freehand drawing block"
+      },
+      "youtube": {
+        "loading_meta": "Loading info...",
+        "untitled": "YouTube Video",
+        "open_external": "Open on YouTube",
+        "url_prompt": "Paste YouTube URL:"
       },
       "toolbar": {
         "bold": "Bold",
@@ -118,7 +130,14 @@
         "heading1": "Heading 1",
         "heading2": "Heading 2",
         "heading3": "Heading 3",
-        "blockquote": "Quote"
+        "blockquote": "Quote",
+        "table_add_col_before": "Add column before",
+        "table_add_col_after": "Add column after",
+        "table_delete_col": "Delete column",
+        "table_add_row_before": "Add row before",
+        "table_add_row_after": "Add row after",
+        "table_delete_row": "Delete row",
+        "table_delete": "Delete table"
       },
       "link": {
         "placeholder": "Paste or type URL...",
@@ -308,18 +327,6 @@
       "list_view": "List view",
       "empty_title": "No pages yet",
       "empty_description": "Create your first page in this section"
-    },
-    "editor": {
-      "youtube": {
-        "loading_meta": "Loading info...",
-        "untitled": "YouTube Video",
-        "open_external": "Open on YouTube",
-        "url_prompt": "Paste YouTube URL:"
-      },
-      "slash": {
-        "youtube": "YouTube",
-        "youtube_desc": "Embed a YouTube video"
-      }
     },
     "notebook_overview": {
       "new_section": "New Section",
