@@ -55,6 +55,7 @@
       "delete": "Delete Page",
       "delete_confirm": "Are you sure you want to delete the page \"{{name}}\"?",
       "move": "Move Page",
+      "current_section": "current",
       "blocks": "{{count}} blocks",
       "blocks_warning": "This page is large. Consider splitting the content.",
       "select_page": "Select a page in the sidebar or create a new one to get started."

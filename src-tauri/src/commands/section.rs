@@ -1,4 +1,4 @@
-use log::{error, info};
+use log::{error, info, warn};
 use tauri::State;
 
 use opennote_core::id::{NotebookId, SectionId};
@@ -68,4 +68,19 @@ pub fn reorder_sections(
     let ws_id = super::resolve_workspace_id(&state, workspace_id)?;
     let root = state.get_workspace_root_by_id(&ws_id)?;
     FsStorageEngine::reorder_sections(&root, &order).map_err(CommandError::from)
+}
+
+#[tauri::command]
+pub fn move_section(
+    state: State<AppManagedState>,
+    section_id: SectionId,
+    target_notebook_id: NotebookId,
+    workspace_id: Option<String>,
+) -> Result<Section, CommandError> {
+    let ws_id = super::resolve_workspace_id(&state, workspace_id)?;
+    let root = state.get_workspace_root_by_id(&ws_id)?;
+    FsStorageEngine::move_section(&root, section_id, target_notebook_id).map_err(|e| {
+        warn!("Failed to move section: {}", e);
+        CommandError::from(e)
+    })
 }

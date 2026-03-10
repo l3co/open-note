@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 
 use crate::error::CoreError;
-use crate::id::{NotebookId, PageId, WorkspaceId};
+use crate::id::{NotebookId, PageId, SectionId, WorkspaceId};
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export, export_to = "../../../src/types/bindings/")]
@@ -48,6 +48,10 @@ pub struct WorkspaceSettings {
     pub sidebar_width: u32,
     pub sidebar_open: bool,
     pub last_opened_page_id: Option<PageId>,
+    #[serde(default)]
+    pub quick_notes_notebook_id: Option<NotebookId>,
+    #[serde(default)]
+    pub quick_notes_section_id: Option<SectionId>,
 }
 
 impl Default for WorkspaceSettings {
@@ -58,6 +62,8 @@ impl Default for WorkspaceSettings {
             sidebar_width: 260,
             sidebar_open: true,
             last_opened_page_id: None,
+            quick_notes_notebook_id: None,
+            quick_notes_section_id: None,
         }
     }
 }

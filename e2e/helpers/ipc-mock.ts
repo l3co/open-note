@@ -28,6 +28,15 @@ const DEFAULT_WORKSPACE = {
   root_path: "/tmp/test-workspace",
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
+  settings: {
+    default_notebook_id: null,
+    auto_save_interval_ms: 2000,
+    sidebar_width: 260,
+    sidebar_open: true,
+    last_opened_page_id: null,
+    quick_notes_notebook_id: null,
+    quick_notes_section_id: null,
+  },
 };
 
 const DEFAULT_NOTEBOOK = {
@@ -117,6 +126,7 @@ function buildDefaultHandlers(overrides: MockOverrides = {}): MockOverrides {
     rename_section: () => DEFAULT_SECTION,
     delete_section: () => null,
     reorder_sections: () => null,
+    move_section: () => DEFAULT_SECTION,
 
     // Page
     list_pages: () => [DEFAULT_PAGE_SUMMARY],

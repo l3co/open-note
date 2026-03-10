@@ -55,6 +55,7 @@
       "delete": "Excluir Página",
       "delete_confirm": "Tem certeza que deseja excluir a página \"{{name}}\"?",
       "move": "Mover Página",
+      "current_section": "atual",
       "blocks": "{{count}} blocos",
       "blocks_warning": "Esta página está grande. Considere dividir o conteúdo.",
       "select_page": "Selecione uma página na sidebar ou crie uma nova para começar."

@@ -15,7 +15,7 @@ use commands::search::{
     get_index_status, quick_open, rebuild_index, reindex_page, search_all_workspaces, search_pages,
 };
 use commands::section::{
-    create_section, delete_section, list_sections, rename_section, reorder_sections,
+    create_section, delete_section, list_sections, move_section, rename_section, reorder_sections,
 };
 use commands::spellcheck::check_spelling;
 use commands::sync::{
@@ -75,6 +75,7 @@ pub fn run() {
             rename_section,
             delete_section,
             reorder_sections,
+            move_section,
             // Page
             list_pages,
             load_page,

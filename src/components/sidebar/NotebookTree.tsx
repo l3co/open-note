@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import {
   BookOpen,
@@ -9,6 +9,17 @@ import {
   ChevronRight,
   ChevronDown,
 } from "lucide-react";
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  useDraggable,
+  useDroppable,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
 import { Illustration } from "@/components/shared/Illustration";
 import notesStackSvg from "@/assets/illustrations/notes/notes-stack.svg";
 import notesListSvg from "@/assets/illustrations/notes/notes-list.svg";
@@ -16,9 +27,35 @@ import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { usePageStore } from "@/stores/usePageStore";
 import { ContextMenu } from "@/components/shared/ContextMenu";
+import type { Notebook } from "@/types/bindings/Notebook";
 import type { Section } from "@/types/bindings/Section";
 import type { PageSummary } from "@/types/bindings/PageSummary";
 import { clsx } from "clsx";
+
+type CtxMenuState = {
+  x: number;
+  y: number;
+  type: "notebook" | "section" | "page";
+  id: string;
+  name: string;
+  notebookId?: string;
+  sectionId?: string;
+} | null;
+
+type ActiveDrag = {
+  type: "notebook" | "section" | "page";
+  id: string;
+  label: string;
+} | null;
+
+type OnCtxMenu = (
+  e: React.MouseEvent,
+  type: "notebook" | "section" | "page",
+  id: string,
+  name: string,
+  notebookId?: string,
+  sectionId?: string,
+) => void;
 
 export function NotebookTree() {
   const { t } = useTranslation();
@@ -29,6 +66,7 @@ export function NotebookTree() {
     reorderNotebooks,
     renameNotebook,
     renameSection,
+    moveSection,
   } = useWorkspaceStore();
   const {
     selectedNotebookId,
@@ -39,35 +77,38 @@ export function NotebookTree() {
     selectPage,
     openSectionOverview,
     openNotebookOverview,
+    toggleNotebook,
+    toggleSection,
   } = useNavigationStore();
-  const { loadPages, loadPage, pages } = usePageStore();
+  const { loadPages, loadPage, pages, movePage } = usePageStore();
 
-  const [contextMenu, setContextMenu] = useState<{
-    x: number;
-    y: number;
-    type: "notebook" | "section" | "page";
-    id: string;
-    name: string;
-    notebookId?: string;
-  } | null>(null);
+  const [contextMenu, setContextMenu] = useState<CtxMenuState>(null);
+  const [activeDrag, setActiveDrag] = useState<ActiveDrag>(null);
 
-  const [dragOverId, setDragOverId] = useState<string | null>(null);
-  const dragItemRef = useRef<{ type: string; id: string } | null>(null);
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+  );
 
   const handleNotebookClick = useCallback(
     (id: string) => {
-      openNotebookOverview(id);
-      loadSections(id);
+      if (expandedNotebooks.has(id)) toggleNotebook(id);
+      else {
+        openNotebookOverview(id);
+        loadSections(id);
+      }
     },
-    [openNotebookOverview, loadSections],
+    [openNotebookOverview, loadSections, toggleNotebook, expandedNotebooks],
   );
 
   const handleSectionClick = useCallback(
     (sectionId: string) => {
-      openSectionOverview(sectionId);
-      loadPages(sectionId);
+      if (expandedSections.has(sectionId)) toggleSection(sectionId);
+      else {
+        openSectionOverview(sectionId);
+        loadPages(sectionId);
+      }
     },
-    [openSectionOverview, loadPages],
+    [openSectionOverview, loadPages, toggleSection, expandedSections],
   );
 
   const handlePageClick = useCallback(
@@ -78,14 +119,8 @@ export function NotebookTree() {
     [selectPage, loadPage],
   );
 
-  const handleContextMenu = useCallback(
-    (
-      e: React.MouseEvent,
-      type: "notebook" | "section" | "page",
-      id: string,
-      name: string,
-      notebookId?: string,
-    ) => {
+  const handleContextMenu = useCallback<OnCtxMenu>(
+    (e, type, id, name, notebookId, sectionId) => {
       e.preventDefault();
       setContextMenu({
         x: e.clientX,
@@ -94,44 +129,11 @@ export function NotebookTree() {
         id,
         name,
         notebookId,
+        sectionId,
       });
     },
     [],
   );
-
-  const handleDragStart = useCallback((type: string, id: string) => {
-    dragItemRef.current = { type, id };
-  }, []);
-
-  const handleDragOver = useCallback((e: React.DragEvent, targetId: string) => {
-    e.preventDefault();
-    setDragOverId(targetId);
-  }, []);
-
-  const handleDrop = useCallback(
-    async (targetId: string) => {
-      setDragOverId(null);
-      const src = dragItemRef.current;
-      if (!src || src.id === targetId) return;
-      if (src.type === "notebook") {
-        const targetIdx = notebooks.findIndex((n) => n.id === targetId);
-        if (targetIdx === -1) return;
-        const srcNb = notebooks.find((n) => n.id === src.id);
-        if (!srcNb) return;
-        const without = notebooks.filter((n) => n.id !== src.id);
-        without.splice(targetIdx, 0, srcNb);
-        const order: [string, number][] = without.map((n, i) => [n.id, i]);
-        await reorderNotebooks(order);
-      }
-      dragItemRef.current = null;
-    },
-    [notebooks, reorderNotebooks],
-  );
-
-  const handleDragEnd = useCallback(() => {
-    setDragOverId(null);
-    dragItemRef.current = null;
-  }, []);
 
   const handleRename = useCallback(
     async (type: "notebook" | "section", id: string, name: string) => {
@@ -141,59 +143,86 @@ export function NotebookTree() {
     [renameNotebook, renameSection],
   );
 
+  const handleDragStart = useCallback(({ active }: DragStartEvent) => {
+    const d = active.data.current;
+    if (d) setActiveDrag(d as ActiveDrag);
+  }, []);
+
+  const handleDragEnd = useCallback(
+    async ({ active, over }: DragEndEvent) => {
+      setActiveDrag(null);
+      if (!over || active.id === over.id) return;
+
+      const srcType = active.data.current?.type as string;
+      const srcId = active.data.current?.id as string;
+      const dstType = over.data.current?.type as string;
+      const dstId = over.data.current?.id as string;
+
+      if (srcType === "page" && dstType === "section") {
+        await movePage(srcId, dstId);
+      } else if (srcType === "section" && dstType === "notebook") {
+        await moveSection(srcId, dstId);
+      } else if (
+        srcType === "notebook" &&
+        dstType === "notebook" &&
+        srcId !== dstId
+      ) {
+        const targetIdx = notebooks.findIndex((n) => n.id === dstId);
+        if (targetIdx === -1) return;
+        const srcNb = notebooks.find((n) => n.id === srcId);
+        if (!srcNb) return;
+        const without = notebooks.filter((n) => n.id !== srcId);
+        without.splice(targetIdx, 0, srcNb);
+        await reorderNotebooks(without.map((n, i) => [n.id, i]));
+      }
+    },
+    [notebooks, movePage, moveSection, reorderNotebooks],
+  );
+
   return (
-    <div role="tree" aria-label={t("sidebar.notebooks")}>
-      {notebooks.map((nb) => {
-        const isExpanded = expandedNotebooks.has(nb.id);
-        const nbSections = sections.get(nb.id) ?? [];
+    <DndContext
+      sensors={sensors}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <div role="tree" aria-label={t("sidebar.notebooks")}>
+        {notebooks.map((nb) => (
+          <NotebookRow
+            key={nb.id}
+            nb={nb}
+            isExpanded={expandedNotebooks.has(nb.id)}
+            isSelected={selectedNotebookId === nb.id}
+            sections={sections.get(nb.id) ?? []}
+            expandedSections={expandedSections}
+            selectedSectionId={selectedSectionId}
+            selectedPageId={selectedPageId}
+            pages={pages}
+            onNotebookClick={() => handleNotebookClick(nb.id)}
+            onSectionClick={handleSectionClick}
+            onPageClick={handlePageClick}
+            onContextMenu={handleContextMenu}
+            onRename={handleRename}
+          />
+        ))}
+      </div>
 
-        return (
-          <div key={nb.id} role="treeitem" aria-expanded={isExpanded}>
-            <TreeItem
-              icon={isExpanded ? <BookOpen size={16} /> : <Book size={16} />}
-              label={nb.name}
-              isExpanded={isExpanded}
-              isSelected={selectedNotebookId === nb.id}
-              isDragOver={dragOverId === nb.id}
-              depth={0}
-              onClick={() => handleNotebookClick(nb.id)}
-              onContextMenu={(e) =>
-                handleContextMenu(e, "notebook", nb.id, nb.name)
-              }
-              draggable
-              onDragStart={() => handleDragStart("notebook", nb.id)}
-              onDragOver={(e) => handleDragOver(e, nb.id)}
-              onDrop={() => handleDrop(nb.id)}
-              onDragEnd={handleDragEnd}
-              onRename={(name) => handleRename("notebook", nb.id, name)}
-            />
-
-            {isExpanded && nbSections.length === 0 && (
-              <EmptyHint
-                src={notesStackSvg}
-                label={t("sidebar.no_sections")}
-                depth={1}
-              />
-            )}
-            {isExpanded &&
-              nbSections.map((sec) => (
-                <SectionNode
-                  key={sec.id}
-                  section={sec}
-                  isExpanded={expandedSections.has(sec.id)}
-                  isSelected={selectedSectionId === sec.id}
-                  selectedPageId={selectedPageId}
-                  pages={pages.get(sec.id) ?? []}
-                  onSectionClick={() => handleSectionClick(sec.id)}
-                  onPageClick={handlePageClick}
-                  onContextMenu={handleContextMenu}
-                  notebookId={nb.id}
-                  onRename={(name) => handleRename("section", sec.id, name)}
-                />
-              ))}
+      <DragOverlay>
+        {activeDrag && (
+          <div
+            className="flex items-center gap-2 rounded-md border px-3 py-1.5 text-sm shadow-xl"
+            style={{
+              backgroundColor: "var(--bg-secondary)",
+              borderColor: "var(--accent)",
+              color: "var(--text-primary)",
+            }}
+          >
+            {activeDrag.type === "page" && <FileText size={14} />}
+            {activeDrag.type === "section" && <FolderClosed size={14} />}
+            {activeDrag.type === "notebook" && <Book size={14} />}
+            <span>{activeDrag.label}</span>
           </div>
-        );
-      })}
+        )}
+      </DragOverlay>
 
       {contextMenu && (
         <ContextMenu
@@ -203,12 +232,110 @@ export function NotebookTree() {
           id={contextMenu.id}
           name={contextMenu.name}
           notebookId={contextMenu.notebookId}
+          sectionId={contextMenu.sectionId}
           onClose={() => setContextMenu(null)}
         />
       )}
+    </DndContext>
+  );
+}
+
+// ── NotebookRow ───────────────────────────────────────────────────────────────
+
+function NotebookRow({
+  nb,
+  isExpanded,
+  isSelected,
+  sections,
+  expandedSections,
+  selectedSectionId,
+  selectedPageId,
+  pages,
+  onNotebookClick,
+  onSectionClick,
+  onPageClick,
+  onContextMenu,
+  onRename,
+}: {
+  nb: Notebook;
+  isExpanded: boolean;
+  isSelected: boolean;
+  sections: Section[];
+  expandedSections: Set<string>;
+  selectedSectionId: string | null;
+  selectedPageId: string | null;
+  pages: Map<string, PageSummary[]>;
+  onNotebookClick: () => void;
+  onSectionClick: (sectionId: string) => void;
+  onPageClick: (pageId: string) => void;
+  onContextMenu: OnCtxMenu;
+  onRename: (type: "notebook" | "section", id: string, name: string) => void;
+}) {
+  const { t } = useTranslation();
+
+  const {
+    listeners: dragListeners,
+    setNodeRef: setDragRef,
+    isDragging,
+  } = useDraggable({
+    id: `nb:${nb.id}`,
+    data: { type: "notebook", id: nb.id, label: nb.name },
+  });
+
+  const { setNodeRef: setDropRef, isOver } = useDroppable({
+    id: `nb-drop:${nb.id}`,
+    data: { type: "notebook", id: nb.id },
+  });
+
+  return (
+    <div
+      ref={setDropRef}
+      role="treeitem"
+      aria-expanded={isExpanded}
+      style={{ opacity: isDragging ? 0.4 : 1 }}
+    >
+      <div ref={setDragRef} {...dragListeners} style={{ touchAction: "none" }}>
+        <TreeItem
+          icon={isExpanded ? <BookOpen size={16} /> : <Book size={16} />}
+          label={nb.name}
+          isExpanded={isExpanded}
+          isSelected={isSelected}
+          isDragOver={isOver}
+          depth={0}
+          onClick={onNotebookClick}
+          onContextMenu={(e) => onContextMenu(e, "notebook", nb.id, nb.name)}
+          onRename={(name) => onRename("notebook", nb.id, name)}
+        />
+      </div>
+
+      {isExpanded && sections.length === 0 && (
+        <EmptyHint
+          src={notesStackSvg}
+          label={t("sidebar.no_sections")}
+          depth={1}
+        />
+      )}
+      {isExpanded &&
+        sections.map((sec) => (
+          <SectionNode
+            key={sec.id}
+            section={sec}
+            isExpanded={expandedSections.has(sec.id)}
+            isSelected={selectedSectionId === sec.id}
+            selectedPageId={selectedPageId}
+            pages={pages.get(sec.id) ?? []}
+            onSectionClick={() => onSectionClick(sec.id)}
+            onPageClick={onPageClick}
+            onContextMenu={onContextMenu}
+            notebookId={nb.id}
+            onRename={(name) => onRename("section", sec.id, name)}
+          />
+        ))}
     </div>
   );
 }
+
+// ── SectionNode ───────────────────────────────────────────────────────────────
 
 function SectionNode({
   section,
@@ -229,52 +356,112 @@ function SectionNode({
   pages: PageSummary[];
   onSectionClick: () => void;
   onPageClick: (id: string) => void;
-  onContextMenu: (
-    e: React.MouseEvent,
-    type: "notebook" | "section" | "page",
-    id: string,
-    name: string,
-    notebookId?: string,
-  ) => void;
+  onContextMenu: OnCtxMenu;
   notebookId: string;
   onRename: (name: string) => void;
 }) {
   const { t } = useTranslation();
 
+  const { setNodeRef: setDropRef, isOver } = useDroppable({
+    id: `sec-drop:${section.id}`,
+    data: { type: "section", id: section.id },
+  });
+
+  const {
+    listeners: dragListeners,
+    setNodeRef: setDragRef,
+    isDragging,
+  } = useDraggable({
+    id: `sec:${section.id}`,
+    data: { type: "section", id: section.id, label: section.name },
+  });
+
   return (
-    <div role="treeitem" aria-expanded={isExpanded}>
-      <TreeItem
-        icon={
-          isExpanded ? <FolderOpen size={16} /> : <FolderClosed size={16} />
-        }
-        label={section.name}
-        isExpanded={isExpanded}
-        isSelected={isSelected}
-        depth={1}
-        onClick={onSectionClick}
-        onContextMenu={(e) =>
-          onContextMenu(e, "section", section.id, section.name, notebookId)
-        }
-        onRename={onRename}
-      />
+    <div
+      ref={setDropRef}
+      role="treeitem"
+      aria-expanded={isExpanded}
+      style={{ opacity: isDragging ? 0.4 : 1 }}
+    >
+      <div ref={setDragRef} {...dragListeners} style={{ touchAction: "none" }}>
+        <TreeItem
+          icon={
+            isExpanded ? <FolderOpen size={16} /> : <FolderClosed size={16} />
+          }
+          label={section.name}
+          isExpanded={isExpanded}
+          isSelected={isSelected}
+          isDragOver={isOver}
+          depth={1}
+          onClick={onSectionClick}
+          onContextMenu={(e) =>
+            onContextMenu(e, "section", section.id, section.name, notebookId)
+          }
+          onRename={onRename}
+        />
+      </div>
 
       {isExpanded && pages.length === 0 && (
         <EmptyHint src={notesListSvg} label={t("sidebar.no_pages")} depth={2} />
       )}
       {isExpanded &&
         pages.map((page) => (
-          <TreeItem
+          <PageRow
             key={page.id}
-            icon={<FileText size={16} />}
-            label={page.title}
+            page={page}
             isSelected={selectedPageId === page.id}
-            depth={2}
+            notebookId={notebookId}
+            sectionId={section.id}
             onClick={() => onPageClick(page.id)}
-            onContextMenu={(e) =>
-              onContextMenu(e, "page", page.id, page.title, notebookId)
-            }
+            onContextMenu={onContextMenu}
           />
         ))}
+    </div>
+  );
+}
+
+// ── PageRow ───────────────────────────────────────────────────────────────────
+
+function PageRow({
+  page,
+  isSelected,
+  notebookId,
+  sectionId,
+  onClick,
+  onContextMenu,
+}: {
+  page: PageSummary;
+  isSelected: boolean;
+  notebookId: string;
+  sectionId: string;
+  onClick: () => void;
+  onContextMenu: OnCtxMenu;
+}) {
+  const {
+    listeners: dragListeners,
+    setNodeRef,
+    isDragging,
+  } = useDraggable({
+    id: `pg:${page.id}`,
+    data: { type: "page", id: page.id, label: page.title },
+  });
+
+  return (
+    <div
+      ref={setNodeRef}
+      {...dragListeners}
+      style={{ touchAction: "none", opacity: isDragging ? 0.4 : 1 }}
+    >
+      <TreeItem
+        icon={<FileText size={16} />}
+        label={page.title}
+        isSelected={isSelected}
+        depth={2}
+        onClick={onClick}
+        onContextMenu={(e) =>
+          onContextMenu(e, "page", page.id, page.title, notebookId, sectionId)
+        }
+      />
     </div>
   );
 }
@@ -380,9 +567,24 @@ function TreeItem({
         }
       }}
       draggable={draggable}
-      onDragStart={onDragStart}
+      onDragStart={
+        draggable && onDragStart
+          ? (e: React.DragEvent) => {
+              e.dataTransfer.setData("text/plain", "");
+              e.dataTransfer.effectAllowed = "move";
+              onDragStart();
+            }
+          : undefined
+      }
       onDragOver={onDragOver}
-      onDrop={onDrop}
+      onDrop={
+        onDrop
+          ? (e: React.DragEvent) => {
+              e.stopPropagation();
+              onDrop();
+            }
+          : undefined
+      }
       onDragEnd={onDragEnd}
     >
       {isExpanded !== undefined ? (

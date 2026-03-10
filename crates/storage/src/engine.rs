@@ -440,6 +440,33 @@ impl FsStorageEngine {
         Ok(page)
     }
 
+    pub fn move_section(
+        workspace_root: &Path,
+        section_id: SectionId,
+        target_notebook_id: NotebookId,
+    ) -> StorageResult<Section> {
+        let (src_nb_dir, sec_dir) = Self::find_section_dir(workspace_root, section_id)?;
+        let target_nb_dir = Self::find_notebook_dir(workspace_root, target_notebook_id)?;
+
+        let mut section: Section = read_json(&sec_dir.join(SECTION_FILE))?;
+
+        if src_nb_dir == target_nb_dir {
+            return Ok(section);
+        }
+
+        let existing_slugs = Self::existing_dir_slugs(&target_nb_dir)?;
+        let slug = unique_slug(&section.name, &existing_slugs);
+        let new_sec_dir = target_nb_dir.join(&slug);
+
+        section.notebook_id = target_notebook_id;
+        section.updated_at = Utc::now();
+
+        fs::rename(&sec_dir, &new_sec_dir)?;
+        atomic_write_json(&new_sec_dir.join(SECTION_FILE), &section)?;
+
+        Ok(section)
+    }
+
     // ─── Assets ───
 
     pub fn import_asset(

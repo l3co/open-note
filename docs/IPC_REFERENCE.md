@@ -360,6 +360,18 @@ Move page para outra section.
 | **Efeitos** | Move arquivo + assets para a section destino |
 | **TS** | `movePage(pageId, targetSectionId): Promise<Page>` |
 
+### `move_section`
+
+Move section para outro notebook.
+
+| | Detalhe |
+|---|---|
+| **Rust** | `commands::section::move_section(state, section_id, target_notebook_id, workspace_id)` |
+| **Parâmetros** | `section_id: SectionId`, `target_notebook_id: NotebookId`, `workspace_id?: string` |
+| **Retorno** | `Section` — section atualizada |
+| **Efeitos** | Move diretório da section + atualiza `notebook_id` e slug |
+| **TS** | `moveSection(sectionId, targetNotebookId, workspaceId?): Promise<Section>` |
+
 ---
 
 ## File I/O (2 commands)
