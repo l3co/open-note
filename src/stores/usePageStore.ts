@@ -108,8 +108,14 @@ export const usePageStore = create<PageStore>((set, get) => ({
     try {
       await ipc.movePage(pageId, targetSectionId);
       const { pages } = get();
+      const sectionsToReload = new Set<string>([targetSectionId]);
       for (const [sectionId] of pages) {
-        await get().loadPages(sectionId);
+        sectionsToReload.add(sectionId);
+      }
+      await Promise.all([...sectionsToReload].map((id) => get().loadPages(id)));
+      const { currentPage } = get();
+      if (currentPage?.id === pageId) {
+        await get().loadPage(pageId);
       }
     } catch (e) {
       set({ error: String(e) });

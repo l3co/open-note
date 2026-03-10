@@ -41,7 +41,27 @@ pub fn create_workspace(
         )));
     }
 
-    let workspace = FsStorageEngine::create_workspace(&root, &name).map_err(CommandError::from)?;
+    let mut workspace =
+        FsStorageEngine::create_workspace(&root, &name).map_err(CommandError::from)?;
+
+    match FsStorageEngine::create_notebook(&root, "Quick Notes") {
+        Ok(qn_notebook) => {
+            match FsStorageEngine::create_section(&root, qn_notebook.id, "Quick Notes") {
+                Ok(qn_section) => {
+                    workspace.settings.quick_notes_notebook_id = Some(qn_notebook.id);
+                    workspace.settings.quick_notes_section_id = Some(qn_section.id);
+                    if let Err(e) = FsStorageEngine::save_workspace(&workspace) {
+                        warn!(
+                            "Failed to persist Quick Notes IDs in workspace settings: {}",
+                            e
+                        );
+                    }
+                }
+                Err(e) => warn!("Failed to create Quick Notes section: {}", e),
+            }
+        }
+        Err(e) => warn!("Failed to create Quick Notes notebook: {}", e),
+    }
 
     let mut app_state = FsStorageEngine::load_app_state().map_err(CommandError::from)?;
     app_state.add_recent_workspace(root.clone(), name.clone());

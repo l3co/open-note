@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import { FolderOpen, Plus, Cloud, X, AlertCircle } from "lucide-react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
+import { useMultiWorkspaceStore } from "@/stores/useMultiWorkspaceStore";
+import { useNavigationStore } from "@/stores/useNavigationStore";
 import { useUIStore } from "@/stores/useUIStore";
 import * as ipc from "@/lib/ipc";
 import { BackgroundPattern } from "@/components/shared/BackgroundPattern";
@@ -28,7 +30,10 @@ export function WorkspacePicker({
   const [newName, setNewName] = useState("");
   const [newPath, setNewPath] = useState("");
 
-  const { openWorkspace, createWorkspace } = useWorkspaceStore();
+  const { openWorkspace } = useWorkspaceStore();
+  const { createWorkspace: createWorkspaceMulti, loadSections } =
+    useMultiWorkspaceStore();
+  const { toggleNotebook } = useNavigationStore();
   const { closeWorkspacePicker } = useUIStore();
   const { t } = useTranslation();
 
@@ -61,7 +66,17 @@ export function WorkspacePicker({
   const handleCreate = async () => {
     if (!newName.trim() || !newPath.trim()) return;
     try {
-      await createWorkspace(newPath.trim(), newName.trim());
+      const workspace = await createWorkspaceMulti(
+        newPath.trim(),
+        newName.trim(),
+      );
+      if (workspace) {
+        const qnNotebookId = workspace.settings.quick_notes_notebook_id;
+        if (qnNotebookId) {
+          toggleNotebook(qnNotebookId);
+          await loadSections(qnNotebookId, workspace.id);
+        }
+      }
       handleClose();
     } catch (e) {
       setError(String(e));

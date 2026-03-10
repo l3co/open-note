@@ -139,6 +139,13 @@ export const movePage = (
   workspaceId?: string,
 ) => invoke<Page>("move_page", { pageId, targetSectionId, workspaceId });
 
+export const moveSection = (
+  sectionId: SectionId,
+  targetNotebookId: NotebookId,
+  workspaceId?: string,
+) =>
+  invoke<Section>("move_section", { sectionId, targetNotebookId, workspaceId });
+
 // ─── File I/O ───
 
 export const readFileContent = (path: string) =>

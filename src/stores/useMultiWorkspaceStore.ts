@@ -84,6 +84,11 @@ interface MultiWorkspaceStore {
     order: [string, number][],
     workspaceId?: string,
   ) => Promise<void>;
+  moveSection: (
+    sectionId: string,
+    targetNotebookId: string,
+    workspaceId?: string,
+  ) => Promise<void>;
 
   // ─── Navigation (scoped to focused workspace) ───
   updateNavigation: (
@@ -339,6 +344,26 @@ export const useMultiWorkspaceStore = create<MultiWorkspaceStore>(
       if (!id) return;
       try {
         await ipc.reorderSections(order, id);
+      } catch (e) {
+        handleError(e);
+      }
+    },
+
+    moveSection: async (sectionId, targetNotebookId, workspaceId) => {
+      const id = resolveId(get, workspaceId);
+      if (!id) return;
+      try {
+        const section = await ipc.moveSection(sectionId, targetNotebookId, id);
+        await get().loadSections(section.notebook_id, id);
+        const { workspaces } = get();
+        const slice = workspaces.get(id);
+        if (slice) {
+          for (const [nbId] of slice.sections) {
+            if (nbId !== section.notebook_id) {
+              await get().loadSections(nbId, id);
+            }
+          }
+        }
       } catch (e) {
         handleError(e);
       }

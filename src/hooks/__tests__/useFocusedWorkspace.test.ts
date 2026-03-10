@@ -15,6 +15,8 @@ const makeWorkspace = (id: string, name: string) => ({
     sidebar_width: 260,
     sidebar_open: true,
     last_opened_page_id: null,
+    quick_notes_notebook_id: null,
+    quick_notes_section_id: null,
   },
 });
 

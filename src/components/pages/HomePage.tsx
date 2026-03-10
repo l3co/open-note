@@ -1,3 +1,4 @@
+import { useState, useRef, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import {
   Clock,
@@ -10,6 +11,8 @@ import {
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { usePageStore } from "@/stores/usePageStore";
 import { useUIStore } from "@/stores/useUIStore";
+import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
+import { useMultiWorkspaceStore } from "@/stores/useMultiWorkspaceStore";
 import { BackgroundPattern } from "@/components/shared/BackgroundPattern";
 import { Button } from "@/components/ui";
 import logoSrc from "@/assets/logo.png";
@@ -24,18 +27,78 @@ function getGreetingKey(): string {
 export function HomePage() {
   const { t } = useTranslation();
   const { history, selectPage } = useNavigationStore();
-  const { loadPage, pages } = usePageStore();
+  const { loadPage, pages, createPage } = usePageStore();
   const { openQuickOpen, openSettings } = useUIStore();
+  const { createNotebook, sections } = useWorkspaceStore();
+  const quickNotesSectionId = useMultiWorkspaceStore(
+    (s) => s.focusedSlice()?.workspace.settings.quick_notes_section_id ?? null,
+  );
+
+  const [showNotebookModal, setShowNotebookModal] = useState(false);
+  const [notebookName, setNotebookName] = useState("");
+  const notebookInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (showNotebookModal) {
+      setTimeout(() => notebookInputRef.current?.focus(), 30);
+    }
+  }, [showNotebookModal]);
 
   const allPages: { id: string; title: string }[] = [];
   pages.forEach((sectionPages) => {
     sectionPages.forEach((p) => allPages.push(p));
   });
 
-  const recentPageIds = [...history].reverse().slice(0, 6);
+  const recentPageIds = [...history]
+    .reverse()
+    .filter((id, idx, arr) => arr.indexOf(id) === idx)
+    .slice(0, 6);
   const recentPages = recentPageIds
     .map((id) => allPages.find((p) => p.id === id))
     .filter(Boolean) as { id: string; title: string }[];
+
+  const handleNewNotebook = () => {
+    setNotebookName("");
+    setShowNotebookModal(true);
+  };
+
+  const handleNotebookConfirm = async () => {
+    if (!notebookName.trim()) {
+      setShowNotebookModal(false);
+      return;
+    }
+    await createNotebook(notebookName.trim());
+    setNotebookName("");
+    setShowNotebookModal(false);
+  };
+
+  const handleNotebookCancel = () => {
+    setNotebookName("");
+    setShowNotebookModal(false);
+  };
+
+  const handleNewPage = async () => {
+    const targetSectionId =
+      quickNotesSectionId ??
+      (() => {
+        for (const [, sectionList] of sections) {
+          if (sectionList.length > 0) return sectionList[0]?.id ?? null;
+        }
+        return null;
+      })();
+
+    if (targetSectionId) {
+      try {
+        const page = await createPage(targetSectionId, t("page.new"));
+        selectPage(page.id);
+        await loadPage(page.id);
+      } catch {
+        /* errors handled by store */
+      }
+      return;
+    }
+    openQuickOpen();
+  };
 
   const handlePageClick = (id: string) => {
     selectPage(id);
@@ -120,7 +183,7 @@ export function HomePage() {
               variant="secondary"
               icon={<Plus size={18} className="text-[var(--accent)]" />}
               shortcut="⌘N"
-              onClick={() => {}}
+              onClick={handleNewPage}
               fullWidth
               className="!justify-start border border-[var(--border)] !py-6 hover:border-[var(--accent)] hover:shadow-sm"
             >
@@ -130,7 +193,7 @@ export function HomePage() {
               variant="secondary"
               icon={<BookOpen size={18} className="text-[var(--accent)]" />}
               shortcut="⌘⇧N"
-              onClick={() => {}}
+              onClick={handleNewNotebook}
               fullWidth
               className="!justify-start border border-[var(--border)] !py-6 hover:border-[var(--accent)] hover:shadow-sm"
             >
@@ -159,6 +222,72 @@ export function HomePage() {
           </div>
         </section>
       </div>
+
+      {showNotebookModal && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center"
+          style={{ backgroundColor: "rgba(0,0,0,0.35)" }}
+          onMouseDown={(e) => {
+            if (e.target === e.currentTarget) handleNotebookCancel();
+          }}
+        >
+          <div
+            className="w-[340px] rounded-xl border p-5 shadow-xl"
+            style={{
+              backgroundColor: "var(--bg-primary)",
+              borderColor: "var(--border)",
+              boxShadow: "var(--shadow-lg)",
+            }}
+          >
+            <div className="mb-4 flex items-center gap-2">
+              <BookOpen size={18} style={{ color: "var(--accent)" }} />
+              <h3
+                className="text-sm font-semibold"
+                style={{ color: "var(--text-primary)" }}
+              >
+                {t("notebook.new")}
+              </h3>
+            </div>
+            <input
+              ref={notebookInputRef}
+              value={notebookName}
+              onChange={(e) => setNotebookName(e.target.value)}
+              placeholder={t("notebook.name_placeholder")}
+              className="mb-4 w-full rounded-lg border px-3 py-2 text-sm transition-colors outline-none focus:border-[var(--accent)]"
+              style={{
+                backgroundColor: "var(--bg-secondary)",
+                borderColor: "var(--border)",
+                color: "var(--text-primary)",
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleNotebookConfirm();
+                if (e.key === "Escape") handleNotebookCancel();
+              }}
+            />
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={handleNotebookCancel}
+                className="interactive-ghost rounded-lg px-4 py-2 text-sm"
+                style={{ color: "var(--text-secondary)" }}
+              >
+                {t("common.cancel")}
+              </button>
+              <button
+                onClick={handleNotebookConfirm}
+                className="rounded-lg px-4 py-2 text-sm font-medium transition-colors"
+                style={{
+                  backgroundColor: "var(--accent)",
+                  color: "#fff",
+                  opacity: notebookName.trim() ? 1 : 0.5,
+                  cursor: notebookName.trim() ? "pointer" : "default",
+                }}
+              >
+                {t("common.create")}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

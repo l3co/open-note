@@ -1,12 +1,26 @@
-import { render, screen, fireEvent } from "@testing-library/react";
+import { render, screen, fireEvent, act } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NotebookTree } from "../NotebookTree";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { usePageStore } from "@/stores/usePageStore";
+import type { DragEndEvent } from "@dnd-kit/core";
 
 vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn() }));
+
+let capturedOnDragEnd: ((event: DragEndEvent) => void) | null = null;
+
+vi.mock("@dnd-kit/core", async () => {
+  const actual = await vi.importActual<typeof import("@dnd-kit/core")>("@dnd-kit/core");
+  return {
+    ...actual,
+    DndContext: ({ children, onDragEnd }: { children: React.ReactNode; onDragEnd: (e: DragEndEvent) => void }) => {
+      capturedOnDragEnd = onDragEnd;
+      return <>{children}</>;
+    },
+  };
+});
 
 const makeNotebook = (id: string, name: string) => ({
   id,
@@ -366,20 +380,23 @@ describe("NotebookTree", () => {
     expect(loadSections).toHaveBeenCalledWith("nb-1");
   });
 
-  it("supports drag and drop on notebooks", () => {
+  it("supports drag and drop on notebooks", async () => {
+    const reorderNotebooks = vi.fn();
     useWorkspaceStore.setState({
       notebooks: [
         makeNotebook("nb-1", "A"),
         makeNotebook("nb-2", "B"),
       ] as never,
+      reorderNotebooks,
     });
     render(<NotebookTree />);
-    const itemA = screen.getByText("A").closest('[role="button"]')!;
-    const itemB = screen.getByText("B").closest('[role="button"]')!;
-    fireEvent.dragStart(itemA);
-    fireEvent.dragOver(itemB);
-    fireEvent.drop(itemB);
-    fireEvent.dragEnd(itemA);
-    expect(useWorkspaceStore.getState().reorderNotebooks).toHaveBeenCalled();
+    expect(capturedOnDragEnd).not.toBeNull();
+    await act(async () => {
+      capturedOnDragEnd!({
+        active: { id: "nb:nb-1", data: { current: { type: "notebook", id: "nb-1", label: "A" } } },
+        over: { id: "nb-drop:nb-2", data: { current: { type: "notebook", id: "nb-2", label: "B" } } },
+      } as DragEndEvent);
+    });
+    expect(reorderNotebooks).toHaveBeenCalled();
   });
 });

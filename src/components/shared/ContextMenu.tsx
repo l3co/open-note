@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pencil, Trash2, Plus, FileImage } from "lucide-react";
+import { Pencil, Trash2, Plus, FileImage, ArrowRightLeft } from "lucide-react";
+import { MovePageDialog } from "./MovePageDialog";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 import { usePageStore } from "@/stores/usePageStore";
@@ -15,6 +16,7 @@ interface ContextMenuProps {
   id: string;
   name: string;
   notebookId?: string;
+  sectionId?: string;
   onClose: () => void;
 }
 
@@ -25,11 +27,13 @@ export function ContextMenu({
   id,
   name,
   notebookId: _notebookId,
+  sectionId,
   onClose,
 }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [renaming, setRenaming] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showMoveDialog, setShowMoveDialog] = useState(false);
   const [renameDraft, setRenameDraft] = useState("");
   const { t } = useTranslation();
   const {
@@ -188,6 +192,14 @@ export function ContextMenu({
     danger?: boolean;
   }[] = [];
 
+  if (type === "page" && sectionId) {
+    items.push({
+      icon: <ArrowRightLeft size={14} />,
+      label: t("context_menu.move"),
+      onClick: () => setShowMoveDialog(true),
+    });
+  }
+
   if (type === "notebook" || type === "section") {
     items.push({
       icon: <Plus size={14} />,
@@ -221,6 +233,16 @@ export function ContextMenu({
     onClick: handleDeleteClick,
     danger: true,
   });
+
+  if (showMoveDialog && sectionId) {
+    return (
+      <MovePageDialog
+        pageId={id}
+        currentSectionId={sectionId}
+        onClose={onClose}
+      />
+    );
+  }
 
   return (
     <div

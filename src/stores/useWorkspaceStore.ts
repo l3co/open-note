@@ -27,6 +27,7 @@ interface WorkspaceStore {
   renameSection: (id: string, name: string) => Promise<void>;
   deleteSection: (id: string) => Promise<void>;
   reorderSections: (order: [string, number][]) => Promise<void>;
+  moveSection: (sectionId: string, targetNotebookId: string) => Promise<void>;
   clearError: () => void;
 }
 
@@ -115,6 +116,12 @@ export const useWorkspaceStore = create<WorkspaceStore>((set) => {
 
     reorderSections: async (order) => {
       await useMultiWorkspaceStore.getState().reorderSections(order);
+    },
+
+    moveSection: async (sectionId, targetNotebookId) => {
+      await useMultiWorkspaceStore
+        .getState()
+        .moveSection(sectionId, targetNotebookId);
     },
 
     clearError: () => set({ error: null }),
