@@ -199,6 +199,46 @@ describe("NotebookTree", () => {
     expect(loadPage).toHaveBeenCalledWith("p-1");
   });
 
+  it("clicking expanded notebook calls toggleNotebook (collapse)", async () => {
+    const toggleNotebook = vi.fn();
+    const openNotebookOverview = vi.fn();
+    useWorkspaceStore.setState({
+      notebooks: [makeNotebook("nb-1", "NB")] as never,
+    });
+    useNavigationStore.setState({
+      expandedNotebooks: new Set(["nb-1"]),
+      toggleNotebook,
+      openNotebookOverview,
+    });
+    const user = userEvent.setup();
+    render(<NotebookTree />);
+    await user.click(screen.getByText("NB"));
+    expect(toggleNotebook).toHaveBeenCalledWith("nb-1");
+    expect(openNotebookOverview).not.toHaveBeenCalled();
+  });
+
+  it("clicking expanded section calls toggleSection (collapse)", async () => {
+    const toggleSection = vi.fn();
+    const openSectionOverview = vi.fn();
+    useWorkspaceStore.setState({
+      notebooks: [makeNotebook("nb-1", "NB")] as never,
+      sections: new Map([
+        ["nb-1", [makeSection("sec-1", "nb-1", "Sec")] as never],
+      ]),
+    });
+    useNavigationStore.setState({
+      expandedNotebooks: new Set(["nb-1"]),
+      expandedSections: new Set(["sec-1"]),
+      toggleSection,
+      openSectionOverview,
+    });
+    const user = userEvent.setup();
+    render(<NotebookTree />);
+    await user.click(screen.getByText("Sec"));
+    expect(toggleSection).toHaveBeenCalledWith("sec-1");
+    expect(openSectionOverview).not.toHaveBeenCalled();
+  });
+
   it("shows context menu on right-click of notebook", async () => {
     useWorkspaceStore.setState({
       notebooks: [makeNotebook("nb-1", "NB")] as never,
