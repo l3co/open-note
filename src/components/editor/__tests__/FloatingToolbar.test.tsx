@@ -121,16 +121,24 @@ describe("FloatingToolbar", () => {
     render(
       <FloatingToolbar editor={mockEditor as import("@tiptap/react").Editor} />,
     );
-    expect(screen.getByRole("button", { name: /heading.*1|1.*heading|h1/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /heading.*2|2.*heading|h2/i })).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /heading.*3|3.*heading|h3/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /heading.*1|1.*heading|h1/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /heading.*2|2.*heading|h2/i }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /heading.*3|3.*heading|h3/i }),
+    ).toBeInTheDocument();
   });
 
   it("renders blockquote button", () => {
     render(
       <FloatingToolbar editor={mockEditor as import("@tiptap/react").Editor} />,
     );
-    expect(screen.getByRole("button", { name: /blockquote|cita/i })).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: /blockquote|cita/i }),
+    ).toBeInTheDocument();
   });
 
   it("renders link button", () => {
