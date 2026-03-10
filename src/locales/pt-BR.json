@@ -106,7 +106,19 @@
         "image": "Imagem",
         "image_desc": "Inserir imagem por URL",
         "embed": "Embed",
-        "embed_desc": "Incorporar link ou vídeo"
+        "embed_desc": "Incorporar link ou vídeo",
+        "youtube": "YouTube",
+        "youtube_desc": "Incorporar vídeo do YouTube",
+        "pdf": "PDF",
+        "pdf_desc": "Importar e anotar um PDF",
+        "ink": "Ink",
+        "ink_desc": "Bloco de desenho à mão livre"
+      },
+      "youtube": {
+        "loading_meta": "Carregando informações...",
+        "untitled": "Vídeo do YouTube",
+        "open_external": "Abrir no YouTube",
+        "url_prompt": "Cole a URL do YouTube:"
       },
       "toolbar": {
         "bold": "Negrito",
@@ -118,7 +130,14 @@
         "heading1": "Título 1",
         "heading2": "Título 2",
         "heading3": "Título 3",
-        "blockquote": "Citação"
+        "blockquote": "Citação",
+        "table_add_col_before": "Adicionar coluna antes",
+        "table_add_col_after": "Adicionar coluna depois",
+        "table_delete_col": "Excluir coluna",
+        "table_add_row_before": "Adicionar linha antes",
+        "table_add_row_after": "Adicionar linha depois",
+        "table_delete_row": "Excluir linha",
+        "table_delete": "Excluir tabela"
       },
       "link": {
         "placeholder": "Cole ou digite a URL...",
@@ -308,18 +327,6 @@
       "list_view": "Visualização em lista",
       "empty_title": "Nenhuma página ainda",
       "empty_description": "Crie sua primeira página nesta seção"
-    },
-    "editor": {
-      "youtube": {
-        "loading_meta": "Carregando informações...",
-        "untitled": "Vídeo do YouTube",
-        "open_external": "Abrir no YouTube",
-        "url_prompt": "Cole a URL do YouTube:"
-      },
-      "slash": {
-        "youtube": "YouTube",
-        "youtube_desc": "Incorporar vídeo do YouTube"
-      }
     },
     "notebook_overview": {
       "new_section": "Nova Seção",

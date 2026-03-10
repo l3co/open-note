@@ -18,6 +18,7 @@ import { common, createLowlight } from "lowlight";
 import type { JSONContent, Editor } from "@tiptap/react";
 import { FloatingToolbar } from "@/components/editor/FloatingToolbar";
 import { SlashCommandMenu } from "@/components/editor/SlashCommandMenu";
+import { TableToolbar } from "@/components/editor/TableToolbar";
 import { Callout } from "@/components/editor/extensions/CalloutExtension";
 import { InkBlock } from "@/components/editor/extensions/InkBlockExtension";
 import { PdfBlock } from "@/components/editor/extensions/PdfBlockExtension";
@@ -116,6 +117,7 @@ export function BlockEditor({
   return (
     <div className="relative">
       <FloatingToolbar editor={editor} />
+      <TableToolbar editor={editor} />
       <SlashCommandMenu editor={editor} />
       <EditorContent editor={editor} />
     </div>
