@@ -31,7 +31,7 @@ export function HomePage() {
   const { openQuickOpen, openSettings } = useUIStore();
   const { createNotebook, sections } = useWorkspaceStore();
   const quickNotesSectionId = useMultiWorkspaceStore(
-    (s) => s.focusedSlice()?.workspace.settings.quick_notes_section_id ?? null,
+    (s) => s.focusedSlice()?.workspace.settings?.quick_notes_section_id ?? null,
   );
 
   const [showNotebookModal, setShowNotebookModal] = useState(false);

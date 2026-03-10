@@ -71,7 +71,7 @@ export function WorkspacePicker({
         newName.trim(),
       );
       if (workspace) {
-        const qnNotebookId = workspace.settings.quick_notes_notebook_id;
+        const qnNotebookId = workspace.settings?.quick_notes_notebook_id;
         if (qnNotebookId) {
           toggleNotebook(qnNotebookId);
           await loadSections(qnNotebookId, workspace.id);
