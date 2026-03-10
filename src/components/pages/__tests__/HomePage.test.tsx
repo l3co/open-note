@@ -67,7 +67,19 @@ describe("HomePage", () => {
 
   it("shows recent pages when history and pages match", () => {
     const pages = new Map([
-      ["sec-1", [{ id: "page-1", title: "My First Page", tags: [], block_count: 0, created_at: "2024-01-01T00:00:00Z", updated_at: "2024-01-01T00:00:00Z" }]],
+      [
+        "sec-1",
+        [
+          {
+            id: "page-1",
+            title: "My First Page",
+            tags: [],
+            block_count: 0,
+            created_at: "2024-01-01T00:00:00Z",
+            updated_at: "2024-01-01T00:00:00Z",
+          },
+        ],
+      ],
     ]);
     usePageStore.setState({ pages, loadPage: mockLoadPage });
     useNavigationStore.setState({
@@ -102,7 +114,19 @@ describe("HomePage", () => {
 
   it("clicking a recent page calls selectPage and loadPage", () => {
     const pages = new Map([
-      ["sec-1", [{ id: "page-1", title: "My First Page", tags: [], block_count: 0, created_at: "2024-01-01T00:00:00Z", updated_at: "2024-01-01T00:00:00Z" }]],
+      [
+        "sec-1",
+        [
+          {
+            id: "page-1",
+            title: "My First Page",
+            tags: [],
+            block_count: 0,
+            created_at: "2024-01-01T00:00:00Z",
+            updated_at: "2024-01-01T00:00:00Z",
+          },
+        ],
+      ],
     ]);
     usePageStore.setState({ pages, loadPage: mockLoadPage });
     useNavigationStore.setState({
