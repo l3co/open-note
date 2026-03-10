@@ -302,6 +302,7 @@
     },
     "section_overview": {
       "new_page": "New Page",
+      "import_pdf": "Import PDF",
       "untitled": "Untitled",
       "grid_view": "Grid view",
       "list_view": "List view",

@@ -302,6 +302,7 @@
     },
     "section_overview": {
       "new_page": "Nova Página",
+      "import_pdf": "Importar PDF",
       "untitled": "Sem título",
       "grid_view": "Visualização em grade",
       "list_view": "Visualização em lista",

@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { LayoutGrid, List, FileText, Clock, Tag, FilePlus } from "lucide-react";
+import { open } from "@tauri-apps/plugin-dialog";
+import { LayoutGrid, List, FileText, Clock, Tag, FilePlus, FileImage } from "lucide-react";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { usePageStore } from "@/stores/usePageStore";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
+import { importPdf, createPdfCanvasPage } from "@/lib/ipc";
 import type { PageSummary } from "@/types/bindings/PageSummary";
 
 type Layout = "grid" | "list";
@@ -64,6 +66,34 @@ export function SectionOverview() {
     loadPage(page.id);
   };
 
+  const handleImportPdf = async () => {
+    if (!selectedSectionId) return;
+    try {
+      const selected = await open({
+        multiple: false,
+        filters: [{ name: "PDF", extensions: ["pdf"] }],
+      });
+      if (!selected) return;
+      const [, absolutePath, pageCount] = await importPdf(
+        selectedSectionId,
+        selected as string,
+      );
+      const fileName =
+        (selected as string).split("/").pop()?.replace(/\.pdf$/i, "") ??
+        t("pdf_canvas.untitled");
+      const page = await createPdfCanvasPage(
+        selectedSectionId,
+        fileName,
+        absolutePath,
+        pageCount,
+      );
+      selectPage(page.id);
+      await loadPage(page.id);
+    } catch (err) {
+      console.error("[SectionOverview] import PDF failed:", err);
+    }
+  };
+
   const totalPages = Math.ceil(sectionPages.length / PAGES_PER_PAGE);
   const start = (currentPaginaPage - 1) * PAGES_PER_PAGE;
   const visiblePages = sectionPages.slice(start, start + PAGES_PER_PAGE);
@@ -99,6 +129,19 @@ export function SectionOverview() {
         </div>
 
         <div className="flex items-center gap-2">
+          {/* Import PDF button */}
+          <button
+            onClick={handleImportPdf}
+            className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
+            style={{
+              backgroundColor: "var(--bg-tertiary)",
+              color: "var(--text-secondary)",
+            }}
+          >
+            <FileImage size={14} />
+            {t("section_overview.import_pdf")}
+          </button>
+
           {/* New page button */}
           <button
             onClick={handleNewPage}
