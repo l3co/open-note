@@ -125,21 +125,21 @@ export function CanvasPage({ page }: CanvasPageProps) {
 
       <div className="relative flex-1">
         <div className="absolute inset-0">
-        <Excalidraw
-          excalidrawAPI={(api) => {
-            excalidrawApiRef.current = api;
-          }}
-          initialData={initialData}
-          theme={excalidrawTheme}
-          onChange={handleChange}
-          UIOptions={{
-            canvasActions: {
-              saveToActiveFile: false,
-              loadScene: false,
-              export: { saveFileToDisk: true },
-            },
-          }}
-        />
+          <Excalidraw
+            excalidrawAPI={(api) => {
+              excalidrawApiRef.current = api;
+            }}
+            initialData={initialData}
+            theme={excalidrawTheme}
+            onChange={handleChange}
+            UIOptions={{
+              canvasActions: {
+                saveToActiveFile: false,
+                loadScene: false,
+                export: { saveFileToDisk: true },
+              },
+            }}
+          />
         </div>
       </div>
     </div>
