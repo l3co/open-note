@@ -54,12 +54,19 @@ export function CanvasPage({ page }: CanvasPageProps) {
   // pelo IPC do Tauri — precisa ser restaurado como new Map() para evitar erro forEach.
   const initialData: ExcalidrawInitialDataState = (() => {
     if (!page.canvas_state) {
-      return { elements: [], appState: { viewBackgroundColor: "#ffffff" }, files: {} };
+      return {
+        elements: [],
+        appState: { viewBackgroundColor: "#ffffff" },
+        files: {},
+      };
     }
     const stored = page.canvas_state as Record<string, unknown>;
-    const storedAppState = stored.appState as Record<string, unknown> | undefined;
+    const storedAppState = stored.appState as
+      | Record<string, unknown>
+      | undefined;
     return {
-      elements: (stored.elements as ExcalidrawInitialDataState["elements"]) ?? [],
+      elements:
+        (stored.elements as ExcalidrawInitialDataState["elements"]) ?? [],
       files: (stored.files as ExcalidrawInitialDataState["files"]) ?? {},
       appState: storedAppState
         ? {

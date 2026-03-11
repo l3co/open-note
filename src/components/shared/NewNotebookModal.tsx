@@ -51,7 +51,6 @@ export function NewNotebookModal() {
           </h3>
         </div>
         <input
-          // eslint-disable-next-line jsx-a11y/no-autofocus
           autoFocus
           value={name}
           onChange={(e) => setName(e.target.value)}

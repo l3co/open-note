@@ -10,7 +10,11 @@ vi.mock("@excalidraw/excalidraw", () => ({
     <div
       data-testid="excalidraw-mock"
       onClick={() =>
-        onChange?.([{ type: "rectangle", id: "test" }], { name: "test-app-state" }, {})
+        onChange?.(
+          [{ type: "rectangle", id: "test" }],
+          { name: "test-app-state" },
+          {},
+        )
       }
     />
   )),
@@ -33,7 +37,7 @@ vi.mock("@/stores/usePageStore", () => ({
       getState: () => ({
         updatePageTitle: vi.fn(),
       }),
-    }
+    },
   ),
 }));
 
@@ -71,7 +75,7 @@ describe("CanvasPage", () => {
 
   it("salva o canvas_state após mudança (debounce)", async () => {
     const { updatePageCanvasState } = await import("@/lib/ipc");
-    
+
     render(<CanvasPage page={mockPage} />);
 
     // Simular onChange do Excalidraw
@@ -79,9 +83,12 @@ describe("CanvasPage", () => {
     excalidrawMock.click();
 
     // Aguardar o debounce (1500ms)
-    await waitFor(() => {
-      expect(updatePageCanvasState).toHaveBeenCalled();
-    }, { timeout: 3000 });
+    await waitFor(
+      () => {
+        expect(updatePageCanvasState).toHaveBeenCalled();
+      },
+      { timeout: 3000 },
+    );
 
     expect(updatePageCanvasState).toHaveBeenCalledWith(
       mockPage.id,
@@ -104,7 +111,7 @@ describe("CanvasPage", () => {
     };
 
     render(<CanvasPage page={pageWithState} />);
-    
+
     expect(Excalidraw).toHaveBeenCalledWith(
       expect.objectContaining({
         initialData: expect.objectContaining({
@@ -113,7 +120,7 @@ describe("CanvasPage", () => {
           ]),
         }),
       }),
-      undefined
+      undefined,
     );
   });
 });
