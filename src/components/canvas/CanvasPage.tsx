@@ -17,12 +17,35 @@ interface CanvasPageProps {
   page: Page;
 }
 
+type SaveData = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  elements: readonly any[];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  appState: any;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  files: any;
+};
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+function toSerializableAppState(appState: any) {
+  return {
+    viewBackgroundColor: appState.viewBackgroundColor,
+    zoom: appState.zoom,
+    scrollX: appState.scrollX,
+    scrollY: appState.scrollY,
+    theme: appState.theme,
+    gridSize: appState.gridSize,
+  };
+}
+
 export function CanvasPage({ page }: CanvasPageProps) {
   const baseTheme = useUIStore((s) => s.theme.baseTheme);
   const { updatePageTitle } = usePageStore();
   const excalidrawApiRef = useRef<ExcalidrawImperativeAPI | null>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isDirtyRef = useRef(false);
+  // Captura o estado mais recente direto do onChange — sem depender do API ref
+  const latestSaveDataRef = useRef<SaveData | null>(null);
 
   const excalidrawTheme = baseTheme === "dark" ? "dark" : "light";
 
@@ -50,22 +73,13 @@ export function CanvasPage({ page }: CanvasPageProps) {
   const scheduleSave = useCallback(() => {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(async () => {
-      const api = excalidrawApiRef.current;
-      if (!api) return;
-      const elements = api.getSceneElements();
-      const appState = api.getAppState();
-      const files = api.getFiles();
-      // Salvar apenas campos escalares do appState — collaborators é um Map e
-      // não sobrevive à serialização JSON do IPC Tauri.
-      const serializableAppState = {
-        viewBackgroundColor: appState.viewBackgroundColor,
-        zoom: appState.zoom,
-        scrollX: appState.scrollX,
-        scrollY: appState.scrollY,
-        theme: appState.theme,
-        gridSize: appState.gridSize,
-      };
-      await updatePageCanvasState(page.id, { elements, appState: serializableAppState, files });
+      const data = latestSaveDataRef.current;
+      if (!data) return;
+      await updatePageCanvasState(page.id, {
+        elements: data.elements,
+        appState: toSerializableAppState(data.appState),
+        files: data.files,
+      });
       isDirtyRef.current = false;
     }, AUTOSAVE_DELAY_MS);
   }, [page.id]);
@@ -75,29 +89,27 @@ export function CanvasPage({ page }: CanvasPageProps) {
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       if (isDirtyRef.current) {
-        const api = excalidrawApiRef.current;
-        if (api) {
-          const elements = api.getSceneElements();
-          const appState = api.getAppState();
-          const files = api.getFiles();
-          const serializableAppState = {
-            viewBackgroundColor: appState.viewBackgroundColor,
-            zoom: appState.zoom,
-            scrollX: appState.scrollX,
-            scrollY: appState.scrollY,
-            theme: appState.theme,
-            gridSize: appState.gridSize,
-          };
-          updatePageCanvasState(page.id, { elements, appState: serializableAppState, files });
+        const data = latestSaveDataRef.current;
+        if (data) {
+          updatePageCanvasState(page.id, {
+            elements: data.elements,
+            appState: toSerializableAppState(data.appState),
+            files: data.files,
+          });
         }
       }
     };
   }, [page.id]);
 
-  const handleChange = useCallback(() => {
-    isDirtyRef.current = true;
-    scheduleSave();
-  }, [scheduleSave]);
+  const handleChange = useCallback(
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    (elements: readonly any[], appState: any, files: any) => {
+      latestSaveDataRef.current = { elements, appState, files };
+      isDirtyRef.current = true;
+      scheduleSave();
+    },
+    [scheduleSave],
+  );
 
   const handleTitleChange = useCallback(
     async (newTitle: string) => {

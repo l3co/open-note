@@ -14,6 +14,10 @@ export function useKeyboardShortcuts() {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const mod = e.metaKey || e.ctrlKey;
+      // Excalidraw usa Cmd/Ctrl+[ e Cmd/Ctrl+] para z-order de elementos.
+      // Ceder esses atalhos ao Excalidraw quando o canvas estiver ativo.
+      const insideCanvas =
+        document.activeElement?.closest(".excalidraw") !== null;
 
       if (mod && e.key === "\\") {
         e.preventDefault();
@@ -21,13 +25,13 @@ export function useKeyboardShortcuts() {
         return;
       }
 
-      if (mod && !e.shiftKey && e.key === "[") {
+      if (!insideCanvas && mod && !e.shiftKey && e.key === "[") {
         e.preventDefault();
         goBack();
         return;
       }
 
-      if (mod && !e.shiftKey && e.key === "]") {
+      if (!insideCanvas && mod && !e.shiftKey && e.key === "]") {
         e.preventDefault();
         goForward();
         return;
