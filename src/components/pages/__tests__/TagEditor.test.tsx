@@ -24,6 +24,7 @@ const makePage = () => ({
   annotations: { strokes: [], highlights: [], svg_cache: null },
   pdf_asset: null,
   pdf_total_pages: null,
+  canvas_state: null,
 });
 
 describe("TagEditor", () => {

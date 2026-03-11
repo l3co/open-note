@@ -1,13 +1,39 @@
+import React, { Suspense } from "react";
 import type { Page } from "@/types/bindings/Page";
 import { PageEditor } from "@/components/editor/PageEditor";
 import { TagEditor } from "@/components/pages/TagEditor";
 import { PdfCanvasPage } from "@/components/pdf/PdfCanvasPage";
+import { useTranslation } from "react-i18next";
+
+const CanvasPage = React.lazy(() =>
+  import("@/components/canvas/CanvasPage").then((m) => ({
+    default: m.CanvasPage,
+  })),
+);
 
 interface PageViewProps {
   page: Page;
 }
 
 export function PageView({ page }: PageViewProps) {
+  const { t } = useTranslation();
+
+  if (page.editor_preferences.mode === "canvas") {
+    return (
+      <Suspense
+        fallback={
+          <div className="flex flex-1 items-center justify-center">
+            <span style={{ color: "var(--text-tertiary)" }}>
+              {t("common.loading")}
+            </span>
+          </div>
+        }
+      >
+        <CanvasPage page={page} />
+      </Suspense>
+    );
+  }
+
   if (page.editor_preferences.mode === "pdf_canvas") {
     return <PdfCanvasPage page={page} />;
   }

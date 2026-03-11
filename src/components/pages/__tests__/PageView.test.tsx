@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi } from "vitest";
 import { PageView } from "../PageView";
+import React from "react";
 
 vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn() }));
 vi.mock("@/components/editor/PageEditor", () => ({
@@ -12,6 +13,12 @@ vi.mock("@/components/pages/TagEditor", () => ({
   TagEditor: ({ tags }: { tags: string[] }) => (
     <div data-testid="tag-editor-mock">{tags.join(",")}</div>
   ),
+}));
+vi.mock("@/components/pdf/PdfCanvasPage", () => ({
+  PdfCanvasPage: () => <div data-testid="pdf-canvas-mock" />,
+}));
+vi.mock("@/components/canvas/CanvasPage", () => ({
+  CanvasPage: () => <div data-testid="canvas-page-mock" />,
 }));
 
 const makePage = () => ({
@@ -27,6 +34,7 @@ const makePage = () => ({
   annotations: { strokes: [], highlights: [], svg_cache: null },
   pdf_asset: null,
   pdf_total_pages: null,
+  canvas_state: null,
 });
 
 describe("PageView", () => {
@@ -48,5 +56,28 @@ describe("PageView", () => {
     const page = { ...makePage(), tags: [] };
     render(<PageView page={page} />);
     expect(screen.getByTestId("tag-editor-mock")).toBeInTheDocument();
+  });
+
+  it("renderiza CanvasPage para modo canvas", async () => {
+    const canvasPage = {
+      ...makePage(),
+      editor_preferences: { mode: "canvas" as const, split_view: false },
+    };
+    render(
+      <React.Suspense fallback={null}>
+        <PageView page={canvasPage} />
+      </React.Suspense>,
+    );
+    // Aguardar lazy load
+    expect(await screen.findByTestId("canvas-page-mock")).toBeInTheDocument();
+  });
+
+  it("renderiza PdfCanvasPage para modo pdf_canvas", () => {
+    const pdfPage = {
+      ...makePage(),
+      editor_preferences: { mode: "pdf_canvas" as const, split_view: false },
+    };
+    render(<PageView page={pdfPage} />);
+    expect(screen.getByTestId("pdf-canvas-mock")).toBeInTheDocument();
   });
 });

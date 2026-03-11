@@ -8,6 +8,8 @@ import {
   FolderClosed,
   ChevronRight,
   ChevronDown,
+  LayoutDashboard,
+  FileImage,
 } from "lucide-react";
 import {
   DndContext,
@@ -292,6 +294,7 @@ function NotebookRow({
       ref={setDropRef}
       role="treeitem"
       aria-expanded={isExpanded}
+      data-testid="tree-notebook"
       style={{ opacity: isDragging ? 0.4 : 1 }}
     >
       <div ref={setDragRef} {...dragListeners} style={{ touchAction: "none" }}>
@@ -381,6 +384,7 @@ function SectionNode({
       ref={setDropRef}
       role="treeitem"
       aria-expanded={isExpanded}
+      data-testid="tree-section"
       style={{ opacity: isDragging ? 0.4 : 1 }}
     >
       <div ref={setDragRef} {...dragListeners} style={{ touchAction: "none" }}>
@@ -446,14 +450,21 @@ function PageRow({
     data: { type: "page", id: page.id, label: page.title },
   });
 
+  const getPageIcon = () => {
+    if (page.mode === "canvas") return <LayoutDashboard size={16} />;
+    if (page.mode === "pdf_canvas") return <FileImage size={16} />;
+    return <FileText size={16} />;
+  };
+
   return (
     <div
       ref={setNodeRef}
       {...dragListeners}
+      data-testid="tree-page"
       style={{ touchAction: "none", opacity: isDragging ? 0.4 : 1 }}
     >
       <TreeItem
-        icon={<FileText size={16} />}
+        icon={getPageIcon()}
         label={page.title}
         isSelected={isSelected}
         depth={2}

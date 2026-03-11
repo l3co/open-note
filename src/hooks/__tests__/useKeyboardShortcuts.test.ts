@@ -79,12 +79,26 @@ describe("useKeyboardShortcuts", () => {
     const spy = vi.spyOn(document, "removeEventListener");
     const { unmount } = renderHook(() => useKeyboardShortcuts());
     unmount();
-    expect(spy).toHaveBeenCalledWith("keydown", expect.any(Function));
+    expect(spy).toHaveBeenCalledWith("keydown", expect.any(Function), true);
   });
 
   it("does not toggle sidebar without meta key", () => {
     renderHook(() => useKeyboardShortcuts());
     fireKey("\\");
     expect(useUIStore.getState().sidebarOpen).toBe(true);
+  });
+
+  it("opens quick open on Cmd+K when outside editor", () => {
+    useUIStore.setState({ showQuickOpen: false });
+    renderHook(() => useKeyboardShortcuts());
+    fireKey("k", { metaKey: true });
+    expect(useUIStore.getState().showQuickOpen).toBe(true);
+  });
+
+  it("opens new notebook modal on Cmd+Shift+N", () => {
+    useUIStore.setState({ showNewNotebookModal: false });
+    renderHook(() => useKeyboardShortcuts());
+    fireKey("N", { metaKey: true, shiftKey: true });
+    expect(useUIStore.getState().showNewNotebookModal).toBe(true);
   });
 });

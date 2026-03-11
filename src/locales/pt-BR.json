@@ -296,6 +296,24 @@
       "import": "Importar PDF",
       "select_file": "Selecionar arquivo PDF"
     },
+    "canvas": {
+      "new_page": "Nova Página Canvas",
+      "default_title": "Canvas sem título",
+      "loading": "Carregando canvas...",
+      "tool_select": "Selecionar",
+      "tool_hand": "Mão (Panorâmica)",
+      "tool_rectangle": "Retângulo",
+      "tool_ellipse": "Elipse",
+      "tool_diamond": "Losango",
+      "tool_arrow": "Seta",
+      "tool_line": "Linha",
+      "tool_freedraw": "Caneta",
+      "tool_text": "Texto",
+      "tool_image": "Imagem",
+      "tool_eraser": "Borracha",
+      "export": "Exportar como imagem",
+      "export_excalidraw": "Exportar como .excalidraw"
+    },
     "context_menu": {
       "rename": "Renomear",
       "delete": "Excluir",
@@ -303,7 +321,8 @@
       "duplicate": "Duplicar",
       "new_section": "Nova Seção",
       "new_page": "Nova Página",
-      "import_pdf": "Importar PDF"
+      "import_pdf": "Importar PDF",
+      "new_canvas_page": "Nova Página Canvas"
     },
     "pdf_canvas": {
       "prev_page": "Página anterior",

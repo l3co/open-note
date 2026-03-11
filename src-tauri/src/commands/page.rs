@@ -230,6 +230,37 @@ pub fn update_page_annotations(
 }
 
 #[tauri::command]
+pub fn create_canvas_page(
+    state: State<AppManagedState>,
+    section_id: SectionId,
+    title: String,
+    workspace_id: Option<String>,
+) -> Result<Page, CommandError> {
+    let root = resolve_root(&state, workspace_id)?;
+    let page = Page::new_canvas(section_id, &title).map_err(CommandError::from)?;
+    let page =
+        FsStorageEngine::create_page_from(&root, section_id, page).map_err(CommandError::from)?;
+    try_index_page(&state, &root, &page);
+    Ok(page)
+}
+
+#[tauri::command]
+pub fn update_page_canvas_state(
+    state: State<AppManagedState>,
+    page_id: PageId,
+    canvas_state: Option<serde_json::Value>,
+    workspace_id: Option<String>,
+) -> Result<(), CommandError> {
+    let root = resolve_root(&state, workspace_id)?;
+    state.save_coordinator.with_page_lock(page_id, || {
+        let mut page = FsStorageEngine::load_page(&root, page_id).map_err(CommandError::from)?;
+        page.update_canvas_state(canvas_state);
+        FsStorageEngine::update_page(&root, &page).map_err(CommandError::from)?;
+        Ok(())
+    })
+}
+
+#[tauri::command]
 pub fn read_file_content(path: String) -> Result<String, CommandError> {
     std::fs::read_to_string(&path)
         .map_err(|error| CommandError::Storage(format!("Failed to read file: {error}")))

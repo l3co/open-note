@@ -209,6 +209,30 @@ export const updatePageAnnotations = (
     workspaceId,
   });
 
+// ─── Canvas ───
+
+export const createCanvasPage = (
+  sectionId: SectionId,
+  title: string,
+  workspaceId?: string,
+) =>
+  invoke<Page>("create_canvas_page", {
+    sectionId,
+    title,
+    workspaceId,
+  });
+
+export const updatePageCanvasState = (
+  pageId: PageId,
+  canvasState: unknown | null,
+  workspaceId?: string,
+) =>
+  invoke<void>("update_page_canvas_state", {
+    pageId,
+    canvasState,
+    workspaceId,
+  });
+
 // ─── Tags ───
 
 export const listAllTags = (workspaceId?: string) =>

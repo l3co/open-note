@@ -53,9 +53,16 @@ const makePage = (id: string, title: string) => ({
   id,
   title,
   section_id: "sec-1",
+  blocks: [],
   tags: [],
   created_at: "2024-01-01T00:00:00Z",
   updated_at: "2024-01-01T00:00:00Z",
+  schema_version: 1,
+  editor_preferences: { mode: "rich_text" as const, split_view: false },
+  annotations: { strokes: [], highlights: [], svg_cache: null },
+  pdf_asset: null,
+  pdf_total_pages: null,
+  canvas_state: null,
 });
 
 describe("NotebookTree", () => {

@@ -9,11 +9,12 @@ import {
   Tag,
   FilePlus,
   FileImage,
+  LayoutDashboard,
 } from "lucide-react";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { usePageStore } from "@/stores/usePageStore";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
-import { importPdf, createPdfCanvasPage } from "@/lib/ipc";
+import { importPdf, createPdfCanvasPage, createCanvasPage } from "@/lib/ipc";
 import type { PageSummary } from "@/types/bindings/PageSummary";
 
 type Layout = "grid" | "list";
@@ -72,6 +73,21 @@ export function SectionOverview() {
     );
     selectPage(page.id);
     loadPage(page.id);
+  };
+
+  const handleNewCanvasPage = async () => {
+    if (!selectedSectionId) return;
+    try {
+      const page = await createCanvasPage(
+        selectedSectionId,
+        t("canvas.default_title"),
+      );
+      await loadPages(selectedSectionId);
+      selectPage(page.id);
+      await loadPage(page.id);
+    } catch (err) {
+      console.error("[SectionOverview] create canvas page failed:", err);
+    }
   };
 
   const handleImportPdf = async () => {
@@ -153,6 +169,20 @@ export function SectionOverview() {
           </button>
 
           {/* New page button */}
+          <button
+            onClick={handleNewCanvasPage}
+            className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
+            style={{
+              backgroundColor: "var(--bg-tertiary)",
+              color: "var(--text-secondary)",
+            }}
+            title={t("canvas.new_page")}
+            data-testid="new-canvas-page-btn"
+          >
+            <LayoutDashboard size={14} />
+            {t("canvas.new_page")}
+          </button>
+
           <button
             onClick={handleNewPage}
             className="flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
@@ -260,7 +290,13 @@ function GridCard({
         className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg"
         style={{ backgroundColor: "var(--accent-subtle)" }}
       >
-        <FileText size={20} style={{ color: "var(--accent)" }} />
+        {page.mode === "canvas" ? (
+          <LayoutDashboard size={20} style={{ color: "var(--accent)" }} />
+        ) : page.mode === "pdf_canvas" ? (
+          <FileImage size={20} style={{ color: "var(--accent)" }} />
+        ) : (
+          <FileText size={20} style={{ color: "var(--accent)" }} />
+        )}
       </div>
 
       {/* Title */}
@@ -342,7 +378,13 @@ function ListRow({
         className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md"
         style={{ backgroundColor: "var(--accent-subtle)" }}
       >
-        <FileText size={15} style={{ color: "var(--accent)" }} />
+        {page.mode === "canvas" ? (
+          <LayoutDashboard size={15} style={{ color: "var(--accent)" }} />
+        ) : page.mode === "pdf_canvas" ? (
+          <FileImage size={15} style={{ color: "var(--accent)" }} />
+        ) : (
+          <FileText size={15} style={{ color: "var(--accent)" }} />
+        )}
       </div>
 
       <div className="min-w-0 flex-1">
