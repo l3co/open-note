@@ -95,8 +95,10 @@ export function useKeyboardShortcuts() {
       }
     };
 
-    document.addEventListener("keydown", handler);
-    return () => document.removeEventListener("keydown", handler);
+    // capture: true garante que o handler roda antes dos handlers React de
+    // componentes filhos (como o Excalidraw) que possam chamar stopPropagation.
+    document.addEventListener("keydown", handler, true);
+    return () => document.removeEventListener("keydown", handler, true);
   }, [
     toggleSidebar,
     goBack,

@@ -79,7 +79,7 @@ describe("useKeyboardShortcuts", () => {
     const spy = vi.spyOn(document, "removeEventListener");
     const { unmount } = renderHook(() => useKeyboardShortcuts());
     unmount();
-    expect(spy).toHaveBeenCalledWith("keydown", expect.any(Function));
+    expect(spy).toHaveBeenCalledWith("keydown", expect.any(Function), true);
   });
 
   it("does not toggle sidebar without meta key", () => {
