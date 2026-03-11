@@ -48,9 +48,9 @@ test.describe("Canvas Page (Excalidraw Integration)", () => {
   test("criar página canvas e verificar que abre o Excalidraw", async ({ page }) => {
     // Aguardar notebook carregar na árvore e expandir
     await expect(page.locator(TREE.notebookItem).first()).toBeVisible({ timeout: 10000 });
-    await page.locator(TREE.notebookItem).first().click();
+    await page.locator(TREE.notebookItem).first().locator('[role="button"]').first().click();
     await expect(page.locator(TREE.sectionItem).first()).toBeVisible({ timeout: 5000 });
-    await page.locator(TREE.sectionItem).first().click();
+    await page.locator(TREE.sectionItem).first().locator('[role="button"]').first().click();
 
     // Clicar no botão "Nova Página Canvas" na SectionOverview
     const newCanvasBtn = page.locator('[data-testid="new-canvas-page-btn"]');
@@ -69,9 +69,9 @@ test.describe("Canvas Page (Excalidraw Integration)", () => {
   test("estado do canvas persiste após auto-save", async ({ page }) => {
     // Criar página canvas
     await expect(page.locator(TREE.notebookItem).first()).toBeVisible({ timeout: 10000 });
-    await page.locator(TREE.notebookItem).first().click();
+    await page.locator(TREE.notebookItem).first().locator('[role="button"]').first().click();
     await expect(page.locator(TREE.sectionItem).first()).toBeVisible({ timeout: 5000 });
-    await page.locator(TREE.sectionItem).first().click();
+    await page.locator(TREE.sectionItem).first().locator('[role="button"]').first().click();
     await page.locator('[data-testid="new-canvas-page-btn"]').click();
     await expect(page.locator(".excalidraw")).toBeVisible({ timeout: 15000 });
 

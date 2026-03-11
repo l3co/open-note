@@ -70,19 +70,20 @@ export async function setupWithPage(
   // Wait for sidebar to load and click through to page
   await page.waitForSelector('[role="tree"]', { timeout: 5000 });
 
-  // Click notebook to expand (wait for it to appear first)
+  // Click notebook to expand (wait for it to appear first).
+  // Important: click the inner [role="button"] TreeItem, not the outer droppable wrapper.
   const notebookNode = page.locator('[data-testid="tree-notebook"]').first();
   try {
     await notebookNode.waitFor({ state: "visible", timeout: 5000 });
-    await notebookNode.click();
+    await notebookNode.locator('[role="button"]').first().click();
     // Wait for sections to load after async loadSections IPC call
     const sectionNode = page.locator('[data-testid="tree-section"]').first();
     await sectionNode.waitFor({ state: "visible", timeout: 5000 });
-    await sectionNode.click();
+    await sectionNode.locator('[role="button"]').first().click();
     // Wait for pages to load after async loadPages IPC call
     const pageNode = page.locator('[data-testid="tree-page"]').first();
     await pageNode.waitFor({ state: "visible", timeout: 5000 });
-    await pageNode.click();
+    await pageNode.locator('[role="button"]').first().click();
   } catch {
     // Tree navigation is best-effort — some tests may not need a loaded page
   }
