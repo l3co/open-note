@@ -294,6 +294,7 @@ function NotebookRow({
       ref={setDropRef}
       role="treeitem"
       aria-expanded={isExpanded}
+      data-testid="tree-notebook"
       style={{ opacity: isDragging ? 0.4 : 1 }}
     >
       <div ref={setDragRef} {...dragListeners} style={{ touchAction: "none" }}>
@@ -383,6 +384,7 @@ function SectionNode({
       ref={setDropRef}
       role="treeitem"
       aria-expanded={isExpanded}
+      data-testid="tree-section"
       style={{ opacity: isDragging ? 0.4 : 1 }}
     >
       <div ref={setDragRef} {...dragListeners} style={{ touchAction: "none" }}>
@@ -458,6 +460,7 @@ function PageRow({
     <div
       ref={setNodeRef}
       {...dragListeners}
+      data-testid="tree-page"
       style={{ touchAction: "none", opacity: isDragging ? 0.4 : 1 }}
     >
       <TreeItem
