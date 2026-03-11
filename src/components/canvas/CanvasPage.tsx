@@ -124,6 +124,7 @@ export function CanvasPage({ page }: CanvasPageProps) {
       </div>
 
       <div className="relative flex-1">
+        <div className="absolute inset-0">
         <Excalidraw
           excalidrawAPI={(api) => {
             excalidrawApiRef.current = api;
@@ -139,6 +140,7 @@ export function CanvasPage({ page }: CanvasPageProps) {
             },
           }}
         />
+        </div>
       </div>
     </div>
   );
