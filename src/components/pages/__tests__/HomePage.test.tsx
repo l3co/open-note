@@ -76,6 +76,7 @@ describe("HomePage", () => {
             tags: [],
             mode: "rich_text" as const,
             block_count: 0,
+            is_protected: false,
             created_at: "2024-01-01T00:00:00Z",
             updated_at: "2024-01-01T00:00:00Z",
           },
@@ -99,6 +100,7 @@ describe("HomePage", () => {
       tags: [],
       mode: "rich_text" as const,
       block_count: 0,
+      is_protected: false,
       created_at: "2024-01-01T00:00:00Z",
       updated_at: "2024-01-01T00:00:00Z",
     }));
@@ -125,6 +127,7 @@ describe("HomePage", () => {
             tags: [],
             mode: "rich_text" as const,
             block_count: 0,
+            is_protected: false,
             created_at: "2024-01-01T00:00:00Z",
             updated_at: "2024-01-01T00:00:00Z",
           },

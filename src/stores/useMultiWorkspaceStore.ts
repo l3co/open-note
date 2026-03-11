@@ -49,6 +49,7 @@ interface MultiWorkspaceStore {
 
   // ─── Workspace lifecycle ───
   openWorkspace: (path: string) => Promise<Workspace | null>;
+  forceOpenWorkspace: (path: string) => Promise<Workspace | null>;
   createWorkspace: (path: string, name: string) => Promise<Workspace | null>;
   closeWorkspace: (workspaceId: string) => Promise<void>;
   focusWorkspace: (workspaceId: string) => void;
@@ -104,8 +105,28 @@ function resolveId(
   return workspaceId ?? get().focusedWorkspaceId;
 }
 
+function extractMessage(e: unknown): string {
+  if (e instanceof Error) return e.message;
+  if (typeof e === "string") return e;
+  if (typeof e === "object" && e !== null) {
+    const obj = e as Record<string, unknown>;
+    if (typeof obj.message === "string") return obj.message;
+  }
+  return JSON.stringify(e) ?? String(e);
+}
+
+function isWorkspaceLocked(
+  e: unknown,
+): e is { code: "WorkspaceLocked"; message: number } {
+  return (
+    typeof e === "object" &&
+    e !== null &&
+    (e as Record<string, unknown>).code === "WorkspaceLocked"
+  );
+}
+
 function handleError(e: unknown) {
-  const msg = String(e);
+  const msg = extractMessage(e);
   console.error("[MultiWorkspaceStore]", msg);
   toast.error(msg);
 }
@@ -132,6 +153,56 @@ export const useMultiWorkspaceStore = create<MultiWorkspaceStore>(
     openWorkspace: async (path) => {
       try {
         const workspace = await ipc.openWorkspace(path);
+        const notebooks = await ipc.listNotebooks(workspace.id);
+
+        set((s) => {
+          const workspaces = new Map(s.workspaces);
+          const existing = workspaces.get(workspace.id);
+          workspaces.set(workspace.id, {
+            workspace,
+            notebooks,
+            sections: existing?.sections ?? new Map(),
+            navigation: existing?.navigation ?? defaultNavigation(),
+          });
+          return { workspaces, focusedWorkspaceId: workspace.id };
+        });
+
+        ipc
+          .rebuildIndex(workspace.id)
+          .catch((err) =>
+            console.warn("[Search] failed to rebuild index:", err),
+          );
+
+        return workspace;
+      } catch (e) {
+        if (isWorkspaceLocked(e)) {
+          const pid = e.message;
+          console.warn(
+            `[MultiWorkspaceStore] workspace locked by PID ${pid}, offering force-open`,
+          );
+          toast.warning(
+            `Workspace bloqueado pelo processo PID ${pid}. Isso pode ser um lock antigo de uma sessão que fechou incorretamente.`,
+            {
+              duration: 10000,
+              action: {
+                label: "Forçar abertura",
+                onClick: () =>
+                  get()
+                    .forceOpenWorkspace(path)
+                    .catch((err) => handleError(err)),
+              },
+            },
+          );
+          throw e;
+        }
+        handleError(e);
+        throw e;
+      }
+    },
+
+    forceOpenWorkspace: async (path) => {
+      try {
+        const workspace = await ipc.forceOpenWorkspace(path);
         const notebooks = await ipc.listNotebooks(workspace.id);
 
         set((s) => {

@@ -4,6 +4,7 @@ use tauri::State;
 use opennote_core::settings::{ActiveWorkspace, AppState, GlobalSettings};
 use opennote_core::workspace::{Workspace, WorkspaceSettings};
 use opennote_storage::engine::FsStorageEngine;
+use opennote_storage::lock;
 
 use crate::error::CommandError;
 use crate::state::{AppManagedState, WorkspaceContext};
@@ -112,6 +113,19 @@ pub fn open_workspace(
     state.set_focused(Some(workspace.id))?;
 
     Ok(workspace)
+}
+
+/// Force-opens a workspace by first releasing any stale lock file, then opening normally.
+/// Only call this after receiving a `WorkspaceLocked` error and confirming with the user.
+#[tauri::command]
+pub fn force_open_workspace(
+    state: State<AppManagedState>,
+    path: String,
+) -> Result<Workspace, CommandError> {
+    warn!("Force-opening workspace at {} (releasing stale lock)", path);
+    let root = std::path::PathBuf::from(&path);
+    lock::release_lock(&root).map_err(CommandError::from)?;
+    open_workspace(state, path)
 }
 
 #[tauri::command]

@@ -13,6 +13,12 @@ chrono = { workspace = true }
 thiserror = { workspace = true }
 unicode-normalization = "0.1"
 
+# criptografia
+aes-gcm  = "0.10"
+argon2   = "0.5"
+rand     = "0.8"
+base64   = "0.22"
+
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"
 

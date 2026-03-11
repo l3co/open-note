@@ -4,6 +4,7 @@ import type { PageSummary } from "@/types/bindings/PageSummary";
 import * as ipc from "@/lib/ipc";
 
 export type SaveStatus = "idle" | "saving" | "saved" | "error";
+export type PageLockState = "unlocked" | "locked" | "loading";
 
 interface PageStore {
   currentPage: Page | null;
@@ -11,18 +12,32 @@ interface PageStore {
   isLoading: boolean;
   isSaving: boolean;
   saveStatus: SaveStatus;
+  lockState: PageLockState;
   lastSavedAt: Date | null;
   error: string | null;
 
   loadPages: (sectionId: string) => Promise<void>;
   loadPage: (pageId: string) => Promise<void>;
+  unlockPage: (
+    pageId: string,
+    password: string,
+    durationMins?: number,
+  ) => Promise<void>;
+  lockPage: (pageId: string) => Promise<void>;
+  setPagePassword: (pageId: string, password: string) => Promise<void>;
+  removePagePassword: (pageId: string, password: string) => Promise<void>;
+  changePagePassword: (
+    pageId: string,
+    oldPw: string,
+    newPw: string,
+  ) => Promise<void>;
   createPage: (sectionId: string, title: string) => Promise<Page>;
   updatePage: (page: Page) => Promise<void>;
   updatePageTitle: (title: string) => Promise<void>;
   updateBlocks: (pageId: string, blocks: Page["blocks"]) => Promise<Page>;
   deletePage: (pageId: string) => Promise<void>;
   movePage: (pageId: string, targetSectionId: string) => Promise<void>;
-  setCurrentPage: (page: Page) => void;
+  setCurrentPage: (page: Page, lockState?: PageLockState) => void;
   setSaveStatus: (status: SaveStatus) => void;
   clearCurrentPage: () => void;
   clearError: () => void;
@@ -34,6 +49,7 @@ export const usePageStore = create<PageStore>((set, get) => ({
   isLoading: false,
   isSaving: false,
   saveStatus: "idle",
+  lockState: "unlocked",
   lastSavedAt: null,
   error: null,
 
@@ -51,12 +67,88 @@ export const usePageStore = create<PageStore>((set, get) => ({
   },
 
   loadPage: async (pageId) => {
-    set({ isLoading: true, error: null });
+    set({ isLoading: true, error: null, lockState: "loading" });
     try {
       const page = await ipc.loadPage(pageId);
-      set({ currentPage: page, isLoading: false });
+      // Backend retorna blocks vazio quando está bloqueada.
+      // Se protection existe mas blocks está vazio e há encryptedContent, está locked.
+      if (
+        page.protection &&
+        page.blocks.length === 0 &&
+        page.encrypted_content
+      ) {
+        set({ currentPage: page, lockState: "locked", isLoading: false });
+      } else {
+        set({ currentPage: page, lockState: "unlocked", isLoading: false });
+      }
     } catch (e) {
-      set({ error: String(e), isLoading: false });
+      set({ error: String(e), isLoading: false, lockState: "unlocked" });
+    }
+  },
+
+  unlockPage: async (pageId, password, durationMins) => {
+    set({ isLoading: true, error: null });
+    try {
+      const page = await ipc.unlockPage(pageId, password, durationMins);
+      set({ currentPage: page, lockState: "unlocked", isLoading: false });
+      // Atualiza summaries para refletir título real na sidebar se necessário
+      await get().loadPages(page.section_id);
+    } catch (e) {
+      set({ isLoading: false });
+      throw e;
+    }
+  },
+
+  lockPage: async (pageId) => {
+    try {
+      await ipc.lockPage(pageId);
+      const { currentPage } = get();
+      if (currentPage?.id === pageId) {
+        // Recarrega a página para voltar ao estado "locked" visualmente
+        await get().loadPage(pageId);
+      }
+    } catch (e) {
+      set({ error: String(e) });
+    }
+  },
+
+  setPagePassword: async (pageId, password) => {
+    set({ isSaving: true, error: null });
+    try {
+      await ipc.setPagePassword(pageId, password);
+      // Recarrega a página para atualizar o estado local (agora protegida)
+      await get().loadPage(pageId);
+      const { currentPage } = get();
+      if (currentPage) {
+        await get().loadPages(currentPage.section_id);
+      }
+      set({ isSaving: false });
+    } catch (e) {
+      set({ error: String(e), isSaving: false });
+      throw e;
+    }
+  },
+
+  removePagePassword: async (pageId, password) => {
+    set({ isSaving: true, error: null });
+    try {
+      const page = await ipc.removePagePassword(pageId, password);
+      set({ currentPage: page, lockState: "unlocked", isSaving: false });
+      await get().loadPages(page.section_id);
+    } catch (e) {
+      set({ error: String(e), isSaving: false });
+      throw e;
+    }
+  },
+
+  changePagePassword: async (pageId, oldPw, newPw) => {
+    set({ isSaving: true, error: null });
+    try {
+      await ipc.changePagePassword(pageId, oldPw, newPw);
+      set({ isSaving: false });
+    } catch (e) {
+      set({ error: String(e), isSaving: false });
+      throw e;
     }
   },
 
@@ -139,8 +231,10 @@ export const usePageStore = create<PageStore>((set, get) => ({
     }
   },
 
-  setCurrentPage: (page) => set({ currentPage: page }),
+  setCurrentPage: (page, lockState) =>
+    set({ currentPage: page, lockState: lockState ?? "unlocked" }),
   setSaveStatus: (status) => set({ saveStatus: status }),
-  clearCurrentPage: () => set({ currentPage: null, saveStatus: "idle" }),
+  clearCurrentPage: () =>
+    set({ currentPage: null, saveStatus: "idle", lockState: "unlocked" }),
   clearError: () => set({ error: null }),
 }));

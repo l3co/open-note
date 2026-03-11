@@ -47,7 +47,14 @@
       "rename": "Rename Section",
       "delete": "Delete Section",
       "delete_confirm": "Are you sure you want to delete the section \"{{name}}\"? All pages will be moved to trash.",
-      "name_placeholder": "Section name"
+      "name_placeholder": "Section name",
+      "contextMenu": {
+        "listProtectedPages": "List protected pages"
+      },
+      "protectedPages": {
+        "title": "Protected pages",
+        "description": "Unlock each page individually to reveal its title."
+      }
     },
     "page": {
       "new": "New Page",
@@ -58,7 +65,39 @@
       "current_section": "current",
       "blocks": "{{count}} blocks",
       "blocks_warning": "This page is large. Consider splitting the content.",
-      "select_page": "Select a page in the sidebar or create a new one to get started."
+      "select_page": "Select a page in the sidebar or create a new one to get started.",
+      "protected": "Protected page",
+      "contextMenu": {
+        "protectWithPassword": "Protect with password",
+        "lockNow": "Lock now",
+        "changePassword": "Change password",
+        "removePassword": "Remove protection"
+      },
+      "password": {
+        "unlockTitle": "Unlock page",
+        "unlockDescription": "This page is password-protected. Enter the password to unlock.",
+        "placeholder": "Enter password",
+        "unlock": "Unlock",
+        "remember": "Keep unlocked for:",
+        "durations": {
+          "once": "Just now",
+          "10min": "10 minutes",
+          "30min": "30 minutes",
+          "1hour": "1 hour",
+          "session": "Until close app"
+        },
+        "setTitle": "Protect page with password",
+        "changeTitle": "Change password",
+        "removeTitle": "Remove protection",
+        "currentPassword": "Current password",
+        "newPassword": "New password",
+        "confirmPassword": "Confirm password",
+        "wrongPassword": "Wrong password. Please try again.",
+        "passwordMismatch": "Passwords do not match.",
+        "tooShort": "Password must be at least 6 characters.",
+        "removeWarning": "⚠️ The content will be unprotected and readable by anyone with access to the file.",
+        "forgotWarning": "Warning: if you forget the password, the content of this page cannot be recovered."
+      }
     },
     "home": {
       "greeting_morning": "Good morning",

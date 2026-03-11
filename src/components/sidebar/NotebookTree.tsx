@@ -10,6 +10,7 @@ import {
   ChevronDown,
   LayoutDashboard,
   FileImage,
+  Lock,
 } from "lucide-react";
 import {
   DndContext,
@@ -451,6 +452,7 @@ function PageRow({
   });
 
   const getPageIcon = () => {
+    if (page.is_protected) return <Lock size={16} />;
     if (page.mode === "canvas") return <LayoutDashboard size={16} />;
     if (page.mode === "pdf_canvas") return <FileImage size={16} />;
     return <FileText size={16} />;
@@ -472,6 +474,9 @@ function PageRow({
         onContextMenu={(e) =>
           onContextMenu(e, "page", page.id, page.title, notebookId, sectionId)
         }
+        labelClassName={clsx(
+          page.is_protected && "italic text-muted-foreground",
+        )}
       />
     </div>
   );
@@ -519,6 +524,7 @@ function TreeItem({
   onDrop,
   onDragEnd,
   onRename,
+  labelClassName,
 }: {
   icon: React.ReactNode;
   label: string;
@@ -534,6 +540,7 @@ function TreeItem({
   onDrop?: () => void;
   onDragEnd?: () => void;
   onRename?: (name: string) => void;
+  labelClassName?: string;
 }) {
   const paddingLeft = 8 + depth * 16;
   const [renaming, setRenaming] = useState(false);
@@ -638,7 +645,7 @@ function TreeItem({
           }}
         />
       ) : (
-        <span className="flex-1 truncate">{label}</span>
+        <span className={clsx("flex-1 truncate", labelClassName)}>{label}</span>
       )}
     </div>
   );

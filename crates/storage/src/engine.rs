@@ -340,7 +340,20 @@ impl FsStorageEngine {
 
     pub fn load_page(workspace_root: &Path, page_id: PageId) -> StorageResult<Page> {
         let path = Self::find_page_file(workspace_root, page_id)?;
-        read_json(&path)
+        let raw: serde_json::Value = read_json(&path)?;
+        let raw_version = raw
+            .get("schema_version")
+            .and_then(|v| v.as_u64())
+            .unwrap_or(1) as u32;
+
+        let migrated = crate::migrations::migrate_page_if_needed(raw)?;
+        let page: Page = serde_json::from_value(migrated)?;
+
+        // Re-salva apenas se houve migration
+        if raw_version < opennote_core::page::CURRENT_SCHEMA_VERSION {
+            atomic_write_json(&path, &page)?;
+        }
+        Ok(page)
     }
 
     pub fn create_page(

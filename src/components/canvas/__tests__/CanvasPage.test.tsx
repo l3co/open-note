@@ -52,6 +52,8 @@ const mockPage: Page = {
   canvas_state: null,
   pdf_asset: null,
   pdf_total_pages: null,
+  protection: null,
+  encrypted_content: null,
   created_at: "2026-01-01T00:00:00Z",
   updated_at: "2026-01-01T00:00:00Z",
   schema_version: 1,

@@ -625,10 +625,10 @@ fn test_read_only_workspace() {
 // ─── Phase 2 Retrofit: Schema Migration ───
 
 #[test]
-fn test_migration_v1_to_v2_preserves_data() {
-    use opennote_storage::migrations::migrate_if_needed;
+fn test_migration_v1_to_v2_works() {
+    use opennote_storage::migrations::migrate_page_if_needed;
 
-    // Current schema is v1 — test that a v1 JSON passes through unchanged
+    // v1 JSON
     let v1_json = serde_json::json!({
         "schema_version": 1,
         "id": "550e8400-e29b-41d4-a716-446655440000",
@@ -642,15 +642,20 @@ fn test_migration_v1_to_v2_preserves_data() {
         "updated_at": "2024-01-01T00:00:00Z"
     });
 
-    let result = migrate_if_needed(v1_json.clone()).unwrap();
+    let result = migrate_page_if_needed(v1_json.clone()).unwrap();
     assert_eq!(result["title"], "Test Page");
     assert_eq!(result["tags"], serde_json::json!(["rust", "test"]));
-    assert_eq!(result["schema_version"], 1);
+    assert_eq!(result["schema_version"], 2);
+    assert!(result.as_object().unwrap().contains_key("protection"));
+    assert!(result
+        .as_object()
+        .unwrap()
+        .contains_key("encrypted_content"));
 
     // Future version should error
     let future_json = serde_json::json!({
         "schema_version": 999,
         "title": "Future"
     });
-    assert!(migrate_if_needed(future_json).is_err());
+    assert!(migrate_page_if_needed(future_json).is_err());
 }

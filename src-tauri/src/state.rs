@@ -19,6 +19,9 @@ pub struct WorkspaceContext {
     pub name: String,
     pub search_engine: Option<SearchEngine>,
     pub sync_coordinator: Option<SyncCoordinator>,
+    /// Chaves AES-256 derivadas (em memória), com opcional de expiração.
+    /// (Key, Expiration)
+    pub session_keys: HashMap<PageId, (Vec<u8>, Option<chrono::DateTime<chrono::Utc>>)>,
 }
 
 impl WorkspaceContext {
@@ -28,6 +31,7 @@ impl WorkspaceContext {
             name,
             search_engine: None,
             sync_coordinator: None,
+            session_keys: HashMap::new(),
         }
     }
 
@@ -139,6 +143,57 @@ impl AppManagedState {
             .map_err(|_| CommandError::Internal("State lock poisoned".to_string()))?;
         *focused = id;
         Ok(())
+    }
+
+    /// Guarda a chave derivada para a page na sessão do workspace atual com TTL opcional.
+    pub fn cache_key(
+        &self,
+        page_id: PageId,
+        key: Vec<u8>,
+        expires_at: Option<chrono::DateTime<chrono::Utc>>,
+    ) -> Result<(), CommandError> {
+        let id = self.get_focused_id()?.ok_or(CommandError::NoWorkspace)?;
+        self.with_workspace_mut(&id, |ctx| {
+            ctx.session_keys.insert(page_id, (key, expires_at));
+            Ok(())
+        })
+    }
+
+    /// Retorna a chave em cache para a page (se desbloqueada e não expirada).
+    pub fn get_cached_key(&self, page_id: PageId) -> Result<Option<Vec<u8>>, CommandError> {
+        let id = self.get_focused_id()?.ok_or(CommandError::NoWorkspace)?;
+        self.with_workspace_mut(&id, |ctx| {
+            let mut expired = false;
+            let key = if let Some((key, expiration)) = ctx.session_keys.get(&page_id) {
+                if let Some(exp) = expiration {
+                    if *exp < chrono::Utc::now() {
+                        expired = true;
+                        None
+                    } else {
+                        Some(key.clone())
+                    }
+                } else {
+                    Some(key.clone())
+                }
+            } else {
+                None
+            };
+
+            if expired {
+                ctx.session_keys.remove(&page_id);
+            }
+
+            Ok(key)
+        })
+    }
+
+    /// Remove a chave da sessão (re-lock manual).
+    pub fn evict_key(&self, page_id: PageId) -> Result<(), CommandError> {
+        let id = self.get_focused_id()?.ok_or(CommandError::NoWorkspace)?;
+        self.with_workspace_mut(&id, |ctx| {
+            ctx.session_keys.remove(&page_id);
+            Ok(())
+        })
     }
 
     /// Retorna o ID do workspace em foco.

@@ -59,6 +59,35 @@ export async function setupWithWorkspace(
 }
 
 /**
+ * Sets up an app with workspace and expands the tree to show page nodes,
+ * but does NOT click on any page. Use when the test itself needs to interact
+ * with a page node (e.g. right-click, or click a protected page).
+ */
+export async function setupWithExpandedTree(
+  page: Page,
+  overrides: MockOverrides = {},
+): Promise<void> {
+  await setupWithWorkspace(page, overrides);
+
+  await page.waitForSelector('[role="tree"]', { timeout: 5000 });
+
+  const notebookNode = page.locator('[data-testid="tree-notebook"]').first();
+  try {
+    await notebookNode.waitFor({ state: "visible", timeout: 5000 });
+    await notebookNode.locator('[role="button"]').first().click();
+    const sectionNode = page.locator('[data-testid="tree-section"]').first();
+    await sectionNode.waitFor({ state: "visible", timeout: 5000 });
+    await sectionNode.locator('[role="button"]').first().click();
+    await page
+      .locator('[data-testid="tree-page"]')
+      .first()
+      .waitFor({ state: "visible", timeout: 5000 });
+  } catch {
+    // Tree navigation is best-effort
+  }
+}
+
+/**
  * Sets up an app with workspace, notebook, section and navigates to a page.
  */
 export async function setupWithPage(

@@ -32,6 +32,12 @@ pub enum StorageError {
     #[error("Trash item not found: {id}")]
     TrashItemNotFound { id: String },
 
+    #[error("Encryption error: {0}")]
+    EncryptionError(String),
+
+    #[error("Wrong password")]
+    WrongPassword,
+
     #[error("I/O error: {source}")]
     Io {
         #[from]

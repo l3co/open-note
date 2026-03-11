@@ -76,7 +76,22 @@ pub fn migrate_app_state_if_needed(raw: Value, path: &Path) -> StorageResult<Val
 
 // ── Page migrations ───────────────────────────────────────────────────────────
 
-pub fn migrate_if_needed(mut json: Value) -> StorageResult<Value> {
+pub fn migrate_page_v1_to_v2(mut json: Value) -> Value {
+    let obj = json.as_object_mut().expect("Page must be an object");
+    if !obj.contains_key("protection") {
+        obj.insert("protection".into(), Value::Null);
+    }
+    if !obj.contains_key("encrypted_content") {
+        obj.insert("encrypted_content".into(), Value::Null);
+    }
+    obj.insert(
+        "schema_version".into(),
+        Value::Number(CURRENT_SCHEMA_VERSION.into()),
+    );
+    json
+}
+
+pub fn migrate_page_if_needed(mut json: Value) -> StorageResult<Value> {
     let version = json
         .get("schema_version")
         .and_then(|v| v.as_u64())
@@ -89,21 +104,20 @@ pub fn migrate_if_needed(mut json: Value) -> StorageResult<Value> {
         });
     }
 
+    if version == CURRENT_SCHEMA_VERSION {
+        return Ok(json);
+    }
+
     let mut current = version;
     while current < CURRENT_SCHEMA_VERSION {
-        json = apply_migration(current, json)?;
+        json = match current {
+            1 => migrate_page_v1_to_v2(json),
+            _ => json,
+        };
         current += 1;
     }
 
     Ok(json)
-}
-
-#[allow(clippy::match_single_binding)]
-fn apply_migration(from_version: u32, json: Value) -> StorageResult<Value> {
-    match from_version {
-        // Future migrations go here: 1 => migrate_v1_to_v2(json),
-        _ => Ok(json),
-    }
 }
 
 #[cfg(test)]
@@ -116,7 +130,7 @@ mod tests {
             "schema_version": CURRENT_SCHEMA_VERSION,
             "title": "Test"
         });
-        let result = migrate_if_needed(json.clone()).unwrap();
+        let result = migrate_page_if_needed(json.clone()).unwrap();
         assert_eq!(result, json);
     }
 
@@ -126,7 +140,7 @@ mod tests {
             "schema_version": CURRENT_SCHEMA_VERSION + 1,
             "title": "Test"
         });
-        let result = migrate_if_needed(json);
+        let result = migrate_page_if_needed(json);
         assert!(result.is_err());
     }
 
@@ -135,7 +149,7 @@ mod tests {
         let json = serde_json::json!({
             "title": "Test"
         });
-        let result = migrate_if_needed(json);
-        assert!(result.is_ok());
+        let result = migrate_page_if_needed(json).unwrap();
+        assert_eq!(result["schema_version"], CURRENT_SCHEMA_VERSION);
     }
 }

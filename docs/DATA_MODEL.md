@@ -98,25 +98,42 @@ Definido em `crates/core/src/page.rs`.
 |---|---|---|
 | `id` | `PageId` (UUID) | Identificador único |
 | `section_id` | `SectionId` (UUID) | Section pai |
-| `title` | `String` | Título (não vazio, trimmed) |
-| `tags` | `Vec<String>` | Tags livres (lowercase, unique) |
-| `blocks` | `Vec<Block>` | Blocos de conteúdo ordenados |
-| `annotations` | `PageAnnotations` | Strokes e highlights por página PDF |
+| `title` | `String` | Título ou `"[Página protegida]"` |
+| `tags` | `Vec<String>` | Tags livres (vazio se protegida) |
+| `blocks` | `Vec<Block>` | Blocos (vazio se protegida) |
+| `annotations` | `PageAnnotations` | Strokes e highlights (vazio se protegida) |
 | `editor_preferences` | `EditorPreferences` | Modo de edição por page |
-| `pdf_asset` | `Option<String>` | Caminho absoluto do PDF (só em `EditorMode::PdfCanvas`) |
+| `pdf_asset` | `Option<String>` | Caminho absoluto do PDF |
 | `pdf_total_pages` | `Option<u32>` | Número de páginas do PDF |
 | `created_at` | `DateTime<Utc>` | Data de criação |
 | `updated_at` | `DateTime<Utc>` | Última atualização |
-| `schema_version` | `u32` | Versão do schema (atual: 1) |
+| `schema_version` | `u32` | Versão do schema (atual: 2) |
+| `protection` | `Option<PageProtection>` | Metadados de criptografia |
+| `encrypted_content` | `Option<String>` | Payload criptografado em Base64 |
 
-**`EditorPreferences.editor_mode`:**
-- `Rich` — editor rich-text TipTap (padrão)
-- `Markdown` — editor CodeMirror markdown
-- `PdfCanvas` — anotação direta sobre PDF com ferramentas de escrita à mão
+**`PageProtection`:**
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `algorithm` | `EncryptionAlgorithm` | `aes_gcm_256` |
+| `kdf` | `KeyDerivationFunction` | `argon2id` |
+| `kdf_params` | `KdfParams` | Parâmetros do Argon2 (m_cost, t_cost, etc) |
+| `salt` | `String` | Salt aleatório (Base64) |
+| `nonce` | `String` | IV aleatório (Base64) |
+
+**`PageSummary`:**
+
+| Campo | Tipo | Descrição |
+|---|---|---|
+| `id` | `PageId` | Identificador único |
+| `title` | `String` | Título ou placeholder |
+| `is_protected` | `bool` | Indica se a página requer senha |
+| ... | ... | (demais campos de metadados) |
 
 **Constantes:**
-- `SOFT_BLOCK_LIMIT = 200` — warning no StatusBar
-- `HARD_BLOCK_LIMIT = 500` — `add_block()` retorna erro
+- `SOFT_BLOCK_LIMIT = 200`
+- `HARD_BLOCK_LIMIT = 500`
+- `PROTECTED_TITLE_PLACEHOLDER = "[Página protegida]"`
 
 **Persistência:** `{slug}.opn.json` dentro do diretório da section.
 

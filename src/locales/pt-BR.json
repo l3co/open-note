@@ -47,7 +47,14 @@
       "rename": "Renomear Seção",
       "delete": "Excluir Seção",
       "delete_confirm": "Tem certeza que deseja excluir a seção \"{{name}}\"? Todas as páginas serão movidas para a lixeira.",
-      "name_placeholder": "Nome da seção"
+      "name_placeholder": "Nome da seção",
+      "contextMenu": {
+        "listProtectedPages": "Listar páginas protegidas"
+      },
+      "protectedPages": {
+        "title": "Páginas protegidas",
+        "description": "Desbloqueie individualmente para revelar os títulos."
+      }
     },
     "page": {
       "new": "Nova Página",
@@ -58,7 +65,39 @@
       "current_section": "atual",
       "blocks": "{{count}} blocos",
       "blocks_warning": "Esta página está grande. Considere dividir o conteúdo.",
-      "select_page": "Selecione uma página na sidebar ou crie uma nova para começar."
+      "select_page": "Selecione uma página na sidebar ou crie uma nova para começar.",
+      "protected": "Página protegida",
+      "contextMenu": {
+        "protectWithPassword": "Proteger com senha",
+        "lockNow": "Bloquear agora",
+        "changePassword": "Trocar senha",
+        "removePassword": "Remover proteção"
+      },
+      "password": {
+        "unlockTitle": "Desbloquear página",
+        "unlockDescription": "Esta página está protegida por senha. Digite a senha para desbloquear.",
+        "placeholder": "Digite a senha",
+        "unlock": "Desbloquear",
+        "remember": "Manter desbloqueada por:",
+        "durations": {
+          "once": "Apenas agora",
+          "10min": "10 minutos",
+          "30min": "30 minutos",
+          "1hour": "1 hora",
+          "session": "Até fechar o app"
+        },
+        "setTitle": "Proteger página com senha",
+        "changeTitle": "Trocar senha",
+        "removeTitle": "Remover proteção",
+        "currentPassword": "Senha atual",
+        "newPassword": "Nova senha",
+        "confirmPassword": "Confirmar senha",
+        "wrongPassword": "Senha incorreta. Tente novamente.",
+        "passwordMismatch": "As senhas não coincidem.",
+        "tooShort": "A senha deve ter pelo menos 6 caracteres.",
+        "removeWarning": "⚠️ O conteúdo ficará desprotegido e legível por qualquer pessoa com acesso ao arquivo.",
+        "forgotWarning": "Atenção: se você esquecer a senha, o conteúdo desta página não poderá ser recuperado."
+      }
     },
     "home": {
       "greeting_morning": "Bom dia",

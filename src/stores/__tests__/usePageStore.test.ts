@@ -13,6 +13,11 @@ const mockIpc = vi.hoisted(() => ({
   updatePageBlocks: vi.fn(),
   deletePage: vi.fn(),
   movePage: vi.fn(),
+  unlockPage: vi.fn(),
+  lockPage: vi.fn(),
+  setPagePassword: vi.fn(),
+  removePagePassword: vi.fn(),
+  changePagePassword: vi.fn(),
 }));
 
 vi.mock("@/lib/ipc", () => mockIpc);
@@ -25,13 +30,15 @@ const makePage = (overrides = {}) => ({
   tags: [],
   created_at: "2024-01-01T00:00:00Z",
   updated_at: "2024-01-01T00:00:00Z",
-  schema_version: 1,
+  schema_version: 2,
   sort_order: 0,
   editor_preferences: { mode: "rich_text" as const, split_view: false },
   annotations: { strokes: [], highlights: [], svg_cache: null },
   pdf_asset: null,
   pdf_total_pages: null,
   canvas_state: null,
+  protection: null,
+  encrypted_content: null,
   ...overrides,
 });
 
@@ -58,7 +65,9 @@ describe("usePageStore", () => {
   });
 
   it("loadPages stores pages by section id", async () => {
-    const summaries = [{ id: "p1", title: "Page 1", sort_order: 0 }];
+    const summaries = [
+      { id: "p1", title: "Page 1", sort_order: 0, is_protected: false },
+    ];
     mockIpc.listPages.mockResolvedValue(summaries);
 
     await usePageStore.getState().loadPages("sec-1");
@@ -234,5 +243,162 @@ describe("usePageStore", () => {
     usePageStore.setState({ error: "some error" });
     usePageStore.getState().clearError();
     expect(usePageStore.getState().error).toBeNull();
+  });
+
+  it("loadPage sets lockState to locked for protected page with encrypted content", async () => {
+    const lockedPage = makePage({
+      protection: {
+        salt: "aa",
+        nonce: "bb",
+        encrypted_title: "ct",
+        algorithm: "AesGcm256",
+        kdf: {},
+      },
+      encrypted_content: "enc",
+      blocks: [],
+    });
+    mockIpc.loadPage.mockResolvedValue(lockedPage);
+
+    await usePageStore.getState().loadPage("page-1");
+
+    expect(usePageStore.getState().lockState).toBe("locked");
+    expect(usePageStore.getState().currentPage).toEqual(lockedPage);
+  });
+
+  it("loadPage sets lockState to unlocked for normal page", async () => {
+    const page = makePage();
+    mockIpc.loadPage.mockResolvedValue(page);
+
+    await usePageStore.getState().loadPage("page-1");
+
+    expect(usePageStore.getState().lockState).toBe("unlocked");
+  });
+
+  it("unlockPage calls IPC and sets lockState to unlocked", async () => {
+    const page = makePage({ title: "Secret Page" });
+    mockIpc.unlockPage.mockResolvedValue(page);
+    mockIpc.listPages.mockResolvedValue([]);
+
+    await usePageStore.getState().unlockPage("page-1", "password123", 30);
+
+    expect(mockIpc.unlockPage).toHaveBeenCalledWith(
+      "page-1",
+      "password123",
+      30,
+    );
+    expect(usePageStore.getState().currentPage).toEqual(page);
+    expect(usePageStore.getState().lockState).toBe("unlocked");
+  });
+
+  it("unlockPage re-throws on IPC failure", async () => {
+    mockIpc.unlockPage.mockRejectedValue(new Error("WRONG_PASSWORD"));
+
+    await expect(
+      usePageStore.getState().unlockPage("page-1", "wrong", 30),
+    ).rejects.toThrow("WRONG_PASSWORD");
+
+    expect(usePageStore.getState().isLoading).toBe(false);
+  });
+
+  it("lockPage calls IPC and reloads page if it is current", async () => {
+    const page = makePage();
+    usePageStore.setState({ currentPage: page });
+    mockIpc.lockPage.mockResolvedValue(undefined);
+    mockIpc.loadPage.mockResolvedValue(page);
+
+    await usePageStore.getState().lockPage("page-1");
+
+    expect(mockIpc.lockPage).toHaveBeenCalledWith("page-1");
+    expect(mockIpc.loadPage).toHaveBeenCalledWith("page-1");
+  });
+
+  it("lockPage does not reload if page is not current", async () => {
+    mockIpc.lockPage.mockResolvedValue(undefined);
+
+    await usePageStore.getState().lockPage("page-other");
+
+    expect(mockIpc.lockPage).toHaveBeenCalledWith("page-other");
+    expect(mockIpc.loadPage).not.toHaveBeenCalled();
+  });
+
+  it("lockPage sets error on failure", async () => {
+    mockIpc.lockPage.mockRejectedValue(new Error("lock failed"));
+
+    await usePageStore.getState().lockPage("page-1");
+
+    expect(usePageStore.getState().error).toContain("lock failed");
+  });
+
+  it("setPagePassword calls IPC and reloads page", async () => {
+    const page = makePage();
+    mockIpc.setPagePassword.mockResolvedValue(undefined);
+    mockIpc.loadPage.mockResolvedValue(page);
+    mockIpc.listPages.mockResolvedValue([]);
+
+    await usePageStore.getState().setPagePassword("page-1", "newpass");
+
+    expect(mockIpc.setPagePassword).toHaveBeenCalledWith("page-1", "newpass");
+    expect(usePageStore.getState().isSaving).toBe(false);
+  });
+
+  it("setPagePassword re-throws on IPC failure", async () => {
+    mockIpc.setPagePassword.mockRejectedValue(new Error("protect failed"));
+
+    await expect(
+      usePageStore.getState().setPagePassword("page-1", "pass"),
+    ).rejects.toThrow("protect failed");
+
+    expect(usePageStore.getState().isSaving).toBe(false);
+    expect(usePageStore.getState().error).toContain("protect failed");
+  });
+
+  it("removePagePassword calls IPC and sets unlocked state", async () => {
+    const page = makePage();
+    mockIpc.removePagePassword.mockResolvedValue(page);
+    mockIpc.listPages.mockResolvedValue([]);
+
+    await usePageStore.getState().removePagePassword("page-1", "oldpass");
+
+    expect(mockIpc.removePagePassword).toHaveBeenCalledWith(
+      "page-1",
+      "oldpass",
+    );
+    expect(usePageStore.getState().currentPage).toEqual(page);
+    expect(usePageStore.getState().lockState).toBe("unlocked");
+    expect(usePageStore.getState().isSaving).toBe(false);
+  });
+
+  it("removePagePassword re-throws on IPC failure", async () => {
+    mockIpc.removePagePassword.mockRejectedValue(new Error("WRONG_PASSWORD"));
+
+    await expect(
+      usePageStore.getState().removePagePassword("page-1", "wrong"),
+    ).rejects.toThrow("WRONG_PASSWORD");
+
+    expect(usePageStore.getState().isSaving).toBe(false);
+  });
+
+  it("changePagePassword calls IPC and clears isSaving", async () => {
+    mockIpc.changePagePassword.mockResolvedValue(undefined);
+
+    await usePageStore.getState().changePagePassword("page-1", "old", "new");
+
+    expect(mockIpc.changePagePassword).toHaveBeenCalledWith(
+      "page-1",
+      "old",
+      "new",
+    );
+    expect(usePageStore.getState().isSaving).toBe(false);
+  });
+
+  it("changePagePassword re-throws on IPC failure", async () => {
+    mockIpc.changePagePassword.mockRejectedValue(new Error("WRONG_PASSWORD"));
+
+    await expect(
+      usePageStore.getState().changePagePassword("page-1", "wrong", "new"),
+    ).rejects.toThrow("WRONG_PASSWORD");
+
+    expect(usePageStore.getState().isSaving).toBe(false);
+    expect(usePageStore.getState().error).toContain("WRONG_PASSWORD");
   });
 });
