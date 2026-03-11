@@ -1,4 +1,5 @@
 pub mod atomic;
+pub mod encryption;
 pub mod engine;
 pub mod error;
 pub mod lock;

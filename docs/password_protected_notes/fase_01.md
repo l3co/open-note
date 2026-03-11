@@ -12,8 +12,12 @@
 Adicionar ao domínio (`crates/core`) as structs que representam proteção de page e, em
 `crates/storage`, o serviço de criptografia (AES-256-GCM + Argon2id). Fazer o bump do
 `schema_version` para 2, com migration backward-compatible. Ao final desta fase, o backend
-consegue criptografar e descriptografar conteúdo de pages, mas a feature ainda não está exposta
-ao frontend (isso é feito na Fase 2).
+consegue criptografar e descriptografar o conteúdo completo de pages (incluindo o título), mas
+a feature ainda não está exposta ao frontend (isso é feito na Fase 2).
+
+> **Decisão:** O **título também é criptografado**. No `.opn.json`, o campo `title` é substituído
+> pelo placeholder `"[Página protegida]"` e `tags` fica `[]`. O payload criptografado contém
+> `{ title, tags, blocks, annotations }`. O nome do arquivo (slug) não muda.
 
 ---
 
@@ -106,8 +110,12 @@ pub struct Page {
     #[serde(default)]
     pub protection: Option<PageProtection>,      // metadados de criptografia
     #[serde(default)]
-    pub encrypted_content: Option<String>,       // ciphertext base64 (blocks + annotations)
+    pub encrypted_content: Option<String>,       // ciphertext base64 {title, tags, blocks, annotations}
 }
+
+/// Placeholder gravado em disco no campo `title` quando a page está protegida.
+/// O título real fica apenas dentro de `encrypted_content`.
+pub const PROTECTED_TITLE_PLACEHOLDER: &str = "[Página protegida]";
 ```
 
 Modificar `PageSummary`:
@@ -123,6 +131,8 @@ impl From<&Page> for PageSummary {
     fn from(page: &Page) -> Self {
         Self {
             // ... campos existentes ...
+            // title já é PROTECTED_TITLE_PLACEHOLDER quando protegida — nenhuma mudança aqui
+            // tags já é [] quando protegida — nenhuma mudança aqui
             is_protected: page.protection.is_some(),  // NOVO
         }
     }
@@ -138,6 +148,7 @@ pub const CURRENT_SCHEMA_VERSION: u32 = 2;  // era 1
 - [ ] Structs implementam `Debug, Clone, Serialize, Deserialize, TS`
 - [ ] `#[serde(default)]` em todos os campos novos (retrocompatibilidade)
 - [ ] `PageSummary::from(&Page)` preenche `is_protected` corretamente
+- [ ] Constante `PROTECTED_TITLE_PLACEHOLDER` exportada e usada em storage/commands
 - [ ] Testes unitários de serialização/deserialização roundtrip
 
 ---
@@ -176,13 +187,26 @@ use aes_gcm::{
 use argon2::{Argon2, Params, Version};
 use base64::{engine::general_purpose::STANDARD as B64, Engine};
 use rand::RngCore;
+use serde::{Deserialize, Serialize};
 
+use opennote_core::annotation::PageAnnotations;
+use opennote_core::block::Block;
 use opennote_core::page::{EncryptionAlgorithm, KdfParams, KeyDerivationFunction, PageProtection};
 use crate::error::{StorageError, StorageResult};
 
 const KEY_LEN: usize = 32;    // AES-256
 const SALT_LEN: usize = 16;   // 128 bits
 const NONCE_LEN: usize = 12;  // 96 bits AES-GCM
+
+/// Payload completo serializado e depois criptografado.
+/// Inclui título real, tags, blocks e annotations.
+#[derive(Serialize, Deserialize)]
+pub struct EncryptedPayload {
+    pub title: String,
+    pub tags: Vec<String>,
+    pub blocks: Vec<Block>,
+    pub annotations: PageAnnotations,
+}
 
 pub struct EncryptionService;
 
@@ -346,6 +370,7 @@ pub fn load_page(workspace_root: &Path, page_id: PageId) -> StorageResult<Page> 
 | `wrong_password_returns_error` | Senha errada → `StorageError::EncryptionError` ou `WrongPassword` |
 | `different_calls_produce_different_nonce` | `new_protection()` gera nonces únicos |
 | `derive_key_is_deterministic` | Mesma senha + salt → mesma chave em duas derivações |
+| `payload_roundtrip_includes_title_tags` | `EncryptedPayload` com title+tags serializa e deserializa corretamente |
 
 **Arquivo:** `crates/core/src/page.rs` (seção `#[cfg(test)]`)
 
@@ -354,6 +379,8 @@ pub fn load_page(workspace_root: &Path, page_id: PageId) -> StorageResult<Page> 
 | `page_with_protection_serializes` | Page com `protection: Some(...)` serializa e deserializa corretamente |
 | `page_v1_deserializes_without_protection` | JSON v1 sem campo `protection` deserializa com `protection: None` |
 | `page_summary_is_protected_flag` | `PageSummary::from(&protected_page).is_protected == true` |
+| `protected_page_title_is_placeholder` | Page com `protection: Some(...)` tem `title == PROTECTED_TITLE_PLACEHOLDER` |
+| `protected_page_tags_are_empty` | Page com `protection: Some(...)` tem `tags == []` |
 
 **Critérios:**
 - [ ] `cargo test -p opennote-core` 100% passando

@@ -44,33 +44,41 @@ pub fn reindex_page(state: State<AppManagedState>, page_id: PageId) -> Result<()
 
 ## Tarefas
 
-### 4.1 — Excluir conteúdo de pages protegidas da busca full-text
+### 4.1 — Excluir pages protegidas completamente da busca full-text
 
-**Arquivo:** `crates/search/src/extract.rs`
+**Arquivo:** `crates/search/src/extract.rs` e `crates/search/src/engine.rs`
 
-Pages protegidas têm `blocks: []` no disco — então o texto extraído já seria vazio. Porém,
-precisamos garantir que o **título** ainda é indexado (para `quick_open` e busca por título).
-O conteúdo criptografado nunca deve ser indexado.
+Como o título também é criptografado, o campo `title` no disco é sempre `"[Página protegida]"`.
+Indexar esse placeholder não tem valor e expõe ao usuário resultados confusos. Pages protegidas
+devem ser **completamente removidas** do índice Tantivy.
 
 ```rust
+// extract.rs — skip total do texto para pages protegidas
 pub fn extract_text_from_page(page: &Page) -> String {
-    // Se protegida, retorna string vazia (o título é indexado separadamente pelo SearchEngine)
     if page.protection.is_some() {
         return String::new();
     }
-    // ... lógica existente de extração de texto dos blocks ...
+    // ... lógica existente de extração dos blocks ...
 }
 ```
 
-Verificar no `SearchEngine::index_page` que o campo `content` fica vazio para pages protegidas,
-mas `title` e `tags` continuam indexados. Isso permite que `quick_open` encontre pages protegidas
-pelo título, mas a busca por conteúdo nunca vaza texto criptografado.
+```rust
+// engine.rs — remove (ou não insere) page protegida do índice
+pub fn index_page(&mut self, page: &Page) -> SearchResult<()> {
+    if page.protection.is_some() {
+        // Remove do índice caso já existisse antes de ser protegida
+        let _ = self.delete_document(page.id);
+        return Ok(());
+    }
+    // ... indexação normal com title, content, tags ...
+}
+```
 
 **Critérios:**
-- [ ] `extract_text_from_page` retorna string vazia para pages com `protection: Some(...)`
-- [ ] `quick_open` ainda retorna pages protegidas quando o título bate
-- [ ] `search_pages` NÃO retorna snippets de conteúdo de pages protegidas
-- [ ] Rebuild do índice (`rebuild_index`) não grava conteúdo de pages protegidas
+- [ ] Pages protegidas não aparecem em nenhum resultado de busca (nem título, nem conteúdo)
+- [ ] O placeholder `"[Página protegida]"` nunca é indexado no campo `title`
+- [ ] Após remover proteção, a page é reindexada com título e conteúdo reais
+- [ ] Rebuild do índice (`rebuild_index`) pula pages protegidas
 
 ---
 
@@ -100,8 +108,8 @@ if let Ok(mut engine) = state.search_engine.lock() {
 ```
 
 **Critérios:**
-- [ ] Após proteger uma page, ela não aparece mais em buscas por conteúdo
-- [ ] Após remover proteção, o conteúdo volta a ser buscável
+- [ ] Após proteger uma page, ela desaparece completamente da busca (título e conteúdo)
+- [ ] Após remover proteção, title real e conteúdo voltam a ser buscáveis
 
 ---
 
@@ -166,10 +174,10 @@ fn set_and_verify_page_protection_in_file() {
 }
 
 #[test]
-fn protected_page_loads_with_empty_blocks() {
-    // Cria page com protection no filesystem
-    // load_page retorna blocks: []
-    // Descriptografa manualmente e verifica que o conteúdo original está lá
+fn protected_page_loads_with_placeholder_title_and_empty_blocks() {
+    // Cria page com protection no filesystem (title="[Página protegida]")
+    // load_page retorna title=="[Página protegida]", blocks==[], tags==[]
+    // Descriptografa manualmente usando EncryptionService: verifica title real, blocks e tags originais
 }
 
 #[test]
@@ -193,28 +201,35 @@ fn page_migration_v1_to_v2_preserves_content() {
 import { test, expect } from '@playwright/test';
 
 test.describe('Password-Protected Notes', () => {
-  test('protect page with password and unlock', async ({ page }) => {
-    // Setup: abre workspace, cria page, adiciona conteúdo
-    // Right-click na page na sidebar → "Proteger com senha"
-    // Preenche senha → confirma
-    // Ícone de cadeado aparece na sidebar
-    // Clica na page → diálogo de senha aparece
-    // Digite senha correta → conteúdo exibido
+  test('title becomes placeholder after protection, revealed after unlock', async ({ page }) => {
+    // Cria page com título "Diário Pessoal", adiciona conteúdo
+    // Right-click na page → "Proteger com senha" → define senha
+    // Sidebar exibe "[Página protegida]" em itálico + ícone cadeado
+    // Arquivo .opn.json: title=="[Página protegida]"
+    // Clica na page → diálogo de senha genérico aparece (sem título)
+    // Digita senha correta → editor mostra título real "Diário Pessoal"
   });
 
-  test('wrong password shows error', async ({ page }) => {
-    // Page protegida
-    // Clica → diálogo aparece
-    // Digita senha errada → mensagem de erro inline
-    // Diálogo permanece aberto
+  test('section context menu lists and unlocks protected pages', async ({ page }) => {
+    // Section com 2 pages protegidas
+    // Right-click na Section → "Listar páginas protegidas"
+    // Painel exibe 2 linhas com "[Página protegida]"
+    // Desbloqueia uma → título real revelado na lista
+    // Clica em "Abrir" → navega para a page com conteúdo
   });
 
-  test('remove password protection', async ({ page }) => {
-    // Page protegida
-    // Right-click → "Remover proteção"
-    // Digita senha → proteção removida
-    // Ícone de cadeado desaparece
-    // Page abre normalmente
+  test('wrong password shows inline error without closing dialog', async ({ page }) => {
+    // Page protegida, clica na sidebar
+    // Diálogo de senha aparece com descrição genérica
+    // Digita senha errada → erro inline "Senha incorreta"
+    // Diálogo permanece aberto, campo senha limpo
+  });
+
+  test('remove protection restores real title in sidebar', async ({ page }) => {
+    // Page protegida (title placeholder na sidebar)
+    // Right-click → "Remover proteção" → digita senha correta
+    // Sidebar mostra título real, sem cadeado
+    // Page abre normalmente sem diálogo
   });
 });
 ```
@@ -267,7 +282,8 @@ Chamar `validate_password` no início de `set_page_password` e `change_page_pass
 
 | Arquivo | Tipo de Mudança |
 |---------|----------------|
-| `crates/search/src/extract.rs` | Alteração — skip de conteúdo para pages protegidas |
+| `crates/search/src/extract.rs` | Alteração — skip completo para pages protegidas |
+| `crates/search/src/engine.rs` | Alteração — `index_page` remove page protegida do índice |
 | `src-tauri/src/commands/page.rs` | Alteração — reindexar após set/remove password |
 | `crates/storage/tests/password_protection.rs` | **Novo** — testes de integração |
 | `e2e/password-protection.spec.ts` | **Novo** — testes E2E |
@@ -289,8 +305,8 @@ Chamar `validate_password` no início de `set_page_password` e `change_page_pass
 - [ ] `npm run typecheck` sem erros
 - [ ] `npm test` sem falhas
 - [ ] Testes E2E passando
-- [ ] Pages protegidas não aparecem nos resultados de busca por conteúdo
-- [ ] Pages protegidas aparecem no `quick_open` pelo título
+- [ ] Pages protegidas não aparecem em nenhum resultado de busca (título nem conteúdo)
+- [ ] O placeholder `"[Página protegida]"` nunca é indexado no Tantivy
 - [ ] Deletar/restaurar page protegida preserva a proteção
 - [ ] Sincronização com cloud funciona sem tratamento especial
 - [ ] Documentação atualizada (DATA_MODEL, IPC_REFERENCE, CHANGELOG)

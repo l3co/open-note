@@ -27,6 +27,10 @@ export const createWorkspace = (path: string, name: string) =>
 export const openWorkspace = (path: string) =>
   invoke<Workspace>("open_workspace", { path });
 
+/** Force-abre um workspace removendo um lock stale. Chamar somente após confirmar com o usuário. */
+export const forceOpenWorkspace = (path: string) =>
+  invoke<Workspace>("force_open_workspace", { path });
+
 /** Fecha o workspace em foco ou o especificado por workspaceId. */
 export const closeWorkspace = (workspaceId?: string) =>
   invoke<void>("close_workspace", { workspaceId });
@@ -114,6 +118,42 @@ export const listPages = (sectionId: SectionId, workspaceId?: string) =>
 
 export const loadPage = (pageId: PageId, workspaceId?: string) =>
   invoke<Page>("load_page", { pageId, workspaceId });
+
+export const unlockPage = (
+  pageId: PageId,
+  password: string,
+  durationMins?: number,
+  workspaceId?: string,
+) =>
+  invoke<Page>("unlock_page", { pageId, password, durationMins, workspaceId });
+
+export const lockPage = (pageId: PageId) =>
+  invoke<void>("lock_page", { pageId });
+
+export const setPagePassword = (
+  pageId: PageId,
+  password: string,
+  workspaceId?: string,
+) => invoke<void>("set_page_password", { pageId, password, workspaceId });
+
+export const removePagePassword = (
+  pageId: PageId,
+  password: string,
+  workspaceId?: string,
+) => invoke<Page>("remove_page_password", { pageId, password, workspaceId });
+
+export const changePagePassword = (
+  pageId: PageId,
+  oldPassword: string,
+  newPassword: string,
+  workspaceId?: string,
+) =>
+  invoke<void>("change_page_password", {
+    pageId,
+    oldPassword,
+    newPassword,
+    workspaceId,
+  });
 
 export const createPage = (
   sectionId: SectionId,

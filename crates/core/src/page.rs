@@ -7,9 +7,13 @@ use crate::block::Block;
 use crate::error::CoreError;
 use crate::id::{PageId, SectionId};
 
-pub const CURRENT_SCHEMA_VERSION: u32 = 1;
+pub const CURRENT_SCHEMA_VERSION: u32 = 2;
 pub const SOFT_BLOCK_LIMIT: usize = 200;
 pub const HARD_BLOCK_LIMIT: usize = 500;
+
+/// Placeholder gravado em disco no campo `title` quando a page está protegida.
+/// O título real fica apenas dentro de `encrypted_content`.
+pub const PROTECTED_TITLE_PLACEHOLDER: &str = "[Página protegida]";
 
 #[derive(Debug, Clone, Serialize, Deserialize, TS)]
 #[ts(export, export_to = "../../../src/types/bindings/")]
@@ -31,6 +35,55 @@ pub struct Page {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
     pub schema_version: u32,
+
+    #[serde(default)]
+    pub protection: Option<PageProtection>,
+    #[serde(default)]
+    pub encrypted_content: Option<String>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../../../src/types/bindings/")]
+pub struct PageProtection {
+    pub algorithm: EncryptionAlgorithm,
+    pub kdf: KeyDerivationFunction,
+    pub kdf_params: KdfParams,
+    pub salt: String,  // base64, 16 bytes aleatórios
+    pub nonce: String, // base64, 12 bytes aleatórios (AES-GCM IV)
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../../../src/types/bindings/")]
+#[serde(rename_all = "snake_case")]
+pub enum EncryptionAlgorithm {
+    AesGcm256,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../../../src/types/bindings/")]
+#[serde(rename_all = "snake_case")]
+pub enum KeyDerivationFunction {
+    Argon2id,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[ts(export, export_to = "../../../src/types/bindings/")]
+pub struct KdfParams {
+    pub m_cost: u32,  // memória em KiB; recomendado: 65536 (64 MB)
+    pub t_cost: u32,  // iterações; recomendado: 3
+    pub p_cost: u32,  // paralelismo; recomendado: 1
+    pub version: u32, // versão Argon2; 19 = Argon2 v1.3
+}
+
+impl Default for KdfParams {
+    fn default() -> Self {
+        Self {
+            m_cost: 65536,
+            t_cost: 3,
+            p_cost: 1,
+            version: 19,
+        }
+    }
 }
 
 impl Page {
@@ -57,6 +110,8 @@ impl Page {
             created_at: now,
             updated_at: now,
             schema_version: CURRENT_SCHEMA_VERSION,
+            protection: None,
+            encrypted_content: None,
         })
     }
 
@@ -95,6 +150,8 @@ impl Page {
             created_at: now,
             updated_at: now,
             schema_version: CURRENT_SCHEMA_VERSION,
+            protection: None,
+            encrypted_content: None,
         })
     }
 
@@ -123,6 +180,8 @@ impl Page {
             created_at: now,
             updated_at: now,
             schema_version: CURRENT_SCHEMA_VERSION,
+            protection: None,
+            encrypted_content: None,
         })
     }
 
@@ -212,6 +271,8 @@ pub struct PageSummary {
     pub block_count: usize,
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
+    #[serde(default)]
+    pub is_protected: bool,
 }
 
 impl From<&Page> for PageSummary {
@@ -224,6 +285,7 @@ impl From<&Page> for PageSummary {
             block_count: page.blocks.len(),
             created_at: page.created_at,
             updated_at: page.updated_at,
+            is_protected: page.protection.is_some(),
         }
     }
 }

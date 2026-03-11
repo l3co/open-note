@@ -118,6 +118,13 @@ impl SearchEngine {
         let term = Term::from_field_text(s.page_id, &page_id_str);
         writer.delete_term(term);
 
+        if data.page.protection.is_some() {
+            // Remove do índice e não adiciona novamente se protegida
+            writer.commit()?;
+            self.reader.reload()?;
+            return Ok(());
+        }
+
         let content = extract_text_from_page(&data.page);
         let tags_str = data.page.tags.join(" ");
 
@@ -155,6 +162,9 @@ impl SearchEngine {
 
         let s = &self.schema;
         for data in pages {
+            if data.page.protection.is_some() {
+                continue;
+            }
             let content = extract_text_from_page(&data.page);
             let tags_str = data.page.tags.join(" ");
 

@@ -13,7 +13,9 @@ import { blocksToTiptap, tiptapToBlocks } from "@/lib/serialization";
 import { tiptapToMarkdown, markdownToTiptap } from "@/lib/markdown";
 import { usePageStore } from "@/stores/usePageStore";
 import { useUIStore } from "@/stores/useUIStore";
+import { useNavigationStore } from "@/stores/useNavigationStore";
 import { InkOverlay } from "@/components/ink/InkOverlay";
+import { PasswordUnlockDialog } from "@/components/modals/PasswordUnlockDialog";
 
 interface PageEditorProps {
   page: Page;
@@ -25,7 +27,9 @@ export function PageEditor({ page }: PageEditorProps) {
   const [content, setContent] = useState<JSONContent | null>(null);
   const [mode, setMode] = useState<EditorMode>("richtext");
   const [markdownContent, setMarkdownContent] = useState("");
-  const { updateBlocks, updatePageTitle } = usePageStore();
+  const { updateBlocks, updatePageTitle, lockState, clearCurrentPage } =
+    usePageStore();
+  const { setActiveView } = useNavigationStore();
   const baseTheme = useUIStore((s) => s.theme.baseTheme);
 
   const initialContent = blocksToTiptap(page.blocks);
@@ -99,6 +103,22 @@ export function PageEditor({ page }: PageEditorProps) {
   }, [mode, handleModeChange]);
 
   const cmTheme = baseTheme === "dark" ? "dark" : "light";
+
+  if (lockState === "locked") {
+    return (
+      <PasswordUnlockDialog
+        pageId={page.id}
+        open={true}
+        onSuccess={() => {
+          /* a store já atualiza o currentPage para desbloqueado, o que dispara re-render */
+        }}
+        onCancel={() => {
+          clearCurrentPage();
+          setActiveView("home");
+        }}
+      />
+    );
+  }
 
   return (
     <div

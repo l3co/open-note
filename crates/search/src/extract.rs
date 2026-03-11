@@ -2,6 +2,9 @@ use opennote_core::block::Block;
 use opennote_core::page::Page;
 
 pub fn extract_text_from_page(page: &Page) -> String {
+    if page.protection.is_some() {
+        return String::new();
+    }
     page.blocks
         .iter()
         .filter_map(|block| {

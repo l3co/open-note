@@ -10,9 +10,11 @@
 ## Objetivo
 
 Implementar toda a camada de UI para a feature de proteção por senha:
-- Ícone de cadeado na sidebar para pages protegidas
-- Context menu com opções "Proteger com senha", "Remover proteção", "Trocar senha"
-- `PasswordUnlockDialog` — exibido ao abrir uma page protegida
+- Ícone de cadeado + título italic na sidebar para pages protegidas (placeholder vem do backend)
+- Context menu na **Page**: "Proteger com senha", "Remover proteção", "Trocar senha"
+- Context menu na **Section**: "Listar páginas protegidas" (visível quando há pages protegidas)
+- `ProtectedPagesPanel` — painel que lista pages protegidas de uma section e permite unlock individual para revelar títulos
+- `PasswordUnlockDialog` — exibido ao tentar abrir uma page protegida
 - `SetPasswordDialog` — para definir, remover ou trocar senha
 - Adaptação do `usePageStore` para gerenciar o estado `locked` / `unlocked`
 - Strings i18n em `pt-BR.json` e `en.json`
@@ -115,13 +117,19 @@ unlockPage: async (pageId, password) => {
 
 **Arquivo:** `src/components/layout/NotebookTree/PageItem.tsx` (ou caminho equivalente)
 
+O `summary.title` já retorna `"[Página protegida]"` do backend — nenhuma lógica de substituição
+de texto necessária no frontend. Apenas adicionar o ícone e o estilo visual:
+
 ```tsx
 import { Lock } from 'lucide-react';
 
-// Dentro do componente PageItem, após o título:
+// Dentro do componente PageItem, ao renderizar o título:
+<span className={cn('truncate', summary.isProtected && 'text-muted-foreground italic')}>
+  {summary.title}
+</span>
 {summary.isProtected && (
   <Lock
-    className="h-3 w-3 text-muted-foreground shrink-0"
+    className="h-3 w-3 text-muted-foreground shrink-0 ml-1"
     aria-label={t('page.protected')}
   />
 )}
@@ -130,13 +138,117 @@ import { Lock } from 'lucide-react';
 O campo `isProtected` vem de `PageSummary` (adicionado na Fase 1).
 
 **Critérios:**
-- [ ] Ícone `Lock` da lucide-react visível ao lado do título de pages protegidas
+- [ ] Ícone `Lock` visível ao lado de `"[Página protegida]"` na sidebar
+- [ ] Texto em itálico e muted para pages protegidas
 - [ ] Ícone não aparece em pages sem proteção
 - [ ] Ícone tem `aria-label` adequado
 
 ---
 
-### 3.3 — Context menu com opções de senha
+### 3.3 — Context menu na Section: "Listar páginas protegidas"
+
+**Arquivo:** `src/components/layout/NotebookTree/SectionItem.tsx` (ou equivalente)
+
+Adicionada ao context menu do item de Section, visível apenas quando há ao menos uma page
+com `isProtected: true` nos summaries já carregados:
+
+```tsx
+import { ShieldCheck } from 'lucide-react';
+
+const hasProtectedPages = summaries.some((s) => s.isProtected);
+
+{hasProtectedPages && (
+  <>
+    <DropdownMenuSeparator />
+    <DropdownMenuItem onClick={() => openProtectedPagesPanel(section.id)}>
+      <ShieldCheck className="mr-2 h-4 w-4" />
+      {t('section.contextMenu.listProtectedPages')}
+    </DropdownMenuItem>
+  </>
+)}
+```
+
+**Critérios:**
+- [ ] Opção visível apenas quando `summaries.some(s => s.isProtected) === true`
+- [ ] Clique abre o `ProtectedPagesPanel` filtrado para a section
+- [ ] Ícone `ShieldCheck` da lucide-react
+
+---
+
+### 3.4 — `ProtectedPagesPanel` — listar e desbloquear pages protegidas
+
+**Arquivo:** `src/components/modals/ProtectedPagesPanel.tsx` (arquivo novo)
+
+Painel (Sheet) que lista todas as pages protegidas de uma section. Cada item mostra o
+placeholder `"[Página protegida]"` + ícone de cadeado. O usuário clica em uma page,
+digita a senha e o título real é revelado na lista.
+
+```tsx
+interface ProtectedPagesPanelProps {
+  sectionId: string;
+  summaries: PageSummary[];
+  open: boolean;
+  onClose: () => void;
+  onNavigate: (pageId: string) => void;
+}
+
+export function ProtectedPagesPanel({ summaries, open, onClose, onNavigate }: ProtectedPagesPanelProps) {
+  const protectedPages = summaries.filter((s) => s.isProtected);
+  const [unlockingPageId, setUnlockingPageId] = useState<string | null>(null);
+  const [revealedTitles, setRevealedTitles] = useState<Record<string, string>>({});
+  const { t } = useTranslation();
+
+  return (
+    <Sheet open={open} onOpenChange={(o) => !o && onClose()}>
+      <SheetContent>
+        <SheetHeader>
+          <SheetTitle>{t('section.protectedPages.title')}</SheetTitle>
+          <SheetDescription>{t('section.protectedPages.description')}</SheetDescription>
+        </SheetHeader>
+        <div className="mt-4 space-y-2">
+          {protectedPages.map((page) => (
+            <div key={page.id} className="flex items-center justify-between p-2 rounded border">
+              <div className="flex items-center gap-2">
+                <Lock className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm italic text-muted-foreground">
+                  {revealedTitles[page.id] ?? t('page.protected')}
+                </span>
+              </div>
+              <Button size="sm" variant="outline"
+                onClick={() => setUnlockingPageId(page.id)}
+              >
+                {revealedTitles[page.id] ? t('common.open') : t('page.password.unlock')}
+              </Button>
+            </div>
+          ))}
+        </div>
+      </SheetContent>
+
+      {unlockingPageId && (
+        <PasswordUnlockDialog
+          pageId={unlockingPageId}
+          open={true}
+          onSuccess={(page) => {
+            setRevealedTitles((prev) => ({ ...prev, [unlockingPageId]: page.title }));
+            setUnlockingPageId(null);
+          }}
+          onCancel={() => setUnlockingPageId(null)}
+        />
+      )}
+    </Sheet>
+  );
+}
+```
+
+**Critérios:**
+- [ ] Lista apenas pages com `isProtected: true`
+- [ ] Título não revelado exibe `"[Página protegida]"` em itálico
+- [ ] Após unlock bem-sucedido, título real substitui o placeholder na lista
+- [ ] Botão "Abrir" (após revelar título) navega para a page via `onNavigate`
+
+---
+
+### 3.5 — Context menu na Page com opções de senha
 
 **Arquivo:** `src/components/layout/NotebookTree/PageItem.tsx` (context menu existente)
 
@@ -173,21 +285,23 @@ Adicionar ao context menu da page as opções condicionais:
 
 ---
 
-### 3.4 — `PasswordUnlockDialog` — diálogo de desbloqueio
+### 3.6 — `PasswordUnlockDialog` — diálogo de desbloqueio
 
 **Arquivo:** `src/components/modals/PasswordUnlockDialog.tsx` (arquivo novo)
+
+> **Nota:** Sem prop `pageTitle` — o título real só é conhecido após o unlock.
+> O diálogo exibe uma descrição genérica. A prop `onSuccess` recebe a `Page` descriptografada.
 
 ```tsx
 interface PasswordUnlockDialogProps {
   pageId: string;
-  pageTitle: string;
   open: boolean;
-  onSuccess: () => void;   // chamado após unlock bem-sucedido
+  onSuccess: (page: Page) => void;   // recebe a Page com título real
   onCancel: () => void;
 }
 
 export function PasswordUnlockDialog({
-  pageId, pageTitle, open, onSuccess, onCancel
+  pageId, open, onSuccess, onCancel
 }: PasswordUnlockDialogProps) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -200,8 +314,9 @@ export function PasswordUnlockDialog({
     setLoading(true);
     setError(null);
     try {
-      await unlockPage(pageId, password);
-      onSuccess();
+      const page = await ipc.unlockPage(pageId, password);
+      usePageStore.getState().setCurrentPage(page, 'unlocked');
+      onSuccess(page);
     } catch (err) {
       const msg = String(err);
       if (msg.includes('WRONG_PASSWORD')) {
@@ -221,7 +336,7 @@ export function PasswordUnlockDialog({
           <Lock className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
           <DialogTitle>{t('page.password.unlockTitle')}</DialogTitle>
           <DialogDescription>
-            {t('page.password.unlockDescription', { title: pageTitle })}
+            {t('page.password.unlockDescription')}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit}>
@@ -253,10 +368,11 @@ export function PasswordUnlockDialog({
 - [ ] Erro de senha errada exibido inline (sem fechar o diálogo)
 - [ ] Loading state durante a derivação Argon2 (pode demorar ~500ms)
 - [ ] Cancelar fecha o diálogo sem navegar para a page
+- [ ] `onSuccess(page)` recebe a `Page` com o título real já descriptografado
 
 ---
 
-### 3.5 — `SetPasswordDialog` — definir / remover / trocar senha
+### 3.7 — `SetPasswordDialog` — definir / remover / trocar senha
 
 **Arquivo:** `src/components/modals/SetPasswordDialog.tsx` (arquivo novo)
 
@@ -331,7 +447,7 @@ por qualquer um com acesso ao arquivo.
 
 ---
 
-### 3.6 — Integrar diálogos no `PageEditor`
+### 3.8 — Integrar diálogos no `PageEditor`
 
 **Arquivo:** `src/components/editor/PageEditor.tsx`
 
@@ -343,13 +459,13 @@ if (lockState === 'locked' && currentPage) {
   return (
     <PasswordUnlockDialog
       pageId={currentPage.id}
-      pageTitle={currentPage.title}
       open={true}
-      onSuccess={() => {/* store já foi atualizado pelo unlockPage */}}
+      onSuccess={() => {/* store já foi atualizado com título real */}}
       onCancel={() => navigationStore.clearCurrentPage()}
     />
   );
 }
+// Após unlock, currentPage.title no store passa a ser o título real
 
 // Caso normal: renderizar editor
 ```
@@ -361,12 +477,21 @@ if (lockState === 'locked' && currentPage) {
 
 ---
 
-### 3.7 — Strings i18n
+### 3.9 — Strings i18n
 
-**Arquivo:** `src/locales/pt-BR.json`
+**Arquivo:** `src/locales/pt-BR.json` (acrescentar as chaves abaixo)
 
 ```json
 {
+  "section": {
+    "contextMenu": {
+      "listProtectedPages": "Listar páginas protegidas"
+    },
+    "protectedPages": {
+      "title": "Páginas protegidas",
+      "description": "Desbloqueie individualmente para revelar os títulos."
+    }
+  },
   "page": {
     "protected": "Página protegida",
     "contextMenu": {
@@ -376,7 +501,7 @@ if (lockState === 'locked' && currentPage) {
     },
     "password": {
       "unlockTitle": "Página protegida",
-      "unlockDescription": "Digite a senha para abrir \"{{title}}\"",
+      "unlockDescription": "Esta página está protegida por senha. Digite a senha para desbloquear.",
       "placeholder": "Digite a senha",
       "unlock": "Desbloquear",
       "setTitle": "Proteger página com senha",
@@ -395,10 +520,19 @@ if (lockState === 'locked' && currentPage) {
 }
 ```
 
-**Arquivo:** `src/locales/en.json`
+**Arquivo:** `src/locales/en.json` (acrescentar as chaves abaixo)
 
 ```json
 {
+  "section": {
+    "contextMenu": {
+      "listProtectedPages": "List protected pages"
+    },
+    "protectedPages": {
+      "title": "Protected pages",
+      "description": "Unlock each page individually to reveal its title."
+    }
+  },
   "page": {
     "protected": "Protected page",
     "contextMenu": {
@@ -408,7 +542,7 @@ if (lockState === 'locked' && currentPage) {
     },
     "password": {
       "unlockTitle": "Protected page",
-      "unlockDescription": "Enter the password to open \"{{title}}\"",
+      "unlockDescription": "This page is password-protected. Enter the password to unlock.",
       "placeholder": "Enter password",
       "unlock": "Unlock",
       "setTitle": "Protect page with password",
@@ -429,18 +563,18 @@ if (lockState === 'locked' && currentPage) {
 
 **Critérios:**
 - [ ] Todas as strings presentes em `pt-BR.json` e `en.json`
-- [ ] Interpolação `{{title}}` no `unlockDescription`
+- [ ] `unlockDescription` sem interpolação de título (desconhecido antes do unlock)
 - [ ] Nenhuma string hardcoded nos componentes
 
 ---
 
-### 3.8 — Testes de componente
+### 3.10 — Testes de componente
 
 **Arquivo:** `src/components/modals/__tests__/PasswordUnlockDialog.test.tsx`
 
 | Teste | Descrição |
 |-------|-----------|
-| `renders_with_page_title` | Diálogo exibe título da page no texto |
+| `renders_generic_unlock_description` | Diálogo exibe descrição genérica (sem título da page) |
 | `submit_calls_unlockPage` | Preencher senha e submeter chama `usePageStore().unlockPage` |
 | `wrong_password_shows_error` | Mock `unlockPage` rejeita com `"WRONG_PASSWORD"` → erro visível |
 | `cancel_calls_onCancel` | Botão cancelar chama `onCancel` |
@@ -455,6 +589,14 @@ if (lockState === 'locked' && currentPage) {
 | `password_mismatch_shows_error` | Confirmação diferente → erro inline |
 | `too_short_shows_error` | Menos de 6 caracteres → erro inline |
 
+**Arquivo:** `src/components/modals/__tests__/ProtectedPagesPanel.test.tsx`
+
+| Teste | Descrição |
+|-------|-----------|
+| `shows_only_protected_pages` | Apenas pages com `isProtected: true` são listadas |
+| `unlock_reveals_real_title` | Unlock bem-sucedido substitui placeholder pelo título real |
+| `empty_panel_not_shown_in_context_menu` | Se não há pages protegidas, opção da section fica oculta |
+
 **Critérios:**
 - [ ] `npm test` passa com ≥ 80% de cobertura nos novos componentes
 - [ ] Testes usam MSW para mock dos IPC calls
@@ -466,10 +608,12 @@ if (lockState === 'locked' && currentPage) {
 | Arquivo | Tipo de Mudança |
 |---------|----------------|
 | `src/stores/usePageStore.ts` | Alteração — `lockState`, novos actions para senha |
-| `src/components/layout/NotebookTree/PageItem.tsx` | Alteração — ícone `Lock` + context menu |
+| `src/components/layout/NotebookTree/PageItem.tsx` | Alteração — ícone `Lock` + estilo italic + context menu |
+| `src/components/layout/NotebookTree/SectionItem.tsx` | Alteração — context menu "Listar páginas protegidas" |
 | `src/components/editor/PageEditor.tsx` | Alteração — lógica de `locked` state |
 | `src/components/modals/PasswordUnlockDialog.tsx` | **Novo** |
 | `src/components/modals/SetPasswordDialog.tsx` | **Novo** |
+| `src/components/modals/ProtectedPagesPanel.tsx` | **Novo** |
 | `src/locales/pt-BR.json` | Alteração — novas strings |
 | `src/locales/en.json` | Alteração — novas strings |
 
@@ -485,7 +629,8 @@ if (lockState === 'locked' && currentPage) {
 - [ ] `npm run typecheck` sem erros
 - [ ] `npm test` sem falhas (incluindo novos testes)
 - [ ] `cargo test --workspace` sem regressões
-- [ ] Fluxo completo manual testado: definir senha → fechar page → reabrir → digitar senha → ver conteúdo
+- [ ] Fluxo completo manual: definir senha → sidebar mostra placeholder → reabrir → digitar senha → título real exibido
+- [ ] Fluxo "Listar páginas protegidas" via context menu da Section: lista placeholder → unlock revela título
 - [ ] Fluxo de senha errada: aviso inline sem fechar o diálogo
-- [ ] Fluxo de remoção de proteção: conteúdo visível em plaintext após remoção
+- [ ] Fluxo de remoção de proteção: título e conteúdo visíveis na sidebar após remoção
 - [ ] PR review aprovado

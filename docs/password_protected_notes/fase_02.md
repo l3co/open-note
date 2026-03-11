@@ -163,7 +163,8 @@ pub fn load_page(state: State<AppManagedState>, page_id: PageId) -> Result<Page,
     Ok(page)
 }
 
-/// Descriptografa `blocks` + `annotations` da page em memória.
+/// Descriptografa o payload completo da page em memória.
+/// Restaura título real, tags, blocks e annotations.
 fn decrypt_page_content(
     mut page: Page,
     protection: PageProtection,
@@ -173,15 +174,12 @@ fn decrypt_page_content(
     let plaintext = EncryptionService::decrypt(ciphertext, key, &protection)
         .map_err(|e| e.to_string())?;
 
-    #[derive(Deserialize)]
-    struct EncryptedPayload {
-        blocks: Vec<Block>,
-        annotations: PageAnnotations,
-    }
-
+    // EncryptedPayload é definido em crates/storage/src/encryption.rs
     let payload: EncryptedPayload = serde_json::from_slice(&plaintext)
         .map_err(|e| e.to_string())?;
 
+    page.title = payload.title;           // TÍTULO REAL restaurado em memória
+    page.tags = payload.tags;             // TAGS reais restauradas em memória
     page.blocks = payload.blocks;
     page.annotations = payload.annotations;
     Ok(page)
@@ -190,8 +188,8 @@ fn decrypt_page_content(
 
 **Critérios:**
 - [ ] Page não protegida: comportamento idêntico ao atual
-- [ ] Page protegida + não desbloqueada: retorna com `blocks: []`, `protection: Some(...)`
-- [ ] Page protegida + desbloqueada (chave em cache): retorna com blocks descriptografados
+- [ ] Page protegida + não desbloqueada: retorna com `title = PROTECTED_TITLE_PLACEHOLDER`, `blocks: []`, `tags: []`
+- [ ] Page protegida + desbloqueada (chave em cache): retorna com título real, tags reais e blocks descriptografados
 
 ---
 
@@ -231,7 +229,7 @@ pub fn unlock_page(
 ```
 
 **Critérios:**
-- [ ] Senha correta → retorna `Page` com blocks descriptografados + armazena chave
+- [ ] Senha correta → retorna `Page` com **título real**, tags reais e blocks descriptografados + armazena chave
 - [ ] Senha incorreta → retorna erro `"WRONG_PASSWORD"` (string que o frontend trata via i18n)
 - [ ] Page não protegida → retorna erro descritivo
 
@@ -242,7 +240,7 @@ pub fn unlock_page(
 **Arquivo:** `src-tauri/src/commands/page.rs`
 
 ```rust
-/// Protege uma page com senha. Criptografa blocks + annotations e salva em disco.
+/// Protege uma page com senha. Criptografa título, tags, blocks e annotations e salva em disco.
 #[tauri::command]
 pub async fn set_page_password(
     state: State<'_, AppManagedState>,
@@ -251,7 +249,7 @@ pub async fn set_page_password(
 ) -> Result<Page, String> {
     let root = state.get_workspace_root()?;
 
-    state
+    let key_out = state
         .save_coordinator
         .with_page_lock(page_id, || {
             let mut page = FsStorageEngine::load_page(&root, page_id)?;
@@ -265,13 +263,19 @@ pub async fn set_page_password(
             let protection = EncryptionService::new_protection()?;
             let key = EncryptionService::derive_key(&password, &protection)?;
 
-            let payload = serde_json::json!({
-                "blocks": page.blocks,
-                "annotations": page.annotations,
-            });
+            // Payload inclui TÍTULO REAL e TAGS
+            let payload = EncryptedPayload {
+                title: page.title.clone(),
+                tags: page.tags.clone(),
+                blocks: page.blocks.clone(),
+                annotations: page.annotations.clone(),
+            };
             let plaintext = serde_json::to_vec(&payload)?;
             let ciphertext = EncryptionService::encrypt(&plaintext, &key, &protection)?;
 
+            // No disco: título vira placeholder, tags e blocks ficam vazios
+            page.title = PROTECTED_TITLE_PLACEHOLDER.to_string();
+            page.tags = vec![];
             page.blocks = vec![];
             page.annotations = PageAnnotations::default();
             page.protection = Some(protection);
@@ -279,23 +283,22 @@ pub async fn set_page_password(
             page.updated_at = Utc::now();
 
             FsStorageEngine::update_page(&root, &page)?;
-            Ok(page)
+            Ok(key)
         })
         .await
-        .map_err(|e| e.to_string())
+        .map_err(|e| e.to_string())?;
+
+    // Cacheia a chave — usuário não precisa fazer unlock após definir a senha
+    state.cache_key(page_id, key_out);
+    Ok(())
 }
 ```
 
-Após o command retornar, o frontend armazena a chave chamando `state.cache_key()` — **não** é
-necessário: o command já pode chamar internamente. Mas `set_page_password` não precisa armazenar
-a chave na sessão (o usuário já está "provando" que sabe a senha ao defini-la, então pode ser
-conveniente cachear).
-
 **Critérios:**
-- [ ] Page sem proteção → criptografa e salva
+- [ ] Page sem proteção → criptografa título+tags+blocks+annotations e salva
 - [ ] Page já protegida → retorna erro claro
-- [ ] `blocks` e `annotations` ficam vazios no arquivo em disco após criptografia
-- [ ] Chave cacheada na sessão após `set_page_password` (usuário não precisa digitar de novo)
+- [ ] No disco: `title = "[Página protegida]"`, `tags = []`, `blocks = []`, `annotations = default`
+- [ ] Chave cacheada na sessão após `set_page_password` (usuário não precisa fazer unlock de novo)
 
 ---
 
@@ -327,10 +330,11 @@ pub async fn remove_page_password(
             let plaintext = EncryptionService::decrypt(&ciphertext, &key, &protection)
                 .map_err(|_| StorageError::WrongPassword)?;
 
-            #[derive(Deserialize)]
-            struct Payload { blocks: Vec<Block>, annotations: PageAnnotations }
-            let payload: Payload = serde_json::from_slice(&plaintext)?;
+            let payload: EncryptedPayload = serde_json::from_slice(&plaintext)?;
 
+            // Restaura todos os campos plaintext
+            page.title = payload.title;
+            page.tags = payload.tags;
             page.blocks = payload.blocks;
             page.annotations = payload.annotations;
             page.protection = None;
@@ -346,9 +350,9 @@ pub async fn remove_page_password(
 ```
 
 **Critérios:**
-- [ ] Senha correta → restaura blocks em plaintext, remove `protection` e `encrypted_content`
+- [ ] Senha correta → restaura **título real**, tags, blocks e annotations em plaintext; remove `protection` e `encrypted_content`
 - [ ] Senha incorreta → `"WRONG_PASSWORD"` (sem alterar o arquivo)
-- [ ] Chave removida do session cache após remoção de proteção
+- [ ] Chave evictada do session cache após remoção de proteção
 
 ---
 
@@ -450,14 +454,20 @@ pub async fn update_page_blocks(
                     ..protection
                 };
 
-                let payload = serde_json::json!({
-                    "blocks": blocks,
-                    "annotations": page.annotations,
-                });
+                // Descriptografa o conteúdo atual para obter o título e as tags reais
+                let old_ciphertext = page.encrypted_content.clone()
+                    .ok_or_else(|| StorageError::EncryptionError("Missing encrypted_content".into()))?;
+                let old_plaintext = EncryptionService::decrypt(&old_ciphertext, &key, &protection)?;
+                let mut payload: EncryptedPayload = serde_json::from_slice(&old_plaintext)?;
+
+                // Atualiza apenas os blocks; título e tags permanecem do payload original
+                payload.blocks = blocks;
+
                 let plaintext = serde_json::to_vec(&payload)?;
                 let ciphertext = EncryptionService::encrypt(&plaintext, &key, &new_protection)?;
 
                 page.blocks = vec![];
+                page.tags = vec![];
                 page.protection = Some(new_protection);
                 page.encrypted_content = Some(ciphertext);
             } else {
@@ -533,11 +543,12 @@ export const changePagePassword = (
 
 | Teste | Descrição |
 |-------|-----------|
-| `set_and_unlock_page` | Define senha → page fica bloqueada → unlock retorna conteúdo original |
+| `set_and_unlock_page_restores_title` | Define senha → title no disco é placeholder → unlock retorna título real |
+| `set_password_tags_hidden_on_disk` | Após proteger, `tags` fica `[]` no arquivo em disco |
 | `wrong_password_unlock` | Unlock com senha errada → `"WRONG_PASSWORD"` |
-| `remove_password_restores_content` | Remove senha → page retorna plaintext no próximo load |
+| `remove_password_restores_title_and_content` | Remove senha → título real, tags e blocks restaurados no disco |
 | `change_password_old_password_invalid` | Troca senha com senha antiga errada → erro |
-| `update_blocks_on_protected_page` | Auto-save em page desbloqueada re-criptografa corretamente |
+| `update_blocks_on_protected_page_preserves_title` | Auto-save em page desbloqueada re-criptografa preservando título real |
 | `update_blocks_locked_page_returns_error` | Auto-save sem chave em cache → erro sem corromper arquivo |
 
 **Critérios:**

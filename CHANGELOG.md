@@ -8,6 +8,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- **Password-Protected Notes** — protect individual pages with AES-256-GCM encryption
+- Argon2id key derivation for maximum security against brute-force attacks
+- Full content encryption including title, tags, blocks, and ink annotations
+- Session-based unlocking: pages stay decrypted in memory until the workspace is closed
+- Sidebar visual indicators: lock icons and italic placeholders for protected pages
+- New "Protected Pages" panel in section context menu to list and unlock pages
+- Page schema v2 with automatic migration from v1
+- 4 new IPC commands: `unlock_page`, `set_page_password`, `remove_page_password`, `change_page_password`
+- Comprehensive E2E tests for the protection lifecycle
+- Full i18n support for all password-related UI (English and Portuguese)
 - **Multi-workspace support** — open and manage up to 10 workspaces simultaneously
 - `WorkspaceSwitcher` component in sidebar with workspace list, focus, close, and create actions
 - Keyboard shortcuts for workspace navigation: `⌘⇧W` / `⌘⇧O` (open picker), `⌘⇧]` / `⌘⇧[` (next/prev workspace)

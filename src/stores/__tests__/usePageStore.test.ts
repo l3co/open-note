@@ -25,13 +25,15 @@ const makePage = (overrides = {}) => ({
   tags: [],
   created_at: "2024-01-01T00:00:00Z",
   updated_at: "2024-01-01T00:00:00Z",
-  schema_version: 1,
+  schema_version: 2,
   sort_order: 0,
   editor_preferences: { mode: "rich_text" as const, split_view: false },
   annotations: { strokes: [], highlights: [], svg_cache: null },
   pdf_asset: null,
   pdf_total_pages: null,
   canvas_state: null,
+  protection: null,
+  encrypted_content: null,
   ...overrides,
 });
 
@@ -58,7 +60,9 @@ describe("usePageStore", () => {
   });
 
   it("loadPages stores pages by section id", async () => {
-    const summaries = [{ id: "p1", title: "Page 1", sort_order: 0 }];
+    const summaries = [
+      { id: "p1", title: "Page 1", sort_order: 0, is_protected: false },
+    ];
     mockIpc.listPages.mockResolvedValue(summaries);
 
     await usePageStore.getState().loadPages("sec-1");

@@ -6,6 +6,7 @@ use serde::Serialize;
 pub enum CommandError {
     NoWorkspace,
     WorkspaceNotFound(String),
+    WorkspaceLocked(u32),
     NotFound(String),
     Validation(String),
     Storage(String),
@@ -17,6 +18,9 @@ impl std::fmt::Display for CommandError {
         match self {
             Self::NoWorkspace => write!(f, "No workspace is currently open"),
             Self::WorkspaceNotFound(id) => write!(f, "Workspace {id} is not open"),
+            Self::WorkspaceLocked(pid) => {
+                write!(f, "Workspace is locked by another process (PID {pid})")
+            }
             Self::NotFound(message) => write!(f, "Not found: {message}"),
             Self::Validation(message) => write!(f, "Validation error: {message}"),
             Self::Storage(message) => write!(f, "Storage error: {message}"),
@@ -38,6 +42,7 @@ impl From<opennote_storage::error::StorageError> for CommandError {
             StorageError::WorkspaceNotFound { path } => {
                 Self::NotFound(format!("Workspace at {}", path.display()))
             }
+            StorageError::WorkspaceLocked { pid } => Self::WorkspaceLocked(pid),
             StorageError::Io { source } => Self::Storage(source.to_string()),
             StorageError::Serialization { source } => Self::Internal(source.to_string()),
             StorageError::Core { source } => Self::from(source),

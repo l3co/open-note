@@ -7,6 +7,10 @@ import {
   FileImage,
   ArrowRightLeft,
   LayoutDashboard,
+  Lock,
+  Key,
+  LockOpen,
+  ShieldCheck,
 } from "lucide-react";
 import { MovePageDialog } from "./MovePageDialog";
 import { open } from "@tauri-apps/plugin-dialog";
@@ -15,6 +19,8 @@ import { usePageStore } from "@/stores/usePageStore";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { DeleteDialog } from "@/components/shared/DeleteDialog";
 import { importPdf, createPdfCanvasPage, createCanvasPage } from "@/lib/ipc";
+import { SetPasswordDialog } from "@/components/modals/SetPasswordDialog";
+import { ProtectedPagesPanel } from "@/components/modals/ProtectedPagesPanel";
 
 interface ContextMenuProps {
   x: number;
@@ -41,6 +47,11 @@ export function ContextMenu({
   const [renaming, setRenaming] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showMoveDialog, setShowMoveDialog] = useState(false);
+  const [passwordDialog, setPasswordDialog] = useState<{
+    open: boolean;
+    mode: "set" | "change" | "remove";
+  } | null>(null);
+  const [showProtectedPages, setShowProtectedPages] = useState(false);
   const [renameDraft, setRenameDraft] = useState("");
   const { t } = useTranslation();
   const {
@@ -50,13 +61,26 @@ export function ContextMenu({
     renameSection,
     deleteSection,
   } = useWorkspaceStore();
-  const { createPage, deletePage, loadPage } = usePageStore();
+  const { createPage, deletePage, loadPage, lockPage, pages } = usePageStore();
   const { selectNotebook, selectSection, selectPage } = useNavigationStore();
+
+  const sectionPages = sectionId ? (pages.get(sectionId) ?? []) : [];
+  const currentPageSummary = sectionPages.find((p) => p.id === id);
+  const isProtected = currentPageSummary?.is_protected ?? false;
+  const hasProtectedPages = sectionPages.some((p) => p.is_protected);
 
   useEffect(() => {
     const handleClick = (e: MouseEvent) => {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        onClose();
+        // Se algum diálogo estiver aberto, não fecha o menu (deixa o diálogo gerenciar)
+        if (
+          !passwordDialog?.open &&
+          !showProtectedPages &&
+          !showDeleteConfirm &&
+          !showMoveDialog
+        ) {
+          onClose();
+        }
       }
     };
     const handleEsc = (e: KeyboardEvent) => {
@@ -68,7 +92,13 @@ export function ContextMenu({
       document.removeEventListener("mousedown", handleClick);
       document.removeEventListener("keydown", handleEsc);
     };
-  }, [onClose]);
+  }, [
+    onClose,
+    passwordDialog,
+    showProtectedPages,
+    showDeleteConfirm,
+    showMoveDialog,
+  ]);
 
   const handleRenameStart = () => {
     setRenaming(true);
@@ -173,6 +203,35 @@ export function ContextMenu({
     );
   }
 
+  if (passwordDialog?.open) {
+    return (
+      <SetPasswordDialog
+        pageId={id}
+        mode={passwordDialog.mode}
+        open={true}
+        onSuccess={onClose}
+        onCancel={onClose}
+      />
+    );
+  }
+
+  if (showProtectedPages && sectionId) {
+    return (
+      <ProtectedPagesPanel
+        summaries={sectionPages}
+        open={true}
+        onClose={onClose}
+        onNavigate={(pageId) => {
+          if (_notebookId) selectNotebook(_notebookId);
+          selectSection(sectionId);
+          selectPage(pageId);
+          loadPage(pageId);
+          onClose();
+        }}
+      />
+    );
+  }
+
   if (renaming) {
     return (
       <div
@@ -211,14 +270,44 @@ export function ContextMenu({
     label: string;
     onClick: () => void;
     danger?: boolean;
+    separator?: boolean;
   }[] = [];
 
   if (type === "page" && sectionId) {
     items.push({
       icon: <ArrowRightLeft size={14} />,
-      label: t("context_menu.move"),
+      label: t("page.move"),
       onClick: () => setShowMoveDialog(true),
     });
+
+    // Password actions
+    if (!isProtected) {
+      items.push({
+        icon: <Lock size={14} />,
+        label: t("page.contextMenu.protectWithPassword"),
+        onClick: () => setPasswordDialog({ open: true, mode: "set" }),
+      });
+    } else {
+      items.push({
+        icon: <Lock size={14} />,
+        label: t("page.contextMenu.lockNow"),
+        onClick: async () => {
+          await lockPage(id);
+          onClose();
+        },
+      });
+      items.push({
+        icon: <Key size={14} />,
+        label: t("page.contextMenu.changePassword"),
+        onClick: () => setPasswordDialog({ open: true, mode: "change" }),
+      });
+      items.push({
+        icon: <LockOpen size={14} />,
+        label: t("page.contextMenu.removePassword"),
+        onClick: () => setPasswordDialog({ open: true, mode: "remove" }),
+        danger: true,
+      });
+    }
   }
 
   if (type === "notebook" || type === "section") {
@@ -243,6 +332,14 @@ export function ContextMenu({
       label: t("context_menu.import_pdf"),
       onClick: handleImportPdf,
     });
+
+    if (hasProtectedPages) {
+      items.push({
+        icon: <ShieldCheck size={14} />,
+        label: t("section.contextMenu.listProtectedPages"),
+        onClick: () => setShowProtectedPages(true),
+      });
+    }
   }
 
   if (type !== "page") {

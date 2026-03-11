@@ -13,8 +13,13 @@ O fluxo de uso é:
 4. Após unlock correto, o conteúdo é descriptografado em memória e exibido normalmente
 5. Auto-save re-criptografa o conteúdo antes de escrever em disco
 
-O título da page permanece visível (não criptografado) para permitir navegação na sidebar.
+O **título também é criptografado** — no disco, o campo `title` é substituído por um placeholder
+genérico (`"[Página protegida]"`). O nome do arquivo (slug) permanece inalterado.
 A chave derivada é mantida em memória apenas durante a sessão de unlock — nunca persiste em disco.
+
+Para descobrir pages protegidas em uma section, o usuário pode clicar com o lado direito na
+**Section** na sidebar e escolher **"Listar páginas protegidas"**. Isso abre um painel que lista
+todas as pages protegidas da section, permitindo desbloqueá-las individualmente para revelar os títulos.
 
 **Inspiração:** Notas seguras no Apple Notes, OneNote com proteção de seção por senha.
 
@@ -67,7 +72,7 @@ AppManagedState (src-tauri/src/state.rs)
 | **IPC Commands** | `src-tauri/src/commands/page.rs` | `load_page` deve retornar page bloqueada; novos commands de senha |
 | **Search** | `crates/search/src/` | Pages protegidas não devem ser indexadas pelo conteúdo |
 | **Frontend Store** | `src/stores/usePageStore.ts` | Estado `locked` / `unlocked` da page atual |
-| **Frontend UI** | `src/components/` | Sidebar com ícone de cadeado, diálogos de senha |
+| **Frontend UI** | `src/components/` | Sidebar com placeholder e ícone de cadeado, diálogos de senha, painel de listagem |
 | **i18n** | `src/locales/` | Strings para diálogos de senha |
 
 ---
@@ -134,17 +139,30 @@ Page {
 PageSummary {
   id, title, tags, mode, block_count, created_at, updated_at
 }
+// title sempre em plaintext
 ```
 
 ### Depois
 ```
 Page {
-  id, section_id, title, tags, blocks, annotations,
+  id, section_id,
+  title,               // plaintext se não protegida; "[Página protegida]" se protegida
+  tags,                // sempre vazio [] quando protegida (tags também criptografadas)
+  blocks,              // [] quando protegida
+  annotations,         // default quando protegida
   editor_preferences, pdf_asset, pdf_total_pages, canvas_state,
   created_at, updated_at,
   schema_version: 2,                                    ← BUMP
   protection: Option<PageProtection>,                   ← NOVO
   encrypted_content: Option<String>,                    ← NOVO (base64 AES-GCM ciphertext)
+}
+
+// O payload dentro de encrypted_content (JSON criptografado):
+EncryptedPayload {
+  title: String,                    ← TÍTULO REAL (criptografado)
+  tags: Vec<String>,                ← TAGS (criptografadas)
+  blocks: Vec<Block>,
+  annotations: PageAnnotations,
 }
 
 PageProtection {                                        ← NOVO (crates/core)
@@ -156,7 +174,10 @@ PageProtection {                                        ← NOVO (crates/core)
 }
 
 PageSummary {
-  id, title, tags, mode, block_count, created_at, updated_at,
+  id,
+  title,           // "[Página protegida]" quando is_protected = true
+  tags,            // [] quando protegida
+  mode, block_count, created_at, updated_at,
   is_protected: bool,                                   ← NOVO
 }
 
@@ -175,7 +196,7 @@ AppManagedState {
 {
   "id": "550e...",
   "section_id": "...",
-  "title": "Diário Pessoal",
+  "title": "[Página protegida]",
   "tags": [],
   "blocks": [],
   "annotations": { "strokes": [], "highlights": [], "svg_cache": null },
@@ -199,14 +220,17 @@ AppManagedState {
 ## Critérios de Aceitação (Definição de Done)
 
 - [ ] Usuário pode proteger uma page por senha via menu de contexto na sidebar
-- [ ] Page protegida exibe cadeado na sidebar e bloqueia o conteúdo ao ser selecionada
+- [ ] Page protegida exibe cadeado e placeholder "[Página protegida]" na sidebar
+- [ ] Título real não é visível no filesystem (nem no JSON em disco) sem a senha
+- [ ] Right-click na Section exibe opção "Listar páginas protegidas" quando há pages protegidas
+- [ ] Painel de páginas protegidas permite desbloquear individualmente para revelar títulos
 - [ ] Diálogo de senha aparece ao tentar abrir uma page protegida
 - [ ] Senha incorreta exibe erro sem revelar o conteúdo
 - [ ] Unlock bem-sucedido mantém a page desbloqueada na sessão corrente (sem pedir senha de novo)
 - [ ] Auto-save re-criptografa blocks antes de escrever em disco
 - [ ] Usuário pode remover a proteção (requer senha atual)
 - [ ] Usuário pode trocar a senha (requer senha atual)
-- [ ] Pages protegidas **não** aparecem nos resultados de busca full-text pelo conteúdo
+- [ ] Pages protegidas **não** aparecem nos resultados de busca full-text (nem título, nem conteúdo)
 - [ ] Pages protegidas sincronizam com cloud como arquivos opacos (sem descriptografar no sync)
 - [ ] Pages sem proteção (v1 e v2) continuam funcionando sem mudanças de comportamento
 - [ ] Fechar o workspace limpa todas as chaves de sessão da memória

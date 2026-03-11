@@ -2,4 +2,4 @@
 import type { EditorMode } from "./EditorMode";
 import type { PageId } from "./PageId";
 
-export type PageSummary = { id: PageId, title: string, tags: Array<string>, mode: EditorMode, block_count: number, created_at: string, updated_at: string, };
+export type PageSummary = { id: PageId, title: string, tags: Array<string>, mode: EditorMode, block_count: number, created_at: string, updated_at: string, is_protected: boolean, };

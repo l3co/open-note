@@ -121,6 +121,8 @@ const makePage = () => ({
   pdf_asset: null,
   pdf_total_pages: null,
   canvas_state: null,
+  protection: null,
+  encrypted_content: null,
 });
 
 describe("PageEditor", () => {

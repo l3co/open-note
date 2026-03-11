@@ -1,6 +1,8 @@
 pub mod assets;
 pub mod notebook;
 pub mod page;
+#[cfg(test)]
+mod page_test;
 pub mod search;
 pub mod section;
 pub mod spellcheck;

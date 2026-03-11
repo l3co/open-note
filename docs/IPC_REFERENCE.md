@@ -14,7 +14,7 @@ Referência completa dos **46 IPC commands** registrados no Tauri. Cada command 
 | Workspace | 8 | `commands/workspace.rs` | CRUD workspace + settings |
 | Notebook | 5 | `commands/notebook.rs` | CRUD notebooks |
 | Section | 5 | `commands/section.rs` | CRUD sections |
-| Page | 7 | `commands/page.rs` | CRUD pages + file I/O |
+| Page | 11 | `commands/page.rs` | CRUD pages + file I/O + Password Protection |
 | PDF Canvas | 3 | `commands/page.rs` | Import PDF + PDF Canvas pages + anotações |
 | Tags | 1 | `commands/tags.rs` | Listar tags |
 | Trash | 4 | `commands/trash.rs` | Lixeira |
@@ -371,6 +371,62 @@ Move section para outro notebook.
 | **Retorno** | `Section` — section atualizada |
 | **Efeitos** | Move diretório da section + atualiza `notebook_id` e slug |
 | **TS** | `moveSection(sectionId, targetNotebookId, workspaceId?): Promise<Section>` |
+
+---
+
+## Password Protection (4 commands)
+
+### `unlock_page`
+
+Desbloqueia uma página protegida nesta sessão.
+
+| | Detalhe |
+|---|---|
+| **Rust** | `commands::page::unlock_page(state, page_id, password, workspace_id)` |
+| **Parâmetros** | `page_id: PageId`, `password: String`, `workspace_id?: String` |
+| **Retorno** | `Page` — a página descriptografada (em memória) |
+| **Erros** | `WRONG_PASSWORD`, `PageNotFound` |
+| **Efeitos** | Armazena a chave derivada no cache de sessão (RAM) do workspace |
+| **TS** | `unlockPage(pageId, password, workspaceId?): Promise<Page>` |
+
+### `set_page_password`
+
+Protege uma página com senha pela primeira vez.
+
+| | Detalhe |
+|---|---|
+| **Rust** | `commands::page::set_page_password(state, page_id, password, workspace_id)` |
+| **Parâmetros** | `page_id: PageId`, `password: String`, `workspace_id?: String` |
+| **Retorno** | `()` |
+| **Erros** | Senha curta (<6), Página já protegida |
+| **Efeitos** | Criptografa conteúdo, remove do índice de busca, cacheia chave na sessão |
+| **TS** | `setPagePassword(pageId, password, workspaceId?): Promise<void>` |
+
+### `remove_page_password`
+
+Remove permanentemente a proteção por senha de uma página.
+
+| | Detalhe |
+|---|---|
+| **Rust** | `commands::page::remove_page_password(state, page_id, password, workspace_id)` |
+| **Parâmetros** | `page_id: PageId`, `password: String`, `workspace_id?: String` |
+| **Retorno** | `Page` — a página agora aberta (sem proteção) |
+| **Erros** | `WRONG_PASSWORD` |
+| **Efeitos** | Descriptografa arquivo no disco, remove chave da sessão, re-indexa para busca |
+| **TS** | `removePagePassword(pageId, password, workspaceId?): Promise<Page>` |
+
+### `change_page_password`
+
+Altera a senha de uma página (rotação de chave).
+
+| | Detalhe |
+|---|---|
+| **Rust** | `commands::page::change_page_password(state, page_id, old_password, new_password, workspace_id)` |
+| **Parâmetros** | `page_id: PageId`, `old_password`, `new_password`, `workspace_id?` |
+| **Retorno** | `()` |
+| **Erros** | `WRONG_PASSWORD`, senha curta |
+| **Efeitos** | Re-criptografa com nova chave e novo salt/nonce, remove chave antiga da sessão |
+| **TS** | `changePagePassword(pageId, oldPw, newPw, workspaceId?): Promise<void>` |
 
 ---
 
