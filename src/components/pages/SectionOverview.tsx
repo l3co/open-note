@@ -82,6 +82,7 @@ export function SectionOverview() {
         selectedSectionId,
         t("canvas.default_title"),
       );
+      await loadPages(selectedSectionId);
       selectPage(page.id);
       await loadPage(page.id);
     } catch (err) {
