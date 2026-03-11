@@ -13,6 +13,7 @@ vi.mock("@tauri-apps/plugin-dialog", () => ({
 const mockIpc = vi.hoisted(() => ({
   importPdf: vi.fn(),
   createPdfCanvasPage: vi.fn(),
+  createCanvasPage: vi.fn(),
 }));
 vi.mock("@/lib/ipc", () => mockIpc);
 
@@ -20,6 +21,7 @@ const makePageSummary = (id: string, title: string, tags: string[] = []) => ({
   id,
   title,
   tags,
+  mode: "rich_text" as const,
   block_count: 0,
   created_at: "2024-01-01T00:00:00Z",
   updated_at: "2024-01-02T00:00:00Z",

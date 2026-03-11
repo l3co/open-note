@@ -8,6 +8,8 @@ import {
   FolderClosed,
   ChevronRight,
   ChevronDown,
+  LayoutDashboard,
+  FileImage,
 } from "lucide-react";
 import {
   DndContext,
@@ -446,6 +448,12 @@ function PageRow({
     data: { type: "page", id: page.id, label: page.title },
   });
 
+  const getPageIcon = () => {
+    if (page.mode === "canvas") return <LayoutDashboard size={16} />;
+    if (page.mode === "pdf_canvas") return <FileImage size={16} />;
+    return <FileText size={16} />;
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -453,7 +461,7 @@ function PageRow({
       style={{ touchAction: "none", opacity: isDragging ? 0.4 : 1 }}
     >
       <TreeItem
-        icon={<FileText size={16} />}
+        icon={getPageIcon()}
         label={page.title}
         isSelected={isSelected}
         depth={2}

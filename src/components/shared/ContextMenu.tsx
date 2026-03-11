@@ -1,13 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Pencil, Trash2, Plus, FileImage, ArrowRightLeft } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  Plus,
+  FileImage,
+  ArrowRightLeft,
+  LayoutDashboard,
+} from "lucide-react";
 import { MovePageDialog } from "./MovePageDialog";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 import { usePageStore } from "@/stores/usePageStore";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { DeleteDialog } from "@/components/shared/DeleteDialog";
-import { importPdf, createPdfCanvasPage } from "@/lib/ipc";
+import { importPdf, createPdfCanvasPage, createCanvasPage } from "@/lib/ipc";
 
 interface ContextMenuProps {
   x: number;
@@ -111,6 +118,20 @@ export function ContextMenu({
     onClose();
   };
 
+  const handleNewCanvasPage = async () => {
+    onClose();
+    if (type !== "section") return;
+    try {
+      const page = await createCanvasPage(id, t("canvas.default_title"));
+      if (_notebookId) selectNotebook(_notebookId);
+      selectSection(id);
+      selectPage(page.id);
+      await loadPage(page.id);
+    } catch (err) {
+      console.error("[ContextMenu] create canvas page failed:", err);
+    }
+  };
+
   const handleImportPdf = async () => {
     onClose();
     if (type !== "section") return;
@@ -212,6 +233,11 @@ export function ContextMenu({
   }
 
   if (type === "section") {
+    items.push({
+      icon: <LayoutDashboard size={14} />,
+      label: t("context_menu.new_canvas_page"),
+      onClick: handleNewCanvasPage,
+    });
     items.push({
       icon: <FileImage size={14} />,
       label: t("context_menu.import_pdf"),
