@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { BookOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useUIStore } from "@/stores/useUIStore";
@@ -9,15 +9,6 @@ export function NewNotebookModal() {
   const { showNewNotebookModal, closeNewNotebookModal } = useUIStore();
   const { createNotebook } = useWorkspaceStore();
   const [name, setName] = useState("");
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (showNewNotebookModal) {
-      setName("");
-      setTimeout(() => inputRef.current?.focus(), 30);
-    }
-  }, [showNewNotebookModal]);
-
   if (!showNewNotebookModal) return null;
 
   const handleConfirm = async () => {
@@ -60,7 +51,8 @@ export function NewNotebookModal() {
           </h3>
         </div>
         <input
-          ref={inputRef}
+          // eslint-disable-next-line jsx-a11y/no-autofocus
+          autoFocus
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder={t("notebook.name_placeholder")}

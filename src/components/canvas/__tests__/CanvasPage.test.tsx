@@ -6,24 +6,14 @@ import { Excalidraw } from "@excalidraw/excalidraw";
 
 // Mock do Excalidraw (não funciona em jsdom)
 vi.mock("@excalidraw/excalidraw", () => ({
-  Excalidraw: vi.fn(({ onChange, excalidrawAPI }) => {
-    require("react").useEffect(() => {
-      excalidrawAPI?.({
-        getSceneElements: () => [{ type: "rectangle", id: "test" }],
-        getAppState: () => ({ name: "test-app-state" }),
-        getFiles: () => ({}),
-      });
-    }, [excalidrawAPI]);
-
-    return (
-      <div
-        data-testid="excalidraw-mock"
-        onClick={() =>
-          onChange?.([{ type: "rectangle", id: "test" }], { name: "test-app-state" }, {})
-        }
-      />
-    );
-  }),
+  Excalidraw: vi.fn(({ onChange }) => (
+    <div
+      data-testid="excalidraw-mock"
+      onClick={() =>
+        onChange?.([{ type: "rectangle", id: "test" }], { name: "test-app-state" }, {})
+      }
+    />
+  )),
 }));
 
 // Mock do IPC
