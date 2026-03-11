@@ -216,6 +216,8 @@
       "remote_label": "Remoto",
       "info_text": "A sincronização com provedores de nuvem será disponibilizada em breve. Seus dados permanecem seguros localmente.",
       "never": "Nunca",
+      "sync_now": "Sincronizar agora",
+      "sync_now_success": "Sincronização concluída",
       "connect_modal_title": "Conectar à nuvem",
       "connect_modal_subtitle": "Escolha um provedor para sincronizar suas notas",
       "connect_btn": "Conectar",

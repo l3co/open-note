@@ -1,8 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { Cloud, Loader2, LogOut, RefreshCw } from "lucide-react";
+import {
+  Cloud,
+  CloudOff,
+  Loader2,
+  LogOut,
+  RefreshCw,
+  UploadCloud,
+} from "lucide-react";
 import * as ipc from "@/lib/ipc";
 import type { ProviderConnectionStatus } from "@/lib/ipc";
+import type { SyncStatus } from "@/types/sync";
 import { CloudConnectModal } from "@/components/sync/CloudConnectModal";
 
 const PROVIDER_LOGOS: Record<string, React.ReactNode> = {
@@ -66,6 +74,24 @@ const PROVIDER_LOGOS: Record<string, React.ReactNode> = {
     </svg>
   ),
 };
+
+function formatTimeAgo(
+  dateStr: string | null,
+  t: (k: string, o?: Record<string, unknown>) => string,
+): string {
+  if (!dateStr) return t("sync.never");
+  try {
+    const diffMs = Date.now() - new Date(dateStr).getTime();
+    const diffMins = Math.floor(diffMs / 60000);
+    if (diffMins < 1) return t("search.time_ago_now");
+    if (diffMins < 60) return t("search.time_ago_minutes", { count: diffMins });
+    const diffHours = Math.floor(diffMins / 60);
+    if (diffHours < 24) return t("search.time_ago_hours", { count: diffHours });
+    return t("search.time_ago_days", { count: Math.floor(diffHours / 24) });
+  } catch {
+    return t("search.time_ago_unknown");
+  }
+}
 
 function ProviderRow({
   p,
@@ -156,22 +182,40 @@ function ProviderRow({
 export function SyncSection() {
   const { t } = useTranslation();
   const [providers, setProviders] = useState<ProviderConnectionStatus[]>([]);
+  const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null);
   const [loading, setLoading] = useState(true);
+  const [syncing, setSyncing] = useState(false);
   const [connectTarget, setConnectTarget] = useState<string | null>(null);
 
-  const loadStatus = async () => {
+  const loadStatus = useCallback(async () => {
     setLoading(true);
     try {
-      const status = await ipc.getProviderStatus();
-      setProviders(status.filter((p) => p.name !== "onedrive"));
+      const [providerList, status] = await Promise.all([
+        ipc.getProviderStatus(),
+        ipc.getSyncStatus().catch(() => null),
+      ]);
+      setProviders(providerList.filter((p) => p.name !== "onedrive"));
+      setSyncStatus(status);
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     loadStatus();
-  }, []);
+  }, [loadStatus]);
+
+  const handleSyncNow = async () => {
+    const connected = providers.find((p) => p.connected);
+    if (!connected || syncing) return;
+    setSyncing(true);
+    try {
+      await ipc.syncInitialUpload(connected.name);
+      await loadStatus();
+    } finally {
+      setSyncing(false);
+    }
+  };
 
   const handleDisconnect = (name: string) => {
     setProviders((prev) =>
@@ -186,10 +230,15 @@ export function SyncSection() {
       prev.map((p) => (p.name === name ? { ...p, connected: true, email } : p)),
     );
     setConnectTarget(null);
+    ipc.syncInitialUpload(name).catch(() => {});
   };
+
+  const connectedProvider = providers.find((p) => p.connected);
+  const isSyncing = syncing || (syncStatus?.is_syncing ?? false);
 
   return (
     <div className="space-y-4">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Cloud size={16} style={{ color: "var(--accent)" }} />
@@ -214,6 +263,49 @@ export function SyncSection() {
         </button>
       </div>
 
+      {/* Status row */}
+      <div
+        className="flex items-center justify-between rounded-lg px-3 py-2"
+        style={{ backgroundColor: "var(--bg-secondary)" }}
+      >
+        <div className="flex items-center gap-2">
+          {isSyncing ? (
+            <Loader2
+              size={14}
+              className="animate-spin"
+              style={{ color: "var(--accent)" }}
+            />
+          ) : connectedProvider ? (
+            <Cloud size={14} style={{ color: "var(--accent)" }} />
+          ) : (
+            <CloudOff size={14} style={{ color: "var(--text-tertiary)" }} />
+          )}
+          <span className="text-xs" style={{ color: "var(--text-secondary)" }}>
+            {isSyncing
+              ? t("sync.syncing")
+              : connectedProvider
+                ? t("sync.last_sync", {
+                    time: formatTimeAgo(syncStatus?.last_synced_at ?? null, t),
+                  })
+                : t("sync.not_connected")}
+          </span>
+        </div>
+
+        {connectedProvider && !isSyncing && (
+          <button
+            onClick={handleSyncNow}
+            className="flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            style={{ backgroundColor: "var(--accent)" }}
+            disabled={syncing}
+            data-testid="sync-now-btn"
+          >
+            <UploadCloud size={12} />
+            {t("sync.sync_now")}
+          </button>
+        )}
+      </div>
+
+      {/* Provider list */}
       {loading ? (
         <div className="flex justify-center py-6">
           <Loader2

@@ -7,9 +7,10 @@ import { useUIStore } from "@/stores/useUIStore";
 vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn() }));
 
 const mockIpc = vi.hoisted(() => ({
-  getSyncProviders: vi.fn(),
+  getProviderStatus: vi.fn(),
   getSyncStatus: vi.fn(),
-  getSyncConflicts: vi.fn(),
+  disconnectProviderByName: vi.fn(),
+  syncInitialUpload: vi.fn(),
 }));
 
 vi.mock("@/lib/ipc", () => mockIpc);
@@ -18,28 +19,30 @@ describe("SyncSettings", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     useUIStore.setState({ showSyncSettings: false });
-    mockIpc.getSyncProviders.mockResolvedValue([
+    mockIpc.getProviderStatus.mockResolvedValue([
       {
         name: "google_drive",
-        display_name: "Google Drive",
+        displayName: "Google Drive",
         connected: false,
-        user_email: null,
-        last_synced_at: null,
+        email: null,
+        errorMsg: null,
       },
       {
-        name: "onedrive",
-        display_name: "OneDrive",
+        name: "dropbox",
+        displayName: "Dropbox",
         connected: false,
-        user_email: null,
-        last_synced_at: null,
+        email: null,
+        errorMsg: null,
       },
     ]);
     mockIpc.getSyncStatus.mockResolvedValue({
       is_syncing: false,
+      provider: null,
+      progress: null,
       last_synced_at: null,
       last_error: null,
+      pending_conflicts: 0,
     });
-    mockIpc.getSyncConflicts.mockResolvedValue([]);
   });
 
   it("renders nothing when not visible", () => {
@@ -47,30 +50,17 @@ describe("SyncSettings", () => {
     expect(container.firstChild).toBeNull();
   });
 
-  it("renders dialog when visible", async () => {
+  it("renders modal with title when visible", () => {
+    useUIStore.setState({ showSyncSettings: true });
+    const { container } = render(<SyncSettings />);
+    expect(container.querySelector(".sync-settings-title")).toBeInTheDocument();
+  });
+
+  it("renders SyncSection content inside the modal", async () => {
     useUIStore.setState({ showSyncSettings: true });
     render(<SyncSettings />);
     expect(await screen.findByText("Google Drive")).toBeInTheDocument();
-  });
-
-  it("shows providers list", async () => {
-    useUIStore.setState({ showSyncSettings: true });
-    render(<SyncSettings />);
-    expect(await screen.findByText("Google Drive")).toBeInTheDocument();
-    expect(screen.getByText("OneDrive")).toBeInTheDocument();
-  });
-
-  it("shows not connected status", async () => {
-    useUIStore.setState({ showSyncSettings: true });
-    render(<SyncSettings />);
-    expect(await screen.findByText("Não conectado")).toBeInTheDocument();
-  });
-
-  it("shows coming soon badges", async () => {
-    useUIStore.setState({ showSyncSettings: true });
-    render(<SyncSettings />);
-    const badges = await screen.findAllByText("Em breve");
-    expect(badges.length).toBeGreaterThan(0);
+    expect(screen.getByText("Dropbox")).toBeInTheDocument();
   });
 
   it("closes on backdrop click", async () => {
@@ -78,8 +68,7 @@ describe("SyncSettings", () => {
     const user = userEvent.setup();
     const { container } = render(<SyncSettings />);
     await screen.findByText("Google Drive");
-    const backdrop = container.firstChild as HTMLElement;
-    await user.click(backdrop);
+    await user.click(container.firstChild as HTMLElement);
     expect(useUIStore.getState().showSyncSettings).toBe(false);
   });
 
@@ -88,56 +77,8 @@ describe("SyncSettings", () => {
     const user = userEvent.setup();
     render(<SyncSettings />);
     await screen.findByText("Google Drive");
-    const closeButtons = screen.getAllByRole("button");
-    const closeBtn = closeButtons.find((b) =>
-      b.classList.contains("sync-settings-close"),
-    );
-    if (closeBtn) {
-      await user.click(closeBtn);
-      expect(useUIStore.getState().showSyncSettings).toBe(false);
-    }
-  });
-
-  it("shows syncing status when active", async () => {
-    mockIpc.getSyncStatus.mockResolvedValue({
-      is_syncing: true,
-      last_synced_at: null,
-      last_error: null,
-    });
-    useUIStore.setState({ showSyncSettings: true });
-    render(<SyncSettings />);
-    expect(await screen.findByText("Sincronizando...")).toBeInTheDocument();
-  });
-
-  it("shows last sync error", async () => {
-    mockIpc.getSyncStatus.mockResolvedValue({
-      is_syncing: false,
-      last_synced_at: null,
-      last_error: "Connection timeout",
-    });
-    useUIStore.setState({ showSyncSettings: true });
-    render(<SyncSettings />);
-    expect(await screen.findByText("Connection timeout")).toBeInTheDocument();
-  });
-
-  it("shows conflicts when present", async () => {
-    mockIpc.getSyncConflicts.mockResolvedValue([
-      {
-        id: "c1",
-        page_title: "Conflicted Page",
-        local_modified_at: "2024-01-01T00:00:00Z",
-        remote_modified_at: "2024-01-02T00:00:00Z",
-      },
-    ]);
-    useUIStore.setState({ showSyncSettings: true });
-    render(<SyncSettings />);
-    expect(await screen.findByText("Conflicted Page")).toBeInTheDocument();
-  });
-
-  it("shows info text", async () => {
-    useUIStore.setState({ showSyncSettings: true });
-    render(<SyncSettings />);
-    await screen.findByText("Google Drive");
-    expect(screen.getByText(/provedores de nuvem/i)).toBeInTheDocument();
+    const closeBtn = screen.getByRole("button", { name: /fechar/i });
+    await user.click(closeBtn);
+    expect(useUIStore.getState().showSyncSettings).toBe(false);
   });
 });

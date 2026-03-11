@@ -216,6 +216,8 @@
       "remote_label": "Remote",
       "info_text": "Cloud sync will be available soon. Your data remains safe locally.",
       "never": "Never",
+      "sync_now": "Sync now",
+      "sync_now_success": "Sync complete",
       "connect_modal_title": "Connect to cloud",
       "connect_modal_subtitle": "Choose a provider to sync your notes",
       "connect_btn": "Connect",

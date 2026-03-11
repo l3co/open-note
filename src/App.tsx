@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Toaster } from "sonner";
 import { useUIStore } from "@/stores/useUIStore";
 import { useMultiWorkspaceStore } from "@/stores/useMultiWorkspaceStore";
@@ -29,6 +29,7 @@ export function App() {
   } = useUIStore();
   const workspaceCount = useMultiWorkspaceStore((s) => s.workspaces.size);
   const multiStore = useMultiWorkspaceStore.getState();
+  const syncIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   useKeyboardShortcuts();
 
@@ -100,6 +101,30 @@ export function App() {
     };
     init();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const AUTO_SYNC_INTERVAL_MS = 5 * 60 * 1000;
+
+    const runSync = async () => {
+      try {
+        const statuses = await ipc.getProviderStatus();
+        const connected = statuses.find((p) => p.connected);
+        if (connected) {
+          ipc.syncInitialUpload(connected.name).catch(() => {});
+        }
+      } catch {
+        // silently ignore — sync is best-effort
+      }
+    };
+
+    syncIntervalRef.current = setInterval(runSync, AUTO_SYNC_INTERVAL_MS);
+
+    return () => {
+      if (syncIntervalRef.current !== null) {
+        clearInterval(syncIntervalRef.current);
+      }
+    };
+  }, []);
 
   if (initializing) {
     return (
