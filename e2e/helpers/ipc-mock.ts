@@ -72,6 +72,9 @@ const DEFAULT_PAGE = {
 const DEFAULT_PAGE_SUMMARY = {
   id: "page-001",
   title: "Notas do dia",
+  tags: [],
+  mode: "richtext",
+  block_count: 0,
   created_at: new Date().toISOString(),
   updated_at: new Date().toISOString(),
 };

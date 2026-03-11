@@ -20,6 +20,9 @@ const CANVAS_PAGE = {
 const CANVAS_PAGE_SUMMARY = {
   id: CANVAS_PAGE_ID,
   title: "Canvas sem título",
+  tags: [],
+  mode: "canvas",
+  block_count: 0,
   created_at: CANVAS_PAGE.created_at,
   updated_at: CANVAS_PAGE.updated_at,
 };
@@ -38,7 +41,7 @@ test.describe("Canvas Page (Excalidraw Integration)", () => {
           ? [DEFAULT_PAGE_SUMMARY, CANVAS_PAGE_SUMMARY]
           : [DEFAULT_PAGE_SUMMARY],
       load_page: (args: unknown) => {
-        const id = (args as { id?: string }).id ?? "";
+        const id = (args as { pageId?: string }).pageId ?? "";
         return id === CANVAS_PAGE_ID ? CANVAS_PAGE : DEFAULT_PAGE;
       },
     });
