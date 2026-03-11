@@ -1,38 +1,78 @@
 import { test, expect } from "@playwright/test";
-import { setupWithWorkspace, skipOnboarding } from "./helpers/workspace";
-import { APP } from "./helpers/selectors";
+import {
+  setupWithWorkspace,
+  skipOnboarding,
+  DEFAULT_PAGE,
+  DEFAULT_PAGE_SUMMARY,
+} from "./helpers/workspace";
+import { APP, TREE } from "./helpers/selectors";
+
+const CANVAS_PAGE_ID = "page-canvas-001";
+const CANVAS_PAGE = {
+  ...DEFAULT_PAGE,
+  id: CANVAS_PAGE_ID,
+  title: "Canvas sem título",
+  canvas_state: null,
+  pdf_asset: null,
+  pdf_total_pages: null,
+  editor_preferences: { mode: "canvas", split_view: false },
+};
+const CANVAS_PAGE_SUMMARY = {
+  id: CANVAS_PAGE_ID,
+  title: "Canvas sem título",
+  created_at: CANVAS_PAGE.created_at,
+  updated_at: CANVAS_PAGE.updated_at,
+};
 
 test.describe("Canvas Page (Excalidraw Integration)", () => {
   test.beforeEach(async ({ page }) => {
     await skipOnboarding(page);
-    await setupWithWorkspace(page);
+    let canvasCreated = false;
+    await setupWithWorkspace(page, {
+      create_canvas_page: () => {
+        canvasCreated = true;
+        return CANVAS_PAGE;
+      },
+      list_pages: () =>
+        canvasCreated
+          ? [DEFAULT_PAGE_SUMMARY, CANVAS_PAGE_SUMMARY]
+          : [DEFAULT_PAGE_SUMMARY],
+      load_page: (args: unknown) => {
+        const id = (args as { id?: string }).id ?? "";
+        return id === CANVAS_PAGE_ID ? CANVAS_PAGE : DEFAULT_PAGE;
+      },
+    });
     await expect(page.locator(APP.main)).toBeVisible({ timeout: 15000 });
   });
 
   test("criar página canvas e verificar que abre o Excalidraw", async ({ page }) => {
-    // Abrir a seção de teste (clicando no nome da seção na sidebar)
-    await page.getByText("Test Section").click();
-    
+    // Expandir notebook e clicar na seção na sidebar
+    await page.locator(TREE.notebookItem).first().click();
+    await page.locator(TREE.sectionItem).first().click();
+
     // Clicar no botão "Nova Página Canvas" na SectionOverview
     const newCanvasBtn = page.getByRole("button", { name: /nova página canvas/i });
-    await expect(newCanvasBtn).toBeVisible();
+    await expect(newCanvasBtn).toBeVisible({ timeout: 5000 });
     await newCanvasBtn.click();
 
     // Verificar que o Excalidraw foi carregado (lazy load)
-    // O Excalidraw adiciona uma classe .excalidraw ao seu container
     await expect(page.locator(".excalidraw")).toBeVisible({ timeout: 15000 });
-    
+
     // Verificar título padrão
-    await expect(page.getByTestId("title-editor")).toHaveText(/canvas sem título|untitled canvas/i);
+    await expect(page.getByTestId("title-editor")).toHaveText(
+      /canvas sem título|untitled canvas/i,
+    );
   });
 
   test("estado do canvas persiste após auto-save", async ({ page }) => {
     // Criar página canvas
-    await page.getByText("Test Section").click();
+    await page.locator(TREE.notebookItem).first().click();
+    await page.locator(TREE.sectionItem).first().click();
     await page.getByRole("button", { name: /nova página canvas/i }).click();
     await expect(page.locator(".excalidraw")).toBeVisible({ timeout: 15000 });
 
     // Interagir com o canvas (desenhar um retângulo via atalho 'r')
+    await page.locator(".excalidraw").click();
     await page.keyboard.press("r");
     await page.mouse.move(400, 400);
     await page.mouse.down();
@@ -42,18 +82,16 @@ test.describe("Canvas Page (Excalidraw Integration)", () => {
     // Aguardar auto-save (1.5s + margem)
     await page.waitForTimeout(3000);
 
-    // Navegar para outra página e voltar
-    await page.getByText("Test Page").first().click();
+    // Navegar para a página richtext e verificar que Excalidraw sumiu
+    await page.locator(TREE.pageItem).first().click();
     await page.waitForTimeout(500);
     await expect(page.locator(".excalidraw")).not.toBeVisible();
 
-    await page.getByText(/canvas sem título|untitled canvas/i).click();
-    
-    // Verificar que o Excalidraw carregou e o elemento persiste
+    // Voltar para a página canvas
+    await page.locator(TREE.pageItem).nth(1).click();
+
+    // Verificar que o Excalidraw carregou
     await expect(page.locator(".excalidraw")).toBeVisible({ timeout: 15000 });
-    
-    // Verificação interna do Excalidraw (pode variar conforme versão)
-    // Geralmente existem elementos SVG dentro do canvas
     const canvasElements = page.locator(".excalidraw canvas");
     await expect(canvasElements.first()).toBeVisible();
   });

@@ -136,8 +136,18 @@ function buildDefaultHandlers(overrides: MockOverrides = {}): MockOverrides {
       id: `page-${Date.now()}`,
       title: (args as { title?: string }).title,
     }),
+    create_canvas_page: (args: unknown) => ({
+      ...DEFAULT_PAGE,
+      id: `page-canvas-${Date.now()}`,
+      title: (args as { title?: string }).title ?? "Untitled Canvas",
+      canvas_state: null,
+      pdf_asset: null,
+      pdf_total_pages: null,
+      editor_preferences: { mode: "canvas", split_view: false },
+    }),
     update_page: () => null,
     update_page_blocks: () => DEFAULT_PAGE,
+    update_page_canvas_state: () => null,
     delete_page: () => null,
     move_page: () => DEFAULT_PAGE,
 
