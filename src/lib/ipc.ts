@@ -335,6 +335,29 @@ export const searchAllWorkspaces = (
 
 // ─── Sync ───
 
+export interface ProviderConnectionStatus {
+  name: string;
+  displayName: string;
+  connected: boolean;
+  email: string | null;
+  errorMsg: string | null;
+}
+
+export const connectProvider = (providerName: string) =>
+  invoke<string>("connect_provider", { providerName });
+
+export const disconnectProvider = (providerName: string) =>
+  invoke<void>("disconnect_provider", { providerName });
+
+export const disconnectProviderByName = (providerName: string) =>
+  invoke<void>("disconnect_provider_by_name", { providerName });
+
+export const getProviderStatus = () =>
+  invoke<ProviderConnectionStatus[]>("get_provider_status");
+
+export const syncInitialUpload = (providerName: string) =>
+  invoke<number>("sync_initial_upload", { providerName });
+
 export const getSyncProviders = () =>
   invoke<import("@/types/sync").ProviderInfo[]>("get_sync_providers");
 

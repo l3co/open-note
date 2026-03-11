@@ -215,7 +215,16 @@
       "local_label": "Local",
       "remote_label": "Remote",
       "info_text": "Cloud sync will be available soon. Your data remains safe locally.",
-      "never": "Never"
+      "never": "Never",
+      "connect_modal_title": "Connect to cloud",
+      "connect_modal_subtitle": "Choose a provider to sync your notes",
+      "connect_btn": "Connect",
+      "connect_waiting": "Waiting for authorization in browser...",
+      "connect_waiting_short": "Waiting...",
+      "connect_success": "Connected successfully!",
+      "disconnect": "Disconnect",
+      "connected": "Connected",
+      "not_connected": "Not connected"
     },
     "trash": {
       "title": "Trash",
@@ -318,6 +327,7 @@
       "delete": "Delete",
       "rename": "Rename",
       "close": "Close",
+      "refresh": "Refresh",
       "confirm": "Confirm",
       "yes": "Yes",
       "no": "No",

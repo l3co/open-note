@@ -215,7 +215,16 @@
       "local_label": "Local",
       "remote_label": "Remoto",
       "info_text": "A sincronização com provedores de nuvem será disponibilizada em breve. Seus dados permanecem seguros localmente.",
-      "never": "Nunca"
+      "never": "Nunca",
+      "connect_modal_title": "Conectar à nuvem",
+      "connect_modal_subtitle": "Escolha um provedor para sincronizar suas notas",
+      "connect_btn": "Conectar",
+      "connect_waiting": "Aguardando autorização no navegador...",
+      "connect_waiting_short": "Aguardando...",
+      "connect_success": "Conectado com sucesso!",
+      "disconnect": "Desconectar",
+      "connected": "Conectado",
+      "not_connected": "Não conectado"
     },
     "trash": {
       "title": "Lixeira",
@@ -318,6 +327,7 @@
       "delete": "Excluir",
       "rename": "Renomear",
       "close": "Fechar",
+      "refresh": "Atualizar",
       "confirm": "Confirmar",
       "yes": "Sim",
       "no": "Não",

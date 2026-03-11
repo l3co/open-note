@@ -21,8 +21,9 @@ use commands::section::{
 };
 use commands::spellcheck::check_spelling;
 use commands::sync::{
+    connect_provider, disconnect_provider, disconnect_provider_by_name, get_provider_status,
     get_sync_config, get_sync_conflicts, get_sync_providers, get_sync_status,
-    resolve_sync_conflict, set_sync_config,
+    resolve_sync_conflict, set_sync_config, sync_initial_upload,
 };
 use commands::tags::list_all_tags;
 use commands::trash::{empty_trash, list_trash_items, permanently_delete, restore_from_trash};
@@ -36,6 +37,7 @@ use commands::workspace::{
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_shell::init())
+        .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_fs::init())
         .plugin(
@@ -121,6 +123,11 @@ pub fn run() {
             get_index_status,
             search_all_workspaces,
             // Sync
+            connect_provider,
+            disconnect_provider,
+            disconnect_provider_by_name,
+            get_provider_status,
+            sync_initial_upload,
             get_sync_providers,
             get_sync_status,
             get_sync_config,

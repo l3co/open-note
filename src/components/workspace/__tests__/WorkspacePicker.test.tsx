@@ -66,9 +66,9 @@ describe("WorkspacePicker", () => {
     expect(screen.getByTestId("workspace-open-btn")).toBeInTheDocument();
   });
 
-  it("shows cloud button (disabled)", async () => {
+  it("shows cloud button (enabled)", async () => {
     render(<WorkspacePicker />);
-    expect(await screen.findByTestId("workspace-cloud-btn")).toBeDisabled();
+    expect(await screen.findByTestId("workspace-cloud-btn")).not.toBeDisabled();
   });
 
   it("shows recent workspaces when available", async () => {

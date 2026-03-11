@@ -1,0 +1,98 @@
+use std::path::PathBuf;
+
+use crate::error::{SyncError, SyncResult};
+use crate::types::AuthToken;
+
+const APP_NAME: &str = "open-note";
+
+fn entry_name(provider: &str) -> String {
+    format!("sync-{provider}")
+}
+
+/// Diretório de tokens em filesystem: ~/.opennote/tokens/
+fn tokens_dir() -> PathBuf {
+    let home = std::env::var("HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| PathBuf::from("."));
+    home.join(".opennote").join("tokens")
+}
+
+fn token_file(provider: &str) -> PathBuf {
+    tokens_dir().join(format!("{provider}.token"))
+}
+
+/// Persiste o token OAuth2.
+/// Primário: filesystem (~/.opennote/tokens/).
+/// Secundário best-effort: keychain do SO.
+pub fn store_token(provider: &str, token: &AuthToken) -> SyncResult<()> {
+    let json = serde_json::to_string(token)?;
+
+    // Filesystem (primário — sempre funciona, sem diálogos de permissão)
+    let dir = tokens_dir();
+    std::fs::create_dir_all(&dir).map_err(|e| SyncError::AuthFailed {
+        message: format!("Cannot create tokens dir: {e}"),
+    })?;
+    std::fs::write(token_file(provider), json.as_bytes()).map_err(|e| SyncError::AuthFailed {
+        message: format!("Cannot write token file: {e}"),
+    })?;
+
+    // Keychain (best-effort — sem falha se não disponível)
+    if let Ok(entry) = keyring::Entry::new(APP_NAME, &entry_name(provider)) {
+        let _ = entry.set_password(&serde_json::to_string(token).unwrap_or_default());
+    }
+
+    Ok(())
+}
+
+/// Recupera o token OAuth2. Tenta filesystem primeiro, depois keychain.
+pub fn get_token(provider: &str) -> SyncResult<Option<AuthToken>> {
+    // Filesystem (primário)
+    let path = token_file(provider);
+    if path.exists() {
+        match std::fs::read_to_string(&path) {
+            Ok(json) => match serde_json::from_str::<AuthToken>(&json) {
+                Ok(token) => return Ok(Some(token)),
+                Err(e) => {
+                    // Arquivo corrompido — remove e tenta keychain
+                    let _ = std::fs::remove_file(&path);
+                    eprintln!("[token_store] corrupted token file for {provider}: {e}");
+                }
+            },
+            Err(e) => eprintln!("[token_store] read error for {provider}: {e}"),
+        }
+    }
+
+    // Keychain (fallback)
+    match keyring::Entry::new(APP_NAME, &entry_name(provider)) {
+        Ok(entry) => match entry.get_password() {
+            Ok(json) => {
+                let token: AuthToken = serde_json::from_str(&json)?;
+                // Migra para filesystem para próximas leituras
+                let _ = store_token(provider, &token);
+                Ok(Some(token))
+            }
+            Err(keyring::Error::NoEntry) => Ok(None),
+            Err(_) => Ok(None),
+        },
+        Err(_) => Ok(None),
+    }
+}
+
+/// Remove o token OAuth2 de filesystem e keychain.
+pub fn delete_token(provider: &str) -> SyncResult<()> {
+    // Filesystem
+    let path = token_file(provider);
+    if path.exists() {
+        let _ = std::fs::remove_file(&path);
+    }
+
+    // Keychain (best-effort)
+    if let Ok(entry) = keyring::Entry::new(APP_NAME, &entry_name(provider)) {
+        match entry.delete_credential() {
+            Ok(_) | Err(keyring::Error::NoEntry) => {}
+            Err(_) => {}
+        }
+    }
+
+    Ok(())
+}

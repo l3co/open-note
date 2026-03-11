@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { CloudConnectModal } from "@/components/sync/CloudConnectModal";
 import { useTranslation } from "react-i18next";
 import { FolderOpen, Plus, Cloud, X, AlertCircle } from "lucide-react";
 import { open } from "@tauri-apps/plugin-dialog";
@@ -27,6 +28,7 @@ export function WorkspacePicker({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showCreate, setShowCreate] = useState(false);
+  const [showCloudModal, setShowCloudModal] = useState(false);
   const [newName, setNewName] = useState("");
   const [newPath, setNewPath] = useState("");
 
@@ -316,8 +318,7 @@ export function WorkspacePicker({
                 icon={
                   <Cloud size={16} className="text-[var(--text-secondary)]" />
                 }
-                disabled
-                badge={t("workspace.cloud_coming_soon")}
+                onClick={() => setShowCloudModal(true)}
                 data-testid="workspace-cloud-btn"
                 fullWidth
                 className="!justify-start"
@@ -367,6 +368,9 @@ export function WorkspacePicker({
         }}
       >
         {card}
+        {showCloudModal && (
+          <CloudConnectModal onClose={() => setShowCloudModal(false)} />
+        )}
       </div>
     );
   }
@@ -379,6 +383,9 @@ export function WorkspacePicker({
     >
       <BackgroundPattern />
       {card}
+      {showCloudModal && (
+        <CloudConnectModal onClose={() => setShowCloudModal(false)} />
+      )}
     </div>
   );
 }
