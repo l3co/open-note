@@ -181,6 +181,12 @@ function buildDefaultHandlers(overrides: MockOverrides = {}): MockOverrides {
     // Spell check
     check_spelling: () => ({ corrections: [] }),
 
+    // Password protection
+    protect_page: () => null,
+    unprotect_page: () => null,
+    unlock_page: () => null,
+    change_page_password: () => null,
+
     // Sync
     get_sync_providers: () => [
       {
