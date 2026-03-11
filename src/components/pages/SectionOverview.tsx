@@ -177,6 +177,7 @@ export function SectionOverview() {
               color: "var(--text-secondary)",
             }}
             title={t("canvas.new_page")}
+            data-testid="new-canvas-page-btn"
           >
             <LayoutDashboard size={14} />
             {t("canvas.new_page")}

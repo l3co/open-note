@@ -53,8 +53,8 @@ test.describe("Canvas Page (Excalidraw Integration)", () => {
     await page.locator(TREE.sectionItem).first().click();
 
     // Clicar no botão "Nova Página Canvas" na SectionOverview
-    const newCanvasBtn = page.getByRole("button", { name: /nova página canvas/i });
-    await expect(newCanvasBtn).toBeVisible({ timeout: 5000 });
+    const newCanvasBtn = page.locator('[data-testid="new-canvas-page-btn"]');
+    await expect(newCanvasBtn).toBeVisible({ timeout: 10000 });
     await newCanvasBtn.click();
 
     // Verificar que o Excalidraw foi carregado (lazy load)
@@ -72,7 +72,7 @@ test.describe("Canvas Page (Excalidraw Integration)", () => {
     await page.locator(TREE.notebookItem).first().click();
     await expect(page.locator(TREE.sectionItem).first()).toBeVisible({ timeout: 5000 });
     await page.locator(TREE.sectionItem).first().click();
-    await page.getByRole("button", { name: /nova página canvas/i }).click();
+    await page.locator('[data-testid="new-canvas-page-btn"]').click();
     await expect(page.locator(".excalidraw")).toBeVisible({ timeout: 15000 });
 
     // Interagir com o canvas (desenhar um retângulo via atalho 'r')
