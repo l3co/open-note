@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef } from "react";
 import { Excalidraw } from "@excalidraw/excalidraw";
+import "@excalidraw/excalidraw/index.css";
 import type {
   ExcalidrawImperativeAPI,
   ExcalidrawInitialDataState,
