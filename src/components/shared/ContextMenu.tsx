@@ -370,6 +370,7 @@ export function ContextMenu({
   return (
     <div
       ref={menuRef}
+      role="menu"
       className="fixed z-50 min-w-[160px] rounded-lg border py-1 shadow-lg"
       style={{
         left: x,
@@ -382,6 +383,7 @@ export function ContextMenu({
       {items.map((item, i) => (
         <button
           key={i}
+          role="menuitem"
           className={`flex w-full items-center gap-2 px-3 py-1.5 text-left text-[13px] ${
             item.danger ? "interactive-danger" : "interactive-ghost"
           }`}

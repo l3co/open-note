@@ -74,7 +74,7 @@
         "removePassword": "Remover proteção"
       },
       "password": {
-        "unlockTitle": "Página protegida",
+        "unlockTitle": "Desbloquear página",
         "unlockDescription": "Esta página está protegida por senha. Digite a senha para desbloquear.",
         "placeholder": "Digite a senha",
         "unlock": "Desbloquear",

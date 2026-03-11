@@ -1,13 +1,15 @@
 import { test, expect } from "@playwright/test";
 import {
   setupWithPage,
-  setupWithWorkspace,
+  setupWithExpandedTree,
+  skipOnboarding,
   DEFAULT_PAGE_SUMMARY,
   DEFAULT_PAGE,
 } from "./helpers/workspace";
 
 test.describe("Password-Protected Notes", () => {
   test("should show protect option in page context menu", async ({ page }) => {
+    await skipOnboarding(page);
     await setupWithPage(page);
 
     const pageNode = page.locator('[data-testid="tree-page"]').first();
@@ -22,6 +24,7 @@ test.describe("Password-Protected Notes", () => {
   test("should open set-password dialog from context menu", async ({
     page,
   }) => {
+    await skipOnboarding(page);
     await setupWithPage(page);
 
     const pageNode = page.locator('[data-testid="tree-page"]').first();
@@ -55,13 +58,16 @@ test.describe("Password-Protected Notes", () => {
       },
     };
 
-    await setupWithWorkspace(page, {
+    await skipOnboarding(page);
+    await setupWithExpandedTree(page, {
       protect_page: () => null,
       list_pages: () => [protectedSummary],
       load_page: () => protectedPage,
     });
 
-    await expect(page.getByText("[Página protegida]")).toBeVisible();
+    await expect(
+      page.locator('[data-testid="tree-page"]').filter({ hasText: "[Página protegida]" }),
+    ).toBeVisible();
   });
 
   test("should show unlock dialog when clicking a protected page", async ({
@@ -75,6 +81,7 @@ test.describe("Password-Protected Notes", () => {
     const protectedPage = {
       ...DEFAULT_PAGE,
       title: "[Página protegida]",
+      encrypted_content: "encrypted_data",
       protection: {
         salt: "aabbcc",
         nonce: "ddeeff",
@@ -84,7 +91,8 @@ test.describe("Password-Protected Notes", () => {
       },
     };
 
-    await setupWithWorkspace(page, {
+    await skipOnboarding(page);
+    await setupWithExpandedTree(page, {
       list_pages: () => [protectedSummary],
       load_page: () => protectedPage,
     });
@@ -107,7 +115,8 @@ test.describe("Password-Protected Notes", () => {
       is_protected: true,
     };
 
-    await setupWithWorkspace(page, {
+    await skipOnboarding(page);
+    await setupWithExpandedTree(page, {
       list_pages: () => [protectedSummary],
     });
 
