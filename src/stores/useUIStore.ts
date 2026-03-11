@@ -30,6 +30,7 @@ interface UIStore {
   showSearchPanel: boolean;
   showSyncSettings: boolean;
   showSettings: boolean;
+  showNewNotebookModal: boolean;
 
   toggleSidebar: () => void;
   setSidebarWidth: (width: number) => void;
@@ -49,6 +50,8 @@ interface UIStore {
   closeSyncSettings: () => void;
   openSettings: () => void;
   closeSettings: () => void;
+  openNewNotebookModal: () => void;
+  closeNewNotebookModal: () => void;
 }
 
 export const useUIStore = create<UIStore>((set, get) => ({
@@ -64,6 +67,7 @@ export const useUIStore = create<UIStore>((set, get) => ({
   showQuickOpen: false,
   showSearchPanel: false,
   showSyncSettings: false,
+  showNewNotebookModal: false,
   editorConfig: {
     fontFamily: "System",
     fontSize: 16,
@@ -109,4 +113,6 @@ export const useUIStore = create<UIStore>((set, get) => ({
   closeSyncSettings: () => set({ showSyncSettings: false }),
   openSettings: () => set({ showSettings: true }),
   closeSettings: () => set({ showSettings: false }),
+  openNewNotebookModal: () => set({ showNewNotebookModal: true }),
+  closeNewNotebookModal: () => set({ showNewNotebookModal: false }),
 }));

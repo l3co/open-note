@@ -13,6 +13,7 @@ import { QuickOpen } from "@/components/search/QuickOpen";
 import { SearchPanel } from "@/components/search/SearchPanel";
 import { SyncSettings } from "@/components/sync/SyncSettings";
 import { SettingsDialog } from "@/components/settings/SettingsDialog";
+import { NewNotebookModal } from "@/components/shared/NewNotebookModal";
 import { OnboardingDialog } from "@/components/onboarding/OnboardingDialog";
 import { listenSystemTheme } from "@/lib/theme";
 import * as ipc from "@/lib/ipc";
@@ -144,6 +145,7 @@ export function App() {
       <SearchPanel />
       <SyncSettings />
       <SettingsDialog />
+      <NewNotebookModal />
       {showWorkspacePicker && (
         <WorkspacePicker mode="modal" onClose={closeWorkspacePicker} />
       )}
