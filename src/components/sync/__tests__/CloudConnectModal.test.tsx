@@ -47,24 +47,14 @@ describe("CloudConnectModal", () => {
   });
 
   it("renders provider list", async () => {
-    render(
-      <CloudConnectModal
-        onClose={onClose}
-        onConnected={onConnected}
-      />,
-    );
+    render(<CloudConnectModal onClose={onClose} onConnected={onConnected} />);
     expect(await screen.findByText("Google Drive")).toBeInTheDocument();
     expect(screen.getByText("Dropbox")).toBeInTheDocument();
   });
 
   it("selects a provider on click", async () => {
     const user = userEvent.setup();
-    render(
-      <CloudConnectModal
-        onClose={onClose}
-        onConnected={onConnected}
-      />,
-    );
+    render(<CloudConnectModal onClose={onClose} onConnected={onConnected} />);
     await screen.findByText("Google Drive");
     await user.click(screen.getByText("Google Drive"));
     expect(screen.getByRole("button", { name: /^conectar/i })).toBeEnabled();
@@ -97,7 +87,10 @@ describe("CloudConnectModal", () => {
       expect(mockIpc.connectProvider).toHaveBeenCalledWith("google_drive"),
     );
     await waitFor(() =>
-      expect(onConnected).toHaveBeenCalledWith("google_drive", "user@gmail.com"),
+      expect(onConnected).toHaveBeenCalledWith(
+        "google_drive",
+        "user@gmail.com",
+      ),
     );
   });
 
@@ -159,12 +152,7 @@ describe("CloudConnectModal", () => {
 
   it("calls onClose when X button is clicked", async () => {
     const user = userEvent.setup();
-    render(
-      <CloudConnectModal
-        onClose={onClose}
-        onConnected={onConnected}
-      />,
-    );
+    render(<CloudConnectModal onClose={onClose} onConnected={onConnected} />);
     await screen.findByText("Google Drive");
     const closeBtn = screen.getByRole("button", { name: /fechar/i });
     await user.click(closeBtn);

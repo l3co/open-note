@@ -35,9 +35,7 @@ describe("CloudImportModal", () => {
         onClose={onClose}
       />,
     );
-    expect(
-      screen.getByText(/dados encontrados na nuvem/i),
-    ).toBeInTheDocument();
+    expect(screen.getByText(/dados encontrados na nuvem/i)).toBeInTheDocument();
     expect(screen.getByText("Trabalho")).toBeInTheDocument();
     expect(screen.getByText("Pessoal")).toBeInTheDocument();
   });
@@ -103,7 +101,9 @@ describe("CloudImportModal", () => {
       <CloudImportModal
         providerName="google_drive"
         providerLabel="Google Drive"
-        workspaces={[{ name: "Trabalho", provider: "google_drive", file_count: null }]}
+        workspaces={[
+          { name: "Trabalho", provider: "google_drive", file_count: null },
+        ]}
         defaultDestDir="/tmp"
         onClose={onClose}
       />,
@@ -153,12 +153,16 @@ describe("CloudImportModal", () => {
       <CloudImportModal
         providerName="google_drive"
         providerLabel="Google Drive"
-        workspaces={[{ name: "Trabalho", provider: "google_drive", file_count: null }]}
+        workspaces={[
+          { name: "Trabalho", provider: "google_drive", file_count: null },
+        ]}
         defaultDestDir="/tmp"
         onClose={onClose}
       />,
     );
     await user.click(screen.getByText(/^Baixar$/));
-    await waitFor(() => expect(screen.getByText(/fechar/i)).toBeInTheDocument());
+    await waitFor(() =>
+      expect(screen.getByText(/fechar/i)).toBeInTheDocument(),
+    );
   });
 });
