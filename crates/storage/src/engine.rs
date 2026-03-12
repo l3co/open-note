@@ -3,11 +3,12 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use chrono::Utc;
-use opennote_core::id::{NotebookId, PageId, SectionId};
+use opennote_core::id::{NotebookId, PageId, SectionId, TemplateId};
 use opennote_core::notebook::Notebook;
 use opennote_core::page::{Page, PageSummary};
 use opennote_core::section::Section;
 use opennote_core::settings::AppState;
+use opennote_core::template::{NoteTemplate, TemplateSummary};
 use opennote_core::trash::{TrashItem, TrashItemType, TrashManifest};
 use opennote_core::workspace::Workspace;
 
@@ -26,6 +27,8 @@ const ASSETS_DIR: &str = "assets";
 const PAGE_EXTENSION: &str = "opn.json";
 const APP_STATE_DIR: &str = ".opennote";
 const APP_STATE_FILE: &str = "app_state.json";
+const TEMPLATES_DIR: &str = ".templates";
+const TEMPLATE_EXTENSION: &str = "tpl.json";
 
 pub struct FsStorageEngine;
 
@@ -648,6 +651,102 @@ impl FsStorageEngine {
         }
 
         Ok(count)
+    }
+
+    // ─── Templates ───
+
+    fn templates_dir(workspace_root: &Path) -> PathBuf {
+        workspace_root.join(TEMPLATES_DIR)
+    }
+
+    pub fn list_templates(workspace_root: &Path) -> StorageResult<Vec<TemplateSummary>> {
+        let dir = Self::templates_dir(workspace_root);
+        if !dir.exists() {
+            return Ok(vec![]);
+        }
+        let mut summaries = Vec::new();
+        for entry in fs::read_dir(&dir)? {
+            let entry = entry?;
+            let path = entry.path();
+            if path.is_file() && path_has_extension(&path, TEMPLATE_EXTENSION) {
+                let template: NoteTemplate = read_json(&path)?;
+                summaries.push(TemplateSummary::from(&template));
+            }
+        }
+        summaries.sort_by(|a, b| a.created_at.cmp(&b.created_at).reverse());
+        Ok(summaries)
+    }
+
+    pub fn load_template(
+        workspace_root: &Path,
+        template_id: TemplateId,
+    ) -> StorageResult<NoteTemplate> {
+        let dir = Self::templates_dir(workspace_root);
+        if !dir.exists() {
+            return Err(StorageError::TemplateNotFound {
+                id: template_id.to_string(),
+            });
+        }
+        for entry in fs::read_dir(&dir)? {
+            let entry = entry?;
+            let path = entry.path();
+            if path.is_file() && path_has_extension(&path, TEMPLATE_EXTENSION) {
+                let t: NoteTemplate = read_json(&path)?;
+                if t.id == template_id {
+                    return Ok(t);
+                }
+            }
+        }
+        Err(StorageError::TemplateNotFound {
+            id: template_id.to_string(),
+        })
+    }
+
+    pub fn save_template(
+        workspace_root: &Path,
+        template: &NoteTemplate,
+    ) -> StorageResult<NoteTemplate> {
+        let dir = Self::templates_dir(workspace_root);
+        fs::create_dir_all(&dir)?;
+
+        let mut existing_slugs = HashSet::new();
+        for entry in fs::read_dir(&dir)? {
+            let entry = entry?;
+            let p = entry.path();
+            if p.is_file() && path_has_extension(&p, TEMPLATE_EXTENSION) {
+                if let Some(stem) = p.file_stem().and_then(|s| s.to_str()) {
+                    existing_slugs.insert(stem.to_string());
+                }
+            }
+        }
+
+        let slug = unique_slug(&template.name, &existing_slugs);
+        let path = dir.join(format!("{slug}.{TEMPLATE_EXTENSION}"));
+        atomic_write_json(&path, template)?;
+        Ok(template.clone())
+    }
+
+    pub fn delete_template(workspace_root: &Path, template_id: TemplateId) -> StorageResult<()> {
+        let dir = Self::templates_dir(workspace_root);
+        if !dir.exists() {
+            return Err(StorageError::TemplateNotFound {
+                id: template_id.to_string(),
+            });
+        }
+        for entry in fs::read_dir(&dir)? {
+            let entry = entry?;
+            let path = entry.path();
+            if path.is_file() && path_has_extension(&path, TEMPLATE_EXTENSION) {
+                let t: NoteTemplate = read_json(&path)?;
+                if t.id == template_id {
+                    fs::remove_file(&path)?;
+                    return Ok(());
+                }
+            }
+        }
+        Err(StorageError::TemplateNotFound {
+            id: template_id.to_string(),
+        })
     }
 
     // ─── Tags ───

@@ -99,6 +99,60 @@
         "forgotWarning": "Atenção: se você esquecer a senha, o conteúdo desta página não poderá ser recuperado."
       }
     },
+    "templates": {
+      "title": "Templates",
+      "builtin": {
+        "blank": {
+          "name": "Página em branco",
+          "description": "Começa com uma página vazia"
+        },
+        "meeting": {
+          "name": "Reunião",
+          "description": "Pauta, participantes e próximos passos"
+        },
+        "daily_journal": {
+          "name": "Diário",
+          "description": "Reflexões e tarefas do dia"
+        },
+        "project": {
+          "name": "Projeto",
+          "description": "Objetivo, escopo e cronograma"
+        },
+        "study": {
+          "name": "Estudo",
+          "description": "Notas e resumo de aprendizado"
+        }
+      },
+      "category": {
+        "meeting": "Reunião",
+        "journal": "Diário",
+        "project": "Projeto",
+        "study": "Estudo",
+        "custom": "Personalizado"
+      },
+      "actions": {
+        "use_template": "Usar template",
+        "save_as_template": "Salvar como template",
+        "delete_template": "Excluir template",
+        "create_from_template": "Criar a partir do template"
+      },
+      "save_dialog": {
+        "title": "Salvar como template",
+        "name_label": "Nome do template",
+        "name_placeholder": "Ex: Reunião semanal",
+        "description_label": "Descrição (opcional)",
+        "category_label": "Categoria",
+        "submit": "Salvar template",
+        "error_image_blocks": "Templates com imagens não são suportados. Remova os blocos de imagem antes de salvar."
+      },
+      "errors": {
+        "load_failed": "Erro ao carregar templates",
+        "save_failed": "Erro ao salvar template",
+        "delete_failed": "Erro ao excluir template",
+        "apply_failed": "Erro ao criar página a partir do template",
+        "protected_page": "Não é possível criar template a partir de uma página protegida"
+      }
+    },
     "home": {
       "greeting_morning": "Bom dia",
       "greeting_afternoon": "Boa tarde",

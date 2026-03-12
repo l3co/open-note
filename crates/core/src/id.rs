@@ -54,6 +54,7 @@ define_id!(PageId);
 define_id!(BlockId);
 define_id!(StrokeId);
 define_id!(AnnotationId);
+define_id!(TemplateId);
 
 #[cfg(test)]
 mod tests {

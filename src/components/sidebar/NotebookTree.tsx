@@ -30,9 +30,11 @@ import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { usePageStore } from "@/stores/usePageStore";
 import { ContextMenu } from "@/components/shared/ContextMenu";
+import { TemplatePickerModal } from "@/components/modals/TemplatePickerModal";
 import type { Notebook } from "@/types/bindings/Notebook";
 import type { Section } from "@/types/bindings/Section";
 import type { PageSummary } from "@/types/bindings/PageSummary";
+import type { SectionId } from "@/types/bindings/SectionId";
 import { clsx } from "clsx";
 
 type CtxMenuState = {
@@ -87,6 +89,8 @@ export function NotebookTree() {
 
   const [contextMenu, setContextMenu] = useState<CtxMenuState>(null);
   const [activeDrag, setActiveDrag] = useState<ActiveDrag>(null);
+  const [templatePickerSection, setTemplatePickerSection] =
+    useState<SectionId | null>(null);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
@@ -237,6 +241,21 @@ export function NotebookTree() {
           notebookId={contextMenu.notebookId}
           sectionId={contextMenu.sectionId}
           onClose={() => setContextMenu(null)}
+          onSelectTemplate={(sectionId) =>
+            setTemplatePickerSection(sectionId as SectionId)
+          }
+        />
+      )}
+
+      {templatePickerSection && (
+        <TemplatePickerModal
+          open={!!templatePickerSection}
+          onClose={() => setTemplatePickerSection(null)}
+          sectionId={templatePickerSection}
+          onPageCreated={(page) => {
+            selectPage(page.id);
+            loadPage(page.id);
+          }}
         />
       )}
     </DndContext>

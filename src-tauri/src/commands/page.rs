@@ -74,7 +74,7 @@ fn prepare_page_for_disk(
     Ok(disk_page)
 }
 
-fn try_index_page(state: &AppManagedState, root: &std::path::Path, page: &Page) {
+pub(crate) fn try_index_page(state: &AppManagedState, root: &std::path::Path, page: &Page) {
     if let Err(error) = state.ensure_search_engine() {
         warn!("Search engine is unavailable for page indexing: {}", error);
         return;
