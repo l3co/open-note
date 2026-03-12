@@ -164,6 +164,10 @@ impl SyncProvider for OneDriveProvider {
         "OneDrive"
     }
 
+    fn has_credentials(&self) -> bool {
+        self.client_id.is_some()
+    }
+
     fn auth_url(&self) -> String {
         let client_id = self.client_id.as_deref().unwrap_or("NOT_CONFIGURED");
         format!(

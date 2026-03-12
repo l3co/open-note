@@ -1154,6 +1154,14 @@ body {
   margin: 0;
 }
 
+/* ─── Adaptive Illustrations ─── */
+
+/* SVG illustrations loaded as <img> have hardcoded dark fills.
+   In dark theme, invert them so they remain visible. */
+[data-theme="dark"] .illustration-adaptive {
+  filter: brightness(0) invert(1);
+}
+
 /* ─── Spell Check ─── */
 
 .spell-error {

@@ -180,6 +180,7 @@ export function WorkspacePicker({
                       size={20}
                       className="mr-3 shrink-0"
                       style={{ color: "var(--text-tertiary)" }}
+                      adaptive
                     />
                     <div className="min-w-0 flex-1">
                       <div
@@ -216,6 +217,7 @@ export function WorkspacePicker({
                 alt=""
                 size={64}
                 style={{ color: "var(--text-tertiary)", opacity: 0.4 }}
+                adaptive
               />
               <p
                 className="mt-3 text-sm"

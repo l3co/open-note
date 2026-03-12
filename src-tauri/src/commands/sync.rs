@@ -36,32 +36,19 @@ pub async fn connect_provider(
 ) -> Result<String, String> {
     let provider_type = parse_provider_type(&provider_name)?;
 
-    let missing: Vec<&str> = match provider_type {
-        SyncProviderType::GoogleDrive => ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"]
-            .iter()
-            .filter(|k| std::env::var(k).is_err())
-            .copied()
-            .collect(),
-        SyncProviderType::OneDrive => ["ONEDRIVE_CLIENT_ID"]
-            .iter()
-            .filter(|k| std::env::var(k).is_err())
-            .copied()
-            .collect(),
-        SyncProviderType::Dropbox => ["DROPBOX_CLIENT_ID", "DROPBOX_CLIENT_SECRET"]
-            .iter()
-            .filter(|k| std::env::var(k).is_err())
-            .copied()
-            .collect(),
-    };
+    let provider = providers::create_provider(provider_type);
 
-    if !missing.is_empty() {
+    if !provider.has_credentials() {
+        let missing_vars = match provider_type {
+            SyncProviderType::GoogleDrive => "GOOGLE_CLIENT_ID, GOOGLE_CLIENT_SECRET",
+            SyncProviderType::OneDrive => "ONEDRIVE_CLIENT_ID",
+            SyncProviderType::Dropbox => "DROPBOX_CLIENT_ID, DROPBOX_CLIENT_SECRET",
+        };
         return Err(format!(
             "Variáveis de ambiente não encontradas: {}. Verifique a Run/Debug Configuration.",
-            missing.join(", ")
+            missing_vars
         ));
     }
-
-    let provider = providers::create_provider(provider_type);
     let auth_url = provider.auth_url();
 
     app.opener()
