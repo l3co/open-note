@@ -85,6 +85,7 @@ export function TrashPanel() {
               alt=""
               size={48}
               style={{ color: "var(--text-tertiary)", opacity: 0.3 }}
+              adaptive
             />
             <span className="text-sm">{t("trash.empty")}</span>
           </div>

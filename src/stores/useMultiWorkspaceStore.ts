@@ -233,12 +233,13 @@ export const useMultiWorkspaceStore = create<MultiWorkspaceStore>(
     createWorkspace: async (path, name) => {
       try {
         const workspace = await ipc.createWorkspace(path, name);
+        const notebooks = await ipc.listNotebooks(workspace.id);
 
         set((s) => {
           const workspaces = new Map(s.workspaces);
           workspaces.set(workspace.id, {
             workspace,
-            notebooks: [],
+            notebooks,
             sections: new Map(),
             navigation: defaultNavigation(),
           });

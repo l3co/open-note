@@ -11,6 +11,10 @@ pub trait SyncProvider: Send + Sync {
 
     fn display_name(&self) -> &str;
 
+    /// Returns true if OAuth credentials are available (either baked at compile
+    /// time via `option_env!()` or provided via runtime env var).
+    fn has_credentials(&self) -> bool;
+
     fn auth_url(&self) -> String;
 
     async fn exchange_code(&self, code: &str) -> SyncResult<AuthToken>;

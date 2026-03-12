@@ -4,6 +4,7 @@ interface IllustrationProps {
   size?: number;
   className?: string;
   style?: React.CSSProperties;
+  adaptive?: boolean;
 }
 
 export function Illustration({
@@ -12,12 +13,15 @@ export function Illustration({
   size = 96,
   className = "",
   style,
+  adaptive = false,
 }: IllustrationProps) {
   return (
     <img
       src={src}
       alt={alt}
-      className={className}
+      className={[adaptive ? "illustration-adaptive" : "", className]
+        .filter(Boolean)
+        .join(" ")}
       width={size}
       height={size}
       draggable={false}

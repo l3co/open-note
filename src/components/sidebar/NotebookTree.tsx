@@ -520,6 +520,7 @@ function EmptyHint({
         alt=""
         size={20}
         style={{ color: "var(--text-tertiary)", opacity: 0.4 }}
+        adaptive
       />
       <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>
         {label}
