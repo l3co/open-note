@@ -14,6 +14,9 @@ import type { PageAnnotations } from "@/types/bindings/PageAnnotations";
 import type { TrashItem } from "@/types/bindings/TrashItem";
 import type { Workspace } from "@/types/bindings/Workspace";
 import type { WorkspaceSettings } from "@/types/bindings/WorkspaceSettings";
+import type { TemplateId } from "@/types/bindings/TemplateId";
+import type { TemplateSummary } from "@/types/bindings/TemplateSummary";
+import type { TemplateCategory } from "@/types/bindings/TemplateCategory";
 
 // ─── App ───
 
@@ -270,6 +273,42 @@ export const updatePageCanvasState = (
   invoke<void>("update_page_canvas_state", {
     pageId,
     canvasState,
+    workspaceId,
+  });
+
+// ─── Templates ───
+
+export const listTemplates = (workspaceId?: string) =>
+  invoke<TemplateSummary[]>("list_templates", { workspaceId });
+
+export const createTemplateFromPage = (
+  pageId: PageId,
+  name: string,
+  description: string | null,
+  category: TemplateCategory,
+  workspaceId?: string,
+) =>
+  invoke<TemplateSummary>("create_template_from_page", {
+    pageId,
+    name,
+    description,
+    category,
+    workspaceId,
+  });
+
+export const deleteTemplate = (templateId: TemplateId, workspaceId?: string) =>
+  invoke<void>("delete_template", { templateId, workspaceId });
+
+export const createPageFromTemplate = (
+  sectionId: SectionId,
+  templateId: TemplateId,
+  customTitle: string | null,
+  workspaceId?: string,
+) =>
+  invoke<Page>("create_page_from_template", {
+    sectionId,
+    templateId,
+    customTitle,
     workspaceId,
   });
 

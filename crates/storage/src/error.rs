@@ -23,6 +23,9 @@ pub enum StorageError {
     #[error("Page not found: {id}")]
     PageNotFound { id: PageId },
 
+    #[error("Template not found: {id}")]
+    TemplateNotFound { id: String },
+
     #[error("Schema version mismatch: expected {expected}, found {found}")]
     SchemaVersionMismatch { expected: u32, found: u32 },
 

@@ -8,11 +8,13 @@ import {
   Cloud,
   Keyboard,
   Info,
+  LayoutTemplate,
 } from "lucide-react";
 import { useUIStore } from "@/stores/useUIStore";
 import { GeneralSection } from "@/components/settings/GeneralSection";
 import { AppearanceSection } from "@/components/settings/AppearanceSection";
 import { EditorSection } from "@/components/settings/EditorSection";
+import { TemplateManagerPanel } from "@/components/settings/TemplateManagerPanel";
 import { SyncSection } from "@/components/settings/SyncSection";
 import { ShortcutsSection } from "@/components/settings/ShortcutsSection";
 import { AboutSection } from "@/components/settings/AboutSection";
@@ -23,6 +25,7 @@ type SettingsTab =
   | "general"
   | "appearance"
   | "editor"
+  | "templates"
   | "sync"
   | "shortcuts"
   | "about";
@@ -50,6 +53,11 @@ export function SettingsDialog() {
       id: "editor",
       label: t("settings.editor_section"),
       icon: <Type size={16} />,
+    },
+    {
+      id: "templates",
+      label: t("templates.title"),
+      icon: <LayoutTemplate size={16} />,
     },
     {
       id: "sync",
@@ -133,6 +141,7 @@ export function SettingsDialog() {
             {activeTab === "general" && <GeneralSection />}
             {activeTab === "appearance" && <AppearanceSection />}
             {activeTab === "editor" && <EditorSection />}
+            {activeTab === "templates" && <TemplateManagerPanel />}
             {activeTab === "sync" && <SyncSection />}
             {activeTab === "shortcuts" && <ShortcutsSection />}
             {activeTab === "about" && <AboutSection />}

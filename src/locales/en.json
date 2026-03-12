@@ -99,6 +99,45 @@
         "forgotWarning": "Warning: if you forget the password, the content of this page cannot be recovered."
       }
     },
+    "templates": {
+      "title": "Templates",
+      "builtin": {
+        "blank": { "name": "Blank page", "description": "Start with an empty page" },
+        "meeting": { "name": "Meeting", "description": "Agenda, attendees and next steps" },
+        "daily_journal": { "name": "Daily journal", "description": "Reflections and tasks of the day" },
+        "project": { "name": "Project", "description": "Objective, scope and timeline" },
+        "study": { "name": "Study notes", "description": "Notes and learning summary" }
+      },
+      "category": {
+        "meeting": "Meeting",
+        "journal": "Journal",
+        "project": "Project",
+        "study": "Study",
+        "custom": "Custom"
+      },
+      "actions": {
+        "use_template": "Use template",
+        "save_as_template": "Save as template",
+        "delete_template": "Delete template",
+        "create_from_template": "Create from template"
+      },
+      "save_dialog": {
+        "title": "Save as template",
+        "name_label": "Template name",
+        "name_placeholder": "E.g. Weekly meeting",
+        "description_label": "Description (optional)",
+        "category_label": "Category",
+        "submit": "Save template",
+        "error_image_blocks": "Templates with images are not supported. Remove image blocks before saving."
+      },
+      "errors": {
+        "load_failed": "Failed to load templates",
+        "save_failed": "Failed to save template",
+        "delete_failed": "Failed to delete template",
+        "apply_failed": "Failed to create page from template",
+        "protected_page": "Cannot create template from a protected page"
+      }
+    },
     "home": {
       "greeting_morning": "Good morning",
       "greeting_afternoon": "Good afternoon",

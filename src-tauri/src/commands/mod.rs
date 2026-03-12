@@ -8,6 +8,7 @@ pub mod section;
 pub mod spellcheck;
 pub mod sync;
 pub mod tags;
+pub mod template;
 pub mod trash;
 pub mod workspace;
 

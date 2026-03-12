@@ -27,6 +27,9 @@ use commands::sync::{
     sync_initial_upload,
 };
 use commands::tags::list_all_tags;
+use commands::template::{
+    create_page_from_template, create_template_from_page, delete_template, list_templates,
+};
 use commands::trash::{empty_trash, list_trash_items, permanently_delete, restore_from_trash};
 use commands::workspace::{
     close_workspace, create_workspace, focus_workspace, force_open_workspace, get_app_state,
@@ -99,6 +102,11 @@ pub fn run() {
             move_page,
             create_pdf_canvas_page,
             create_canvas_page,
+            // Templates
+            list_templates,
+            create_template_from_page,
+            delete_template,
+            create_page_from_template,
             // File I/O
             read_file_content,
             save_file_content,

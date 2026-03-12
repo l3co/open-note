@@ -11,6 +11,7 @@ import {
   Key,
   LockOpen,
   ShieldCheck,
+  LayoutTemplate,
 } from "lucide-react";
 import { MovePageDialog } from "./MovePageDialog";
 import { open } from "@tauri-apps/plugin-dialog";
@@ -21,6 +22,8 @@ import { DeleteDialog } from "@/components/shared/DeleteDialog";
 import { importPdf, createPdfCanvasPage, createCanvasPage } from "@/lib/ipc";
 import { SetPasswordDialog } from "@/components/modals/SetPasswordDialog";
 import { ProtectedPagesPanel } from "@/components/modals/ProtectedPagesPanel";
+import { SaveAsTemplateDialog } from "@/components/modals/SaveAsTemplateDialog";
+import type { PageId } from "@/types/bindings/PageId";
 
 interface ContextMenuProps {
   x: number;
@@ -31,6 +34,7 @@ interface ContextMenuProps {
   notebookId?: string;
   sectionId?: string;
   onClose: () => void;
+  onSelectTemplate?: (sectionId: string) => void;
 }
 
 export function ContextMenu({
@@ -42,6 +46,7 @@ export function ContextMenu({
   notebookId: _notebookId,
   sectionId,
   onClose,
+  onSelectTemplate,
 }: ContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [renaming, setRenaming] = useState(false);
@@ -52,6 +57,7 @@ export function ContextMenu({
     mode: "set" | "change" | "remove";
   } | null>(null);
   const [showProtectedPages, setShowProtectedPages] = useState(false);
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false);
   const [renameDraft, setRenameDraft] = useState("");
   const { t } = useTranslation();
   const {
@@ -232,6 +238,17 @@ export function ContextMenu({
     );
   }
 
+  if (showSaveTemplate) {
+    return (
+      <SaveAsTemplateDialog
+        open={true}
+        onClose={onClose}
+        pageId={id as PageId}
+        pageTitleSuggestion={name}
+      />
+    );
+  }
+
   if (renaming) {
     return (
       <div
@@ -280,6 +297,12 @@ export function ContextMenu({
       onClick: () => setShowMoveDialog(true),
     });
 
+    items.push({
+      icon: <LayoutTemplate size={14} />,
+      label: t("templates.actions.save_as_template"),
+      onClick: () => setShowSaveTemplate(true),
+    });
+
     // Password actions
     if (!isProtected) {
       items.push({
@@ -319,6 +342,17 @@ export function ContextMenu({
           : t("context_menu.new_page"),
       onClick: handleAddChild,
     });
+
+    if (type === "section" && onSelectTemplate) {
+      items.push({
+        icon: <LayoutTemplate size={14} />,
+        label: t("templates.actions.create_from_template"),
+        onClick: () => {
+          onSelectTemplate(id);
+          onClose();
+        },
+      });
+    }
   }
 
   if (type === "section") {
