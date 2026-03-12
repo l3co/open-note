@@ -21,7 +21,7 @@ export function Toolbar() {
   return (
     <header
       data-tauri-drag-region
-      className="flex h-10 items-center border-b px-2 select-none"
+      className="flex h-11 items-center gap-1 border-b px-3 select-none"
       style={{
         backgroundColor: "var(--bg-toolbar)",
         borderColor: "var(--border)",
@@ -31,30 +31,40 @@ export function Toolbar() {
       <IconButton
         onClick={toggleSidebar}
         icon={
-          sidebarOpen ? <PanelLeftClose size={16} /> : <PanelLeft size={16} />
+          sidebarOpen ? <PanelLeftClose size={15} /> : <PanelLeft size={15} />
         }
         aria-label={t("toolbar.toggle_sidebar")}
         variant="subtle"
       />
 
-      <div className="ml-1 flex items-center gap-0.5">
+      <div
+        className="h-5 w-px shrink-0"
+        style={{ backgroundColor: "var(--border)" }}
+      />
+
+      <div className="flex items-center gap-0.5">
         <IconButton
           onClick={goBack}
           disabled={!canGoBack}
-          icon={<ChevronLeft size={16} />}
+          icon={<ChevronLeft size={15} />}
           aria-label="Back"
           variant="subtle"
         />
         <IconButton
           onClick={goForward}
           disabled={!canGoForward}
-          icon={<ChevronRight size={16} />}
+          icon={<ChevronRight size={15} />}
           aria-label="Forward"
           variant="subtle"
         />
       </div>
 
-      <div className="ml-3 flex-1" data-testid="breadcrumb">
+      <div
+        className="h-5 w-px shrink-0"
+        style={{ backgroundColor: "var(--border)" }}
+      />
+
+      <div className="min-w-0 flex-1" data-testid="breadcrumb">
         <Breadcrumb />
       </div>
     </header>

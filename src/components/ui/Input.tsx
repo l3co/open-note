@@ -34,7 +34,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 
     // Typography & Layout
     const baseClasses =
-      "flex items-center w-full bg-[var(--bg-secondary)] border border-[var(--border-subtle)] rounded-md transition-colors duration-200 outline-none text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)]";
+      "flex items-center w-full bg-[var(--bg-secondary)] border border-[var(--border-subtle)] rounded-lg transition-colors duration-200 outline-none text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)]";
 
     const focusClasses =
       "focus-within:border-[var(--accent)] focus-within:ring-1 focus-within:ring-[var(--accent)]";

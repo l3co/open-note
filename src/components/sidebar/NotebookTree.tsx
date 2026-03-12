@@ -319,7 +319,7 @@ function NotebookRow({
     >
       <div ref={setDragRef} {...dragListeners} style={{ touchAction: "none" }}>
         <TreeItem
-          icon={isExpanded ? <BookOpen size={16} /> : <Book size={16} />}
+          icon={isExpanded ? <BookOpen size={14} /> : <Book size={14} />}
           label={nb.name}
           isExpanded={isExpanded}
           isSelected={isSelected}
@@ -410,7 +410,7 @@ function SectionNode({
       <div ref={setDragRef} {...dragListeners} style={{ touchAction: "none" }}>
         <TreeItem
           icon={
-            isExpanded ? <FolderOpen size={16} /> : <FolderClosed size={16} />
+            isExpanded ? <FolderOpen size={14} /> : <FolderClosed size={14} />
           }
           label={section.name}
           isExpanded={isExpanded}
@@ -471,10 +471,10 @@ function PageRow({
   });
 
   const getPageIcon = () => {
-    if (page.is_protected) return <Lock size={16} />;
-    if (page.mode === "canvas") return <LayoutDashboard size={16} />;
-    if (page.mode === "pdf_canvas") return <FileImage size={16} />;
-    return <FileText size={16} />;
+    if (page.is_protected) return <Lock size={12} />;
+    if (page.mode === "canvas") return <LayoutDashboard size={12} />;
+    if (page.mode === "pdf_canvas") return <FileImage size={12} />;
+    return <FileText size={12} />;
   };
 
   return (
@@ -577,7 +577,8 @@ function TreeItem({
   return (
     <div
       className={clsx(
-        "interactive-ghost group flex h-8 cursor-pointer items-center gap-2 rounded-md pr-1 text-[14px]",
+        "interactive-ghost group flex h-8 cursor-pointer items-center gap-2 rounded-lg pr-1",
+        depth >= 2 ? "text-[12px]" : "text-[13px]",
         (isSelected || isDragOver) &&
           "bg-[var(--accent-subtle)] text-[var(--accent)]",
         !isSelected && !isDragOver && "text-[var(--text-primary)]",

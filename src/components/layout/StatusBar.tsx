@@ -34,7 +34,7 @@ export function StatusBar() {
 
   return (
     <footer
-      className="flex h-7 items-center justify-between border-t px-3 text-[11px]"
+      className="flex h-6 items-center justify-between border-t px-3 text-[11px]"
       style={{
         backgroundColor: "var(--bg-secondary)",
         borderColor: "var(--border)",

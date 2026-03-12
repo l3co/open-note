@@ -141,7 +141,7 @@ export const Dialog = ({
         aria-describedby={description ? "dialog-description" : undefined}
         tabIndex={-1}
         className={clsx(
-          "animate-in zoom-in-95 relative overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--bg-primary)] shadow-2xl duration-150 outline-none",
+          "animate-in zoom-in-95 relative overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--bg-primary)] duration-150 outline-none",
           sizeClasses,
           className,
         )}
