@@ -164,6 +164,8 @@
       "action_search": "Buscar notas",
       "action_settings": "Configurações",
       "no_recent": "Nenhuma página visitada ainda",
+      "random_note": "Nota aleatória",
+      "shuffle": "Sortear outra",
       "time_just_now": "Agora",
       "time_minutes_ago": "{{count}}min atrás",
       "time_hours_ago": "{{count}}h atrás",

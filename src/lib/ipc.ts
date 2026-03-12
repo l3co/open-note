@@ -439,6 +439,27 @@ export const downloadWorkspace = (
     destPath,
   });
 
+// ─── Quick Notes ───
+
+/** Garante que o notebook e a section "Quick Notes" existem. Cria se necessário.
+ *  Retorna o SectionId como string. */
+export const ensureQuickNotes = (workspaceId?: string) =>
+  invoke<string>("ensure_quick_notes", { workspaceId });
+
+// ─── Discovery ───
+
+/** Retorna até `count` páginas aleatórias excluindo os IDs em `excludeIds` e protegidas. */
+export const getRandomPages = (
+  count: number,
+  excludeIds: string[],
+  workspaceId?: string,
+) =>
+  invoke<PageSummary[]>("get_random_pages", {
+    count,
+    excludeIds,
+    workspaceId,
+  });
+
 // ─── Spell Check ───
 
 export const checkSpelling = (

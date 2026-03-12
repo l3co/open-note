@@ -149,6 +149,8 @@
       "action_search": "Search notes",
       "action_settings": "Settings",
       "no_recent": "No pages visited yet",
+      "random_note": "Random note",
+      "shuffle": "Shuffle",
       "time_just_now": "Just now",
       "time_minutes_ago": "{{count}}min ago",
       "time_hours_ago": "{{count}}h ago",

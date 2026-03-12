@@ -1,4 +1,3 @@
-import { ChevronRight } from "lucide-react";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 import { usePageStore } from "@/stores/usePageStore";
@@ -51,32 +50,37 @@ export function Breadcrumb() {
 
   return (
     <nav
-      className="flex items-center gap-1 text-xs"
-      style={{ color: "var(--text-secondary)" }}
+      className="flex items-center gap-0.5 text-[13px]"
       aria-label="Breadcrumb"
     >
       {items.map((item, i) => {
         const isLast = i === items.length - 1;
         return (
-          <span key={i} className="flex items-center gap-1">
+          <span key={i} className="flex items-center gap-0.5">
             {i > 0 && (
-              <ChevronRight
-                size={12}
+              <span
+                className="mx-1 text-[11px]"
                 style={{ color: "var(--text-tertiary)" }}
-              />
+              >
+                /
+              </span>
             )}
             {item.onClick && !isLast ? (
               <button
                 onClick={item.onClick}
-                className="rounded px-0.5 transition-colors hover:underline"
+                className="truncate transition-colors hover:underline"
                 style={{ color: "var(--text-secondary)" }}
               >
                 {item.label}
               </button>
             ) : (
               <span
-                className={isLast ? "font-medium" : ""}
-                style={isLast ? { color: "var(--text-primary)" } : undefined}
+                className={isLast ? "truncate font-semibold" : "truncate"}
+                style={{
+                  color: isLast
+                    ? "var(--text-primary)"
+                    : "var(--text-secondary)",
+                }}
               >
                 {item.label}
               </span>

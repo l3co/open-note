@@ -243,3 +243,17 @@ pub fn update_global_settings(settings: GlobalSettings) -> Result<(), CommandErr
     app_state.global_settings = settings;
     FsStorageEngine::save_app_state(&app_state).map_err(CommandError::from)
 }
+
+/// Garante que o notebook e a section "Quick Notes" existem no workspace em foco.
+/// Cria se necessário e persiste os IDs no workspace.json.
+/// Retorna o SectionId da Quick Notes section (como String para compatibilidade TS).
+#[tauri::command]
+pub fn ensure_quick_notes(
+    state: State<AppManagedState>,
+    workspace_id: Option<String>,
+) -> Result<String, CommandError> {
+    let id = super::resolve_workspace_id(&state, workspace_id)?;
+    let root = state.get_workspace_root_by_id(&id)?;
+    let section_id = FsStorageEngine::ensure_quick_notes(&root).map_err(CommandError::from)?;
+    Ok(section_id.to_string())
+}

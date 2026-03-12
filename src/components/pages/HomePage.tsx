@@ -7,6 +7,9 @@ import {
   BookOpen,
   Search,
   Settings,
+  Shuffle,
+  LayoutDashboard,
+  FileImage,
 } from "lucide-react";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { usePageStore } from "@/stores/usePageStore";
@@ -14,7 +17,9 @@ import { useUIStore } from "@/stores/useUIStore";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 import { useMultiWorkspaceStore } from "@/stores/useMultiWorkspaceStore";
 import { BackgroundPattern } from "@/components/shared/BackgroundPattern";
-import { Button } from "@/components/ui";
+import { Button, InteractiveCard } from "@/components/ui";
+import { getRandomPages, ensureQuickNotes } from "@/lib/ipc";
+import type { PageSummary } from "@/types/bindings/PageSummary";
 import logoSrc from "@/assets/logo.png";
 
 function getGreetingKey(): string {
@@ -24,12 +29,35 @@ function getGreetingKey(): string {
   return "home.greeting_evening";
 }
 
+function formatRelativeDate(iso: string): string {
+  const d = new Date(iso);
+  const now = new Date();
+  const diff = now.getTime() - d.getTime();
+  const mins = Math.floor(diff / 60_000);
+  const hours = Math.floor(diff / 3_600_000);
+  const days = Math.floor(diff / 86_400_000);
+  if (mins < 1) return "agora";
+  if (mins < 60) return `${mins}min atrás`;
+  if (hours < 24) return `${hours}h atrás`;
+  if (days === 1) return "ontem";
+  if (days < 7) return `${days}d atrás`;
+  return d.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" });
+}
+
+function pageModeIcon(mode: string, size = 16) {
+  if (mode === "canvas")
+    return <LayoutDashboard size={size} style={{ color: "var(--accent)" }} />;
+  if (mode === "pdf_canvas")
+    return <FileImage size={size} style={{ color: "var(--accent)" }} />;
+  return <FileText size={size} style={{ color: "var(--accent)" }} />;
+}
+
 export function HomePage() {
   const { t } = useTranslation();
   const { history, selectPage } = useNavigationStore();
   const { loadPage, pages, createPage } = usePageStore();
   const { openQuickOpen, openSettings } = useUIStore();
-  const { createNotebook, sections } = useWorkspaceStore();
+  const { createNotebook, sections, notebooks } = useWorkspaceStore();
   const quickNotesSectionId = useMultiWorkspaceStore(
     (s) => s.focusedSlice()?.workspace.settings?.quick_notes_section_id ?? null,
   );
@@ -37,6 +65,7 @@ export function HomePage() {
   const [showNotebookModal, setShowNotebookModal] = useState(false);
   const [notebookName, setNotebookName] = useState("");
   const notebookInputRef = useRef<HTMLInputElement>(null);
+  const [spotlight, setSpotlight] = useState<PageSummary | null>(null);
 
   useEffect(() => {
     if (showNotebookModal) {
@@ -44,7 +73,7 @@ export function HomePage() {
     }
   }, [showNotebookModal]);
 
-  const allPages: { id: string; title: string }[] = [];
+  const allPages: PageSummary[] = [];
   pages.forEach((sectionPages) => {
     sectionPages.forEach((p) => allPages.push(p));
   });
@@ -52,10 +81,39 @@ export function HomePage() {
   const recentPageIds = [...history]
     .reverse()
     .filter((id, idx, arr) => arr.indexOf(id) === idx)
-    .slice(0, 6);
+    .slice(0, 5);
   const recentPages = recentPageIds
     .map((id) => allPages.find((p) => p.id === id))
-    .filter(Boolean) as { id: string; title: string }[];
+    .filter(Boolean) as PageSummary[];
+
+  // Build section → notebook name map for path display
+  const sectionPathMap = new Map<string, string>();
+  notebooks.forEach((nb) => {
+    const secs = sections.get(nb.id) ?? [];
+    secs.forEach((s) => sectionPathMap.set(s.id, `${nb.name} / ${s.name}`));
+  });
+
+  // Find which section a page belongs to
+  const findSectionPath = (pageId: string): string => {
+    for (const [sectionId, sectionPages] of pages) {
+      if (sectionPages.some((p) => p.id === pageId)) {
+        return sectionPathMap.get(sectionId) ?? "";
+      }
+    }
+    return "";
+  };
+
+  useEffect(() => {
+    let cancelled = false;
+    getRandomPages(1, [])
+      .then((results) => {
+        if (!cancelled) setSpotlight(results[0] ?? null);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []); // load spotlight once on mount
 
   const handleNewNotebook = () => {
     setNotebookName("");
@@ -78,26 +136,14 @@ export function HomePage() {
   };
 
   const handleNewPage = async () => {
-    const targetSectionId =
-      quickNotesSectionId ??
-      (() => {
-        for (const [, sectionList] of sections) {
-          if (sectionList.length > 0) return sectionList[0]?.id ?? null;
-        }
-        return null;
-      })();
-
-    if (targetSectionId) {
-      try {
-        const page = await createPage(targetSectionId, t("page.new"));
-        selectPage(page.id);
-        await loadPage(page.id);
-      } catch {
-        /* errors handled by store */
-      }
-      return;
+    try {
+      const sectionId = quickNotesSectionId ?? (await ensureQuickNotes());
+      const page = await createPage(sectionId, t("page.new"));
+      selectPage(page.id);
+      await loadPage(page.id);
+    } catch {
+      openQuickOpen();
     }
-    openQuickOpen();
   };
 
   const handlePageClick = (id: string) => {
@@ -113,7 +159,8 @@ export function HomePage() {
     >
       <BackgroundPattern />
       <div className="relative z-10 mx-auto w-full max-w-2xl px-8 py-12">
-        <div className="mb-10 flex items-center gap-4">
+        {/* Header */}
+        <div className="mb-8 flex items-center gap-4">
           <img src={logoSrc} alt="Open Note" className="h-10 w-10" />
           <h1
             className="text-3xl font-bold tracking-tight"
@@ -123,9 +170,47 @@ export function HomePage() {
           </h1>
         </div>
 
-        <section className="mb-10">
+        {/* Quick actions row */}
+        <div className="mb-8 flex items-center gap-2">
+          <button
+            onClick={handleNewPage}
+            className="interactive-accent flex h-8 shrink-0 items-center gap-2 rounded-lg px-4 text-sm font-semibold whitespace-nowrap"
+          >
+            <Plus size={15} />
+            {t("home.action_new_page")}
+          </button>
+          <Button
+            variant="secondary"
+            icon={<Search size={15} />}
+            shortcut="⌘K"
+            onClick={openQuickOpen}
+            className="border border-[var(--border)]"
+          >
+            {t("home.action_search")}
+          </Button>
+          <Button
+            variant="secondary"
+            icon={<BookOpen size={15} />}
+            onClick={handleNewNotebook}
+            className="border border-[var(--border)]"
+          >
+            {t("home.action_new_notebook")}
+          </Button>
+          <Button
+            variant="secondary"
+            icon={<Settings size={15} />}
+            shortcut="⌘,"
+            onClick={openSettings}
+            className="border border-[var(--border)]"
+          >
+            {t("home.action_settings")}
+          </Button>
+        </div>
+
+        {/* Feed temporal — Recent pages */}
+        <section className="mb-8">
           <div className="mb-3 flex items-center gap-2">
-            <Clock size={14} style={{ color: "var(--text-tertiary)" }} />
+            <Clock size={13} style={{ color: "var(--text-tertiary)" }} />
             <h2
               className="text-xs font-semibold tracking-widest uppercase"
               style={{ color: "var(--text-tertiary)" }}
@@ -135,26 +220,59 @@ export function HomePage() {
           </div>
 
           {recentPages.length > 0 ? (
-            <div className="grid grid-cols-3 gap-3">
-              {recentPages.map((page) => (
-                <button
-                  key={page.id}
-                  onClick={() => handlePageClick(page.id)}
-                  className="group flex flex-col items-start rounded-xl border border-[var(--border)] bg-[var(--bg-secondary)] p-4 text-left transition-all hover:border-[var(--accent)] hover:shadow-[0_2px_8px_rgba(0,0,0,0.06)]"
-                >
-                  <FileText
-                    size={18}
-                    className="mb-2"
-                    style={{ color: "var(--text-tertiary)" }}
-                  />
-                  <span
-                    className="w-full truncate text-sm font-medium"
-                    style={{ color: "var(--text-primary)" }}
+            <div className="flex flex-col gap-2">
+              {recentPages.map((page) => {
+                const path = findSectionPath(page.id);
+                return (
+                  <InteractiveCard
+                    key={page.id}
+                    onClick={() => handlePageClick(page.id)}
+                    className="flex-row items-start gap-3 px-4 py-3"
                   >
-                    {page.title}
-                  </span>
-                </button>
-              ))}
+                    {/* Mode icon */}
+                    <div
+                      className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
+                      style={{ backgroundColor: "var(--accent-subtle)" }}
+                    >
+                      {pageModeIcon(page.mode)}
+                    </div>
+
+                    {/* Content */}
+                    <div className="min-w-0 flex-1">
+                      <span
+                        className="block truncate text-sm font-medium"
+                        style={{ color: "var(--text-primary)" }}
+                      >
+                        {page.title || t("section_overview.untitled")}
+                      </span>
+                      {page.preview && (
+                        <p
+                          className="mt-0.5 line-clamp-1 text-[12px]"
+                          style={{ color: "var(--text-secondary)" }}
+                        >
+                          {page.preview}
+                        </p>
+                      )}
+                      {path && (
+                        <span
+                          className="mt-1 block truncate text-[11px]"
+                          style={{ color: "var(--text-tertiary)" }}
+                        >
+                          {path}
+                        </span>
+                      )}
+                    </div>
+
+                    {/* Relative date */}
+                    <span
+                      className="shrink-0 text-[11px]"
+                      style={{ color: "var(--text-tertiary)" }}
+                    >
+                      {formatRelativeDate(page.updated_at)}
+                    </span>
+                  </InteractiveCard>
+                );
+              })}
             </div>
           ) : (
             <div
@@ -171,56 +289,71 @@ export function HomePage() {
           )}
         </section>
 
-        <section>
-          <h2
-            className="mb-3 text-xs font-semibold tracking-widest uppercase"
-            style={{ color: "var(--text-tertiary)" }}
-          >
-            {t("home.quick_actions")}
-          </h2>
-          <div className="grid grid-cols-2 gap-3">
-            <Button
-              variant="secondary"
-              icon={<Plus size={18} className="text-[var(--accent)]" />}
-              shortcut="⌘N"
-              onClick={handleNewPage}
-              fullWidth
-              className="!justify-start border border-[var(--border)] !py-6 hover:border-[var(--accent)] hover:shadow-sm"
+        {/* Random Note Spotlight */}
+        {spotlight && (
+          <section>
+            <div className="mb-3 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Shuffle size={13} style={{ color: "var(--text-tertiary)" }} />
+                <h2
+                  className="text-xs font-semibold tracking-widest uppercase"
+                  style={{ color: "var(--text-tertiary)" }}
+                >
+                  {t("home.random_note")}
+                </h2>
+              </div>
+              <button
+                onClick={() => {
+                  const exclude = spotlight ? [spotlight.id] : [];
+                  getRandomPages(1, exclude)
+                    .then((r) => setSpotlight(r[0] ?? null))
+                    .catch(() => {});
+                }}
+                className="interactive-ghost rounded-md px-2 py-1 text-[11px]"
+                style={{ color: "var(--text-tertiary)" }}
+              >
+                {t("home.shuffle")}
+              </button>
+            </div>
+
+            <InteractiveCard
+              onClick={() => handlePageClick(spotlight.id)}
+              accentBar
+              className="px-5 py-4"
             >
-              {t("home.action_new_page")}
-            </Button>
-            <Button
-              variant="secondary"
-              icon={<BookOpen size={18} className="text-[var(--accent)]" />}
-              shortcut="⌘⇧N"
-              onClick={handleNewNotebook}
-              fullWidth
-              className="!justify-start border border-[var(--border)] !py-6 hover:border-[var(--accent)] hover:shadow-sm"
-            >
-              {t("home.action_new_notebook")}
-            </Button>
-            <Button
-              variant="secondary"
-              icon={<Search size={18} className="text-[var(--accent)]" />}
-              shortcut="⌘K"
-              onClick={openQuickOpen}
-              fullWidth
-              className="!justify-start border border-[var(--border)] !py-6 hover:border-[var(--accent)] hover:shadow-sm"
-            >
-              {t("home.action_search")}
-            </Button>
-            <Button
-              variant="secondary"
-              icon={<Settings size={18} className="text-[var(--accent)]" />}
-              shortcut="⌘,"
-              onClick={openSettings}
-              fullWidth
-              className="!justify-start border border-[var(--border)] !py-6 hover:border-[var(--accent)] hover:shadow-sm"
-            >
-              {t("home.action_settings")}
-            </Button>
-          </div>
-        </section>
+              <div className="flex items-start gap-3">
+                <div
+                  className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg"
+                  style={{ backgroundColor: "var(--accent-subtle)" }}
+                >
+                  {pageModeIcon(spotlight.mode, 18)}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <span
+                    className="block truncate text-sm font-semibold"
+                    style={{ color: "var(--text-primary)" }}
+                  >
+                    {spotlight.title || t("section_overview.untitled")}
+                  </span>
+                  {spotlight.preview && (
+                    <p
+                      className="mt-1 line-clamp-2 text-[13px] leading-relaxed"
+                      style={{ color: "var(--text-secondary)" }}
+                    >
+                      {spotlight.preview}
+                    </p>
+                  )}
+                  <span
+                    className="mt-2 block text-[11px]"
+                    style={{ color: "var(--text-tertiary)" }}
+                  >
+                    {formatRelativeDate(spotlight.updated_at)}
+                  </span>
+                </div>
+              </div>
+            </InteractiveCard>
+          </section>
+        )}
       </div>
 
       {showNotebookModal && (
@@ -232,11 +365,11 @@ export function HomePage() {
           }}
         >
           <div
-            className="w-[340px] rounded-xl border p-5 shadow-xl"
+            className="w-[340px] rounded-2xl border p-5 shadow-xl"
             style={{
               backgroundColor: "var(--bg-primary)",
               borderColor: "var(--border)",
-              boxShadow: "var(--shadow-lg)",
+              boxShadow: "var(--shadow-modal)",
             }}
           >
             <div className="mb-4 flex items-center gap-2">

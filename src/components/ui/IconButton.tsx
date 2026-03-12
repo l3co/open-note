@@ -28,9 +28,9 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
   ) => {
     // Determine size classes
     const sizeClasses = {
-      sm: "h-6 w-6",
-      md: "h-7 w-7",
-      lg: "h-8 w-8",
+      sm: "h-7 w-7",
+      md: "h-8 w-8",
+      lg: "h-9 w-9",
     }[size];
 
     // Determine variant classes
@@ -57,7 +57,7 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(
         title={title}
         data-active={active}
         className={clsx(
-          "inline-flex items-center justify-center rounded transition-colors duration-150 focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-1 focus:ring-offset-[var(--bg-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50",
+          "inline-flex items-center justify-center rounded-lg transition-colors duration-150 focus:ring-2 focus:ring-[var(--accent)] focus:ring-offset-1 focus:ring-offset-[var(--bg-primary)] focus:outline-none disabled:cursor-not-allowed disabled:opacity-50",
           sizeClasses,
           !active && variantClasses,
           activeClasses,

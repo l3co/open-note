@@ -341,6 +341,93 @@ impl FsStorageEngine {
         Ok(summaries)
     }
 
+    /// Garante que o notebook e a section "Quick Notes" existem.
+    /// Se os IDs salvos no workspace.json não existirem mais, recria e persiste.
+    /// Retorna o SectionId da Quick Notes section.
+    pub fn ensure_quick_notes(workspace_root: &Path) -> StorageResult<SectionId> {
+        let mut workspace = Self::load_workspace(workspace_root)?;
+
+        // Verifica se os IDs salvos ainda existem fisicamente
+        let valid = workspace
+            .settings
+            .quick_notes_section_id
+            .map(|sid| {
+                Self::find_section_dir(workspace_root, sid)
+                    .map(|_| true)
+                    .unwrap_or(false)
+            })
+            .unwrap_or(false);
+
+        if valid {
+            return Ok(workspace.settings.quick_notes_section_id.unwrap());
+        }
+
+        // Precisa criar (ou recriar) notebook + section
+        let notebook = Self::create_notebook(workspace_root, "Quick Notes")?;
+        let section = Self::create_section(workspace_root, notebook.id, "Quick Notes")?;
+
+        workspace.settings.quick_notes_notebook_id = Some(notebook.id);
+        workspace.settings.quick_notes_section_id = Some(section.id);
+        Self::save_workspace(&workspace)?;
+
+        Ok(section.id)
+    }
+
+    /// Retorna até `count` páginas aleatórias do workspace, excluindo IDs em `exclude_ids`
+    /// e páginas protegidas.
+    pub fn get_random_pages(
+        workspace_root: &Path,
+        count: usize,
+        exclude_ids: &[PageId],
+    ) -> StorageResult<Vec<PageSummary>> {
+        use rand::seq::SliceRandom;
+
+        let mut all: Vec<PageSummary> = Vec::new();
+
+        for nb_entry in fs::read_dir(workspace_root)? {
+            let nb_entry = nb_entry?;
+            let nb_path = nb_entry.path();
+            if !nb_path.is_dir() || is_hidden(&nb_path) {
+                continue;
+            }
+            if !nb_path.join(NOTEBOOK_FILE).exists() {
+                continue;
+            }
+
+            for sec_entry in fs::read_dir(&nb_path)? {
+                let sec_entry = sec_entry?;
+                let sec_path = sec_entry.path();
+                if !sec_path.is_dir() || is_hidden(&sec_path) {
+                    continue;
+                }
+                if !sec_path.join(SECTION_FILE).exists() {
+                    continue;
+                }
+
+                for page_entry in fs::read_dir(&sec_path)? {
+                    let page_entry = page_entry?;
+                    let page_path = page_entry.path();
+                    if !page_path.is_file() || !path_has_extension(&page_path, PAGE_EXTENSION) {
+                        continue;
+                    }
+                    let page: Page = read_json(&page_path)?;
+                    if page.protection.is_some() {
+                        continue;
+                    }
+                    if exclude_ids.contains(&page.id) {
+                        continue;
+                    }
+                    all.push(PageSummary::from(&page));
+                }
+            }
+        }
+
+        let mut rng = rand::thread_rng();
+        all.shuffle(&mut rng);
+        all.truncate(count);
+        Ok(all)
+    }
+
     pub fn load_page(workspace_root: &Path, page_id: PageId) -> StorageResult<Page> {
         let path = Self::find_page_file(workspace_root, page_id)?;
         let raw: serde_json::Value = read_json(&path)?;

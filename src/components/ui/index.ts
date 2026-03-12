@@ -1,4 +1,5 @@
 export { IconButton, type IconButtonProps } from "./IconButton";
+export { InteractiveCard, type InteractiveCardProps } from "./InteractiveCard";
 export { Button, type ButtonProps } from "./Button";
 export {
   Dialog,

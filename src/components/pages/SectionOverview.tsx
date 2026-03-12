@@ -11,6 +11,7 @@ import {
   FileImage,
   LayoutDashboard,
 } from "lucide-react";
+import { InteractiveCard } from "@/components/ui";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { usePageStore } from "@/stores/usePageStore";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
@@ -277,14 +278,7 @@ function GridCard({
 }) {
   const { t } = useTranslation();
   return (
-    <button
-      onClick={onClick}
-      className="group flex flex-col rounded-xl border p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-md"
-      style={{
-        backgroundColor: "var(--bg-secondary)",
-        borderColor: "var(--border)",
-      }}
-    >
+    <InteractiveCard onClick={onClick} className="p-4">
       {/* Icon area */}
       <div
         className="mb-3 flex h-10 w-10 items-center justify-center rounded-lg"
@@ -335,7 +329,7 @@ function GridCard({
           )}
         </div>
       )}
-    </button>
+    </InteractiveCard>
   );
 }
 
@@ -370,9 +364,9 @@ function ListRow({
 }) {
   const { t } = useTranslation();
   return (
-    <button
+    <InteractiveCard
       onClick={onClick}
-      className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-[var(--bg-secondary)]"
+      className="flex-row items-center gap-3 px-3 py-2.5"
     >
       <div
         className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md"
@@ -418,7 +412,7 @@ function ListRow({
       >
         {formatDateShort(page.created_at)}
       </span>
-    </button>
+    </InteractiveCard>
   );
 }
 
