@@ -62,7 +62,12 @@ describe("SyncSection", () => {
     vi.clearAllMocks();
     mockIpc.getProviderStatus.mockResolvedValue(disconnectedProviders);
     mockIpc.getSyncStatus.mockResolvedValue(defaultSyncStatus);
-    mockIpc.syncBidirectional.mockResolvedValue({ uploaded: 5, downloaded: 0, conflicts: 0, errors: [] });
+    mockIpc.syncBidirectional.mockResolvedValue({
+      uploaded: 5,
+      downloaded: 0,
+      conflicts: 0,
+      errors: [],
+    });
   });
 
   it("renders sync section title", () => {

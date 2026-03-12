@@ -40,7 +40,9 @@ export function CloudConnectModal({
   const [connectedProviders, setConnectedProviders] = useState<
     Record<string, ProviderConnectionStatus>
   >({});
-  const [remoteWorkspaces, setRemoteWorkspaces] = useState<RemoteWorkspaceInfo[]>([]);
+  const [remoteWorkspaces, setRemoteWorkspaces] = useState<
+    RemoteWorkspaceInfo[]
+  >([]);
   const [showImport, setShowImport] = useState(false);
 
   useEffect(() => {

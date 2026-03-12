@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { X, CloudDownload, FolderOpen, Loader2, CheckCircle, AlertCircle } from "lucide-react";
+import {
+  X,
+  CloudDownload,
+  FolderOpen,
+  Loader2,
+  CheckCircle,
+  AlertCircle,
+} from "lucide-react";
 import * as ipc from "@/lib/ipc";
 import type { RemoteWorkspaceInfo } from "@/types/sync";
 
@@ -60,7 +67,8 @@ export function CloudImportModal({
 
   const allDone = workspaces.every((w) => states[w.name]?.status === "done");
   const anyBusy =
-    downloadingAll || workspaces.some((w) => states[w.name]?.status === "downloading");
+    downloadingAll ||
+    workspaces.some((w) => states[w.name]?.status === "downloading");
 
   return (
     <div
@@ -71,21 +79,33 @@ export function CloudImportModal({
       }}
     >
       <div
-        className="relative w-[460px] max-h-[90vh] flex flex-col rounded-2xl border shadow-2xl"
-        style={{ backgroundColor: "var(--bg-primary)", borderColor: "var(--border)" }}
+        className="relative flex max-h-[90vh] w-[460px] flex-col rounded-2xl border shadow-2xl"
+        style={{
+          backgroundColor: "var(--bg-primary)",
+          borderColor: "var(--border)",
+        }}
       >
-        <div className="flex items-start gap-3 p-6 border-b" style={{ borderColor: "var(--border)" }}>
+        <div
+          className="flex items-start gap-3 border-b p-6"
+          style={{ borderColor: "var(--border)" }}
+        >
           <div
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
             style={{ backgroundColor: "var(--accent-subtle)" }}
           >
             <CloudDownload size={18} style={{ color: "var(--accent)" }} />
           </div>
-          <div className="flex-1 min-w-0">
-            <h2 className="text-sm font-semibold" style={{ color: "var(--text-primary)" }}>
+          <div className="min-w-0 flex-1">
+            <h2
+              className="text-sm font-semibold"
+              style={{ color: "var(--text-primary)" }}
+            >
               {t("sync.import_modal_title")}
             </h2>
-            <p className="text-xs mt-0.5" style={{ color: "var(--text-tertiary)" }}>
+            <p
+              className="mt-0.5 text-xs"
+              style={{ color: "var(--text-tertiary)" }}
+            >
               {t("sync.import_modal_subtitle", { provider: providerLabel })}
             </p>
           </div>
@@ -99,7 +119,7 @@ export function CloudImportModal({
           </button>
         </div>
 
-        <div className="overflow-y-auto flex-1 p-4 space-y-2">
+        <div className="flex-1 space-y-2 overflow-y-auto p-4">
           {workspaces.map((ws) => {
             const wsState = states[ws.name] ?? { status: "idle" };
             return (
@@ -107,19 +127,27 @@ export function CloudImportModal({
                 key={ws.name}
                 className="flex items-center gap-3 rounded-xl border px-4 py-3"
                 style={{
-                  borderColor: wsState.status === "done" ? "var(--accent)" : "var(--border)",
+                  borderColor:
+                    wsState.status === "done"
+                      ? "var(--accent)"
+                      : "var(--border)",
                   backgroundColor:
-                    wsState.status === "done" ? "var(--accent-subtle)" : "var(--bg-secondary)",
+                    wsState.status === "done"
+                      ? "var(--accent-subtle)"
+                      : "var(--bg-secondary)",
                 }}
               >
                 <FolderOpen
                   size={16}
                   style={{
-                    color: wsState.status === "done" ? "var(--accent)" : "var(--text-secondary)",
+                    color:
+                      wsState.status === "done"
+                        ? "var(--accent)"
+                        : "var(--text-secondary)",
                   }}
                 />
                 <span
-                  className="flex-1 text-sm font-medium truncate"
+                  className="flex-1 truncate text-sm font-medium"
                   style={{ color: "var(--text-primary)" }}
                 >
                   {ws.name}
@@ -129,7 +157,7 @@ export function CloudImportModal({
                   <button
                     onClick={() => downloadOne(ws)}
                     disabled={anyBusy}
-                    className="text-xs px-3 py-1 rounded-lg font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+                    className="rounded-lg px-3 py-1 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
                     style={{ backgroundColor: "var(--accent)" }}
                   >
                     {t("sync.import_one")}
@@ -137,7 +165,11 @@ export function CloudImportModal({
                 )}
 
                 {wsState.status === "downloading" && (
-                  <Loader2 size={16} className="animate-spin" style={{ color: "var(--accent)" }} />
+                  <Loader2
+                    size={16}
+                    className="animate-spin"
+                    style={{ color: "var(--accent)" }}
+                  />
                 )}
 
                 {wsState.status === "done" && (
@@ -149,7 +181,7 @@ export function CloudImportModal({
 
                 {wsState.status === "error" && (
                   <span
-                    className="flex items-center gap-1 text-xs text-red-400 max-w-[160px] truncate"
+                    className="flex max-w-[160px] items-center gap-1 truncate text-xs text-red-400"
                     title={wsState.error}
                   >
                     <AlertCircle size={13} />
@@ -162,13 +194,13 @@ export function CloudImportModal({
         </div>
 
         <div
-          className="flex items-center justify-between gap-3 p-4 border-t"
+          className="flex items-center justify-between gap-3 border-t p-4"
           style={{ borderColor: "var(--border)" }}
         >
           <button
             onClick={onClose}
             disabled={anyBusy}
-            className="text-sm px-4 py-2 rounded-lg transition-colors hover:bg-[var(--bg-hover)] disabled:opacity-40"
+            className="rounded-lg px-4 py-2 text-sm transition-colors hover:bg-[var(--bg-hover)] disabled:opacity-40"
             style={{ color: "var(--text-secondary)" }}
           >
             {allDone ? t("common.close") : t("sync.import_skip")}
@@ -178,7 +210,7 @@ export function CloudImportModal({
             <button
               onClick={downloadAll}
               disabled={anyBusy}
-              className="flex items-center gap-2 text-sm px-5 py-2 rounded-lg font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+              className="flex items-center gap-2 rounded-lg px-5 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
               style={{ backgroundColor: "var(--accent)" }}
             >
               {downloadingAll ? (
