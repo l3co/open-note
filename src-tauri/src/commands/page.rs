@@ -724,3 +724,15 @@ pub fn save_file_content(path: String, content: String) -> Result<(), CommandErr
     std::fs::write(&path, &content)
         .map_err(|error| CommandError::Storage(format!("Failed to write file: {error}")))
 }
+
+/// Retorna até `count` páginas aleatórias do workspace (exceto protegidas e as em `exclude_ids`).
+#[tauri::command]
+pub fn get_random_pages(
+    state: State<AppManagedState>,
+    count: usize,
+    exclude_ids: Vec<PageId>,
+    workspace_id: Option<String>,
+) -> Result<Vec<PageSummary>, CommandError> {
+    let root = resolve_root(&state, workspace_id)?;
+    FsStorageEngine::get_random_pages(&root, count, &exclude_ids).map_err(CommandError::from)
+}
