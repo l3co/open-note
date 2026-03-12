@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { Tag, Loader2, Hash, FileText } from "lucide-react";
 import { BackgroundPattern } from "@/components/shared/BackgroundPattern";
 import { listAllTags, searchPages } from "@/lib/ipc";
+import { InteractiveCard } from "@/components/ui";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { usePageStore } from "@/stores/usePageStore";
 import type { SearchResultItem } from "@/types/search";
@@ -195,17 +196,13 @@ export function TagsPage() {
               ) : (
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                   {notes.map((note) => (
-                    <button
+                    <InteractiveCard
                       key={note.page_id}
                       onClick={() => {
                         selectPage(note.page_id);
                         loadPage(note.page_id);
                       }}
-                      className="group flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition-all hover:-translate-y-1 hover:shadow-md"
-                      style={{
-                        backgroundColor: "var(--bg-secondary)",
-                        borderColor: "var(--border-subtle)",
-                      }}
+                      className="items-start gap-2 p-4"
                     >
                       <div className="flex w-full items-start justify-between gap-2">
                         <div className="flex items-center gap-2">
@@ -229,7 +226,7 @@ export function TagsPage() {
                         <span>•</span>
                         <span className="truncate">{note.section_name}</span>
                       </div>
-                    </button>
+                    </InteractiveCard>
                   ))}
                 </div>
               )}
