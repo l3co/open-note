@@ -8,6 +8,7 @@ import {
   FilePlus,
   FolderPlus,
 } from "lucide-react";
+import { InteractiveCard } from "@/components/ui";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 import { usePageStore } from "@/stores/usePageStore";
@@ -190,13 +191,11 @@ function GridCard({
   const accentColor = section.color?.hex ?? "var(--accent)";
 
   return (
-    <button
+    <InteractiveCard
       onClick={onClick}
-      className="group flex flex-col rounded-xl border p-4 text-left transition-all hover:-translate-y-0.5 hover:shadow-md"
-      style={{
-        backgroundColor: "var(--bg-secondary)",
-        borderColor: "var(--border)",
-      }}
+      accentColor={accentColor}
+      accentBar
+      className="p-4"
     >
       {/* Icon area */}
       <div
@@ -233,7 +232,7 @@ function GridCard({
         <Clock size={10} />
         <span>{formatDate(section.updated_at)}</span>
       </div>
-    </button>
+    </InteractiveCard>
   );
 }
 
@@ -275,9 +274,10 @@ function ListRow({
   const accentColor = section.color?.hex ?? "var(--accent)";
 
   return (
-    <button
+    <InteractiveCard
       onClick={onClick}
-      className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-left transition-colors hover:bg-[var(--bg-secondary)]"
+      accentColor={accentColor}
+      className="flex-row items-center gap-3 px-3 py-2.5"
     >
       <div
         className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md"
@@ -313,7 +313,7 @@ function ListRow({
       >
         {formatDateShort(section.created_at)}
       </span>
-    </button>
+    </InteractiveCard>
   );
 }
 

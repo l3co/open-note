@@ -1,21 +1,55 @@
 import { useTranslation } from "react-i18next";
-import { Search, Home, CalendarDays, Tag } from "lucide-react";
+import { Search, Home, CalendarDays, Tag, Plus } from "lucide-react";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { useUIStore } from "@/stores/useUIStore";
+import { usePageStore } from "@/stores/usePageStore";
+import * as ipc from "@/lib/ipc";
 import { clsx } from "clsx";
 
 export function SidebarQuickNav() {
   const { t } = useTranslation();
-  const { activeView, setActiveView } = useNavigationStore();
+  const { activeView, setActiveView, selectPage } = useNavigationStore();
   const { openQuickOpen } = useUIStore();
+  const { createPage, loadPage } = usePageStore();
+
+  const handleNewPage = async () => {
+    try {
+      const sectionId = await ipc.ensureQuickNotes();
+      const page = await createPage(sectionId, t("page.new"));
+      selectPage(page.id);
+      await loadPage(page.id);
+    } catch {
+      /* errors handled by stores */
+    }
+  };
 
   return (
-    <div className="space-y-0.5">
-      <QuickNavItem
-        icon={<Search size={16} />}
-        label={t("sidebar.search")}
+    <div className="space-y-1">
+      {/* CTA: New Page */}
+      <button
+        onClick={handleNewPage}
+        className="interactive-accent mb-2 flex h-8 w-full items-center gap-2 rounded-lg px-3 text-[13px] font-semibold"
+      >
+        <Plus size={15} />
+        {t("page.new")}
+      </button>
+
+      {/* Search inline */}
+      <button
         onClick={openQuickOpen}
-      />
+        className="interactive-ghost flex h-8 w-full items-center gap-2 rounded-md px-2.5 text-left text-[13px]"
+        style={{ color: "var(--text-tertiary)" }}
+      >
+        <Search size={14} className="shrink-0" />
+        <span className="flex-1 truncate">{t("sidebar.search")}</span>
+        <span
+          className="shrink-0 rounded px-1 py-0.5 font-mono text-[10px]"
+          style={{ backgroundColor: "var(--bg-tertiary)" }}
+        >
+          ⌘K
+        </span>
+      </button>
+
       <QuickNavItem
         icon={<Home size={16} />}
         label={t("sidebar.home")}

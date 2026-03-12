@@ -1,13 +1,6 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import {
-  Plus,
-  Search,
-  Trash2,
-  FolderSync,
-  Settings,
-  LogOut,
-} from "lucide-react";
+import { Plus, Trash2, FolderSync, Settings, LogOut } from "lucide-react";
 import { useUIStore } from "@/stores/useUIStore";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 import { useNavigationStore } from "@/stores/useNavigationStore";
@@ -32,12 +25,6 @@ export function SidebarFooter() {
             icon={<Plus size={16} />}
             label={t("notebook.new")}
             onClick={() => setShowCreate(true)}
-          />
-          <FooterButton
-            icon={<Search size={16} />}
-            label={t("sidebar.search")}
-            onClick={() => {}}
-            disabled
           />
           <FooterButton
             icon={<Trash2 size={16} />}

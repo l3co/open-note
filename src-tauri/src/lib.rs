@@ -9,7 +9,7 @@ use commands::notebook::{
 };
 use commands::page::{
     change_page_password, create_canvas_page, create_page, create_pdf_canvas_page, delete_page,
-    import_pdf, list_pages, load_page, lock_page, move_page, read_file_content,
+    get_random_pages, import_pdf, list_pages, load_page, lock_page, move_page, read_file_content,
     remove_page_password, save_file_content, set_page_password, unlock_page, update_page,
     update_page_annotations, update_page_blocks, update_page_canvas_state,
 };
@@ -32,9 +32,10 @@ use commands::template::{
 };
 use commands::trash::{empty_trash, list_trash_items, permanently_delete, restore_from_trash};
 use commands::workspace::{
-    close_workspace, create_workspace, focus_workspace, force_open_workspace, get_app_state,
-    get_global_settings, get_workspace_settings, list_open_workspaces, open_workspace,
-    remove_recent_workspace, switch_workspace, update_global_settings, update_workspace_settings,
+    close_workspace, create_workspace, ensure_quick_notes, focus_workspace, force_open_workspace,
+    get_app_state, get_global_settings, get_workspace_settings, list_open_workspaces,
+    open_workspace, remove_recent_workspace, switch_workspace, update_global_settings,
+    update_workspace_settings,
 };
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
@@ -72,6 +73,7 @@ pub fn run() {
             update_workspace_settings,
             get_global_settings,
             update_global_settings,
+            ensure_quick_notes,
             // Notebook
             list_notebooks,
             create_notebook,
@@ -102,6 +104,7 @@ pub fn run() {
             move_page,
             create_pdf_canvas_page,
             create_canvas_page,
+            get_random_pages,
             // Templates
             list_templates,
             create_template_from_page,

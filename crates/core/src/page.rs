@@ -273,10 +273,17 @@ pub struct PageSummary {
     pub updated_at: DateTime<Utc>,
     #[serde(default)]
     pub is_protected: bool,
+    #[serde(default)]
+    pub preview: Option<String>,
 }
 
 impl From<&Page> for PageSummary {
     fn from(page: &Page) -> Self {
+        let preview = if page.protection.is_some() {
+            None
+        } else {
+            extract_preview(&page.blocks, 80)
+        };
         Self {
             id: page.id,
             title: page.title.clone(),
@@ -286,7 +293,109 @@ impl From<&Page> for PageSummary {
             created_at: page.created_at,
             updated_at: page.updated_at,
             is_protected: page.protection.is_some(),
+            preview,
         }
+    }
+}
+
+/// Extrai os primeiros `max_chars` de texto do primeiro bloco textual.
+/// Retorna None se não houver conteúdo textual.
+fn extract_preview(blocks: &[Block], max_chars: usize) -> Option<String> {
+    for block in blocks {
+        let text = match block {
+            Block::Text(b) => extract_text_from_tiptap(&b.content),
+            Block::Markdown(b) => {
+                let t = b.content.trim().to_string();
+                if t.is_empty() {
+                    None
+                } else {
+                    Some(t)
+                }
+            }
+            Block::Code(b) => {
+                let t = b.content.trim().to_string();
+                if t.is_empty() {
+                    None
+                } else {
+                    Some(t)
+                }
+            }
+            Block::Callout(b) => {
+                let t = b.content.trim().to_string();
+                if t.is_empty() {
+                    None
+                } else {
+                    Some(t)
+                }
+            }
+            Block::Checklist(b) => {
+                let text = b
+                    .items
+                    .iter()
+                    .map(|i| i.text.as_str())
+                    .collect::<Vec<_>>()
+                    .join(" ");
+                let t = text.trim().to_string();
+                if t.is_empty() {
+                    None
+                } else {
+                    Some(t)
+                }
+            }
+            _ => continue,
+        };
+
+        if let Some(raw) = text {
+            let trimmed = raw.trim();
+            if !trimmed.is_empty() {
+                let preview = truncate_to_words(trimmed, max_chars);
+                return Some(preview);
+            }
+        }
+    }
+    None
+}
+
+fn truncate_to_words(text: &str, max_chars: usize) -> String {
+    if text.len() <= max_chars {
+        return text.to_string();
+    }
+    let slice = &text[..max_chars];
+    let end = slice.rfind(' ').unwrap_or(max_chars);
+    format!("{}…", &text[..end])
+}
+
+fn extract_text_from_tiptap(value: &serde_json::Value) -> Option<String> {
+    let mut result = String::new();
+    collect_tiptap_text(value, &mut result);
+    if result.is_empty() {
+        None
+    } else {
+        Some(result)
+    }
+}
+
+fn collect_tiptap_text(value: &serde_json::Value, out: &mut String) {
+    match value {
+        serde_json::Value::Object(map) => {
+            if let Some(text) = map.get("text").and_then(|v| v.as_str()) {
+                if !out.is_empty() {
+                    out.push(' ');
+                }
+                out.push_str(text);
+            }
+            if let Some(content) = map.get("content").and_then(|v| v.as_array()) {
+                for item in content {
+                    collect_tiptap_text(item, out);
+                }
+            }
+        }
+        serde_json::Value::Array(arr) => {
+            for item in arr {
+                collect_tiptap_text(item, out);
+            }
+        }
+        _ => {}
     }
 }
 
