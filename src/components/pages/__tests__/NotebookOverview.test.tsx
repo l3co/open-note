@@ -178,6 +178,7 @@ describe("NotebookOverview", () => {
               is_protected: false,
               created_at: "2024-01-01T00:00:00Z",
               updated_at: "2024-01-01T00:00:00Z",
+              preview: null,
             },
             {
               id: "p-2",
@@ -188,6 +189,7 @@ describe("NotebookOverview", () => {
               is_protected: false,
               created_at: "2024-01-01T00:00:00Z",
               updated_at: "2024-01-01T00:00:00Z",
+              preview: null,
             },
           ],
         ],

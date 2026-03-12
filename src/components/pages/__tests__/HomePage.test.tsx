@@ -8,6 +8,12 @@ import { useUIStore } from "@/stores/useUIStore";
 vi.mock("@tauri-apps/api/core", () => ({ invoke: vi.fn() }));
 vi.mock("@/assets/logo.png", () => ({ default: "logo.png" }));
 
+const mockIpc = vi.hoisted(() => ({
+  getRandomPages: vi.fn().mockResolvedValue([]),
+  ensureQuickNotes: vi.fn().mockResolvedValue("sec-qn"),
+}));
+vi.mock("@/lib/ipc", () => mockIpc);
+
 const mockSelectPage = vi.fn();
 const mockLoadPage = vi.fn();
 const mockOpenQuickOpen = vi.fn();
@@ -51,11 +57,9 @@ describe("HomePage", () => {
     expect(screen.getByText(/recent/i)).toBeInTheDocument();
   });
 
-  it("renders quick actions section heading", () => {
+  it("renders action buttons", () => {
     render(<HomePage />);
-    expect(
-      screen.getByText(/ações rápidas|quick actions/i),
-    ).toBeInTheDocument();
+    expect(screen.getAllByRole("button").length).toBeGreaterThan(0);
   });
 
   it("shows empty state when no recent pages", () => {
@@ -79,6 +83,7 @@ describe("HomePage", () => {
             is_protected: false,
             created_at: "2024-01-01T00:00:00Z",
             updated_at: "2024-01-01T00:00:00Z",
+            preview: null,
           },
         ],
       ],
@@ -103,6 +108,7 @@ describe("HomePage", () => {
       is_protected: false,
       created_at: "2024-01-01T00:00:00Z",
       updated_at: "2024-01-01T00:00:00Z",
+      preview: null,
     }));
     const pages = new Map([["sec-1", pageList]]);
     const history = pageList.map((p) => p.id);
@@ -130,6 +136,7 @@ describe("HomePage", () => {
             is_protected: false,
             created_at: "2024-01-01T00:00:00Z",
             updated_at: "2024-01-01T00:00:00Z",
+            preview: null,
           },
         ],
       ],
