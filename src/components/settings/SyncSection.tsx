@@ -210,7 +210,7 @@ export function SyncSection() {
     if (!connected || syncing) return;
     setSyncing(true);
     try {
-      await ipc.syncInitialUpload(connected.name);
+      await ipc.syncBidirectional(connected.name);
       await loadStatus();
     } finally {
       setSyncing(false);
@@ -230,7 +230,6 @@ export function SyncSection() {
       prev.map((p) => (p.name === name ? { ...p, connected: true, email } : p)),
     );
     setConnectTarget(null);
-    ipc.syncInitialUpload(name).catch(() => {});
   };
 
   const connectedProvider = providers.find((p) => p.connected);

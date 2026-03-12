@@ -21,9 +21,10 @@ use commands::section::{
 };
 use commands::spellcheck::check_spelling;
 use commands::sync::{
-    connect_provider, disconnect_provider, disconnect_provider_by_name, get_provider_status,
-    get_sync_config, get_sync_conflicts, get_sync_providers, get_sync_status,
-    resolve_sync_conflict, set_sync_config, sync_initial_upload,
+    connect_provider, disconnect_provider, disconnect_provider_by_name, download_workspace,
+    get_provider_status, get_sync_config, get_sync_conflicts, get_sync_providers, get_sync_status,
+    list_remote_workspaces, resolve_sync_conflict, set_sync_config, sync_bidirectional,
+    sync_initial_upload,
 };
 use commands::tags::list_all_tags;
 use commands::trash::{empty_trash, list_trash_items, permanently_delete, restore_from_trash};
@@ -128,6 +129,9 @@ pub fn run() {
             disconnect_provider_by_name,
             get_provider_status,
             sync_initial_upload,
+            sync_bidirectional,
+            list_remote_workspaces,
+            download_workspace,
             get_sync_providers,
             get_sync_status,
             get_sync_config,

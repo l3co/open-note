@@ -53,6 +53,10 @@ impl SyncCoordinator {
         &self.status
     }
 
+    pub fn get_status_mut(&mut self) -> &mut SyncStatus {
+        &mut self.status
+    }
+
     pub fn get_conflicts(&self) -> &[SyncConflict] {
         &self.conflicts
     }

@@ -110,7 +110,7 @@ export function App() {
         const statuses = await ipc.getProviderStatus();
         const connected = statuses.find((p) => p.connected);
         if (connected) {
-          ipc.syncInitialUpload(connected.name).catch(() => {});
+          ipc.syncBidirectional(connected.name).catch(() => {});
         }
       } catch {
         // silently ignore — sync is best-effort

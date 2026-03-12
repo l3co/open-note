@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import { X, Cloud, CheckCircle, Loader2, AlertCircle } from "lucide-react";
 import * as ipc from "@/lib/ipc";
 import type { ProviderConnectionStatus } from "@/lib/ipc";
+import type { RemoteWorkspaceInfo } from "@/types/sync";
+import { CloudImportModal } from "./CloudImportModal";
 
 interface Provider {
   id: string;
@@ -38,6 +40,8 @@ export function CloudConnectModal({
   const [connectedProviders, setConnectedProviders] = useState<
     Record<string, ProviderConnectionStatus>
   >({});
+  const [remoteWorkspaces, setRemoteWorkspaces] = useState<RemoteWorkspaceInfo[]>([]);
+  const [showImport, setShowImport] = useState(false);
 
   useEffect(() => {
     ipc
@@ -66,12 +70,38 @@ export function CloudConnectModal({
       setUserEmail(email);
       setStatus("success");
       onConnected?.(selected, email);
-      ipc.syncInitialUpload(selected).catch(() => {});
+      ipc
+        .listRemoteWorkspaces(selected)
+        .then((workspaces) => {
+          if (workspaces.length > 0) {
+            setRemoteWorkspaces(workspaces);
+            setShowImport(true);
+          } else {
+            ipc.syncBidirectional(selected).catch(() => {});
+          }
+        })
+        .catch(() => {
+          ipc.syncBidirectional(selected).catch(() => {});
+        });
     } catch (e) {
       setErrorMsg(String(e));
       setStatus("error");
     }
   };
+
+  if (showImport && selected) {
+    const providerLabel =
+      PROVIDERS.find((p) => p.id === selected)?.label ?? selected;
+    return (
+      <CloudImportModal
+        providerName={selected}
+        providerLabel={providerLabel}
+        workspaces={remoteWorkspaces}
+        defaultDestDir="~/Documents/OpenNote"
+        onClose={onClose}
+      />
+    );
+  }
 
   return (
     <div

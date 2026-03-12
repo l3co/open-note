@@ -9,7 +9,7 @@ const mockIpc = vi.hoisted(() => ({
   getProviderStatus: vi.fn(),
   getSyncStatus: vi.fn(),
   disconnectProviderByName: vi.fn(),
-  syncInitialUpload: vi.fn(),
+  syncBidirectional: vi.fn(),
 }));
 
 vi.mock("@/lib/ipc", () => mockIpc);
@@ -62,7 +62,7 @@ describe("SyncSection", () => {
     vi.clearAllMocks();
     mockIpc.getProviderStatus.mockResolvedValue(disconnectedProviders);
     mockIpc.getSyncStatus.mockResolvedValue(defaultSyncStatus);
-    mockIpc.syncInitialUpload.mockResolvedValue(5);
+    mockIpc.syncBidirectional.mockResolvedValue({ uploaded: 5, downloaded: 0, conflicts: 0, errors: [] });
   });
 
   it("renders sync section title", () => {
@@ -97,13 +97,13 @@ describe("SyncSection", () => {
     expect(screen.queryByTestId("sync-now-btn")).toBeNull();
   });
 
-  it("calls syncInitialUpload when 'Sincronizar agora' is clicked", async () => {
+  it("calls syncBidirectional when 'Sincronizar agora' is clicked", async () => {
     mockIpc.getProviderStatus.mockResolvedValue(connectedProviders);
     render(<SyncSection />);
     const btn = await screen.findByTestId("sync-now-btn");
     await userEvent.click(btn);
     await waitFor(() =>
-      expect(mockIpc.syncInitialUpload).toHaveBeenCalledWith("google_drive"),
+      expect(mockIpc.syncBidirectional).toHaveBeenCalledWith("google_drive"),
     );
   });
 

@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use chrono::Utc;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 
 use crate::error::{SyncError, SyncResult};
 use crate::provider::SyncProvider;
@@ -73,6 +73,110 @@ impl DropboxProvider {
                     .to_string(),
             }),
         }
+    }
+
+    /// Lists folder entries. If `recursive=true`, returns all files recursively.
+    async fn list_folder_entries(
+        &self,
+        token: &AuthToken,
+        remote_path: &str,
+        recursive: bool,
+    ) -> SyncResult<Vec<RemoteFile>> {
+        #[derive(Deserialize)]
+        struct Entry {
+            #[serde(rename = ".tag")]
+            tag: String,
+            name: String,
+            path_display: Option<String>,
+            size: Option<u64>,
+            #[serde(rename = "client_modified")]
+            client_modified: Option<String>,
+            content_hash: Option<String>,
+        }
+        #[derive(Deserialize)]
+        struct ListResp {
+            entries: Vec<Entry>,
+            cursor: Option<String>,
+            has_more: Option<bool>,
+        }
+
+        let dropbox_path = if remote_path.is_empty() || remote_path == "/" {
+            String::new()
+        } else {
+            format!("/{}", remote_path.trim_matches('/'))
+        };
+
+        let mut all = Vec::new();
+        let resp = self
+            .http
+            .post("https://api.dropboxapi.com/2/files/list_folder")
+            .bearer_auth(&token.access_token)
+            .json(&serde_json::json!({
+                "path": dropbox_path,
+                "recursive": recursive,
+                "include_media_info": false,
+                "include_deleted": false
+            }))
+            .send()
+            .await
+            .map_err(|e| SyncError::Network(e.to_string()))?;
+
+        if !resp.status().is_success() {
+            let status = resp.status().as_u16();
+            let msg = resp.text().await.unwrap_or_default();
+            return Err(SyncError::Api { status, message: msg });
+        }
+
+        let mut result: ListResp = resp
+            .json()
+            .await
+            .map_err(|e| SyncError::Network(e.to_string()))?;
+
+        loop {
+            for entry in &result.entries {
+                if entry.tag != "file" {
+                    continue;
+                }
+                let path = entry
+                    .path_display
+                    .clone()
+                    .unwrap_or_else(|| entry.name.clone());
+                let hash = entry.content_hash.clone().unwrap_or_default();
+                let size = entry.size.unwrap_or(0);
+                let modified_at = entry
+                    .client_modified
+                    .as_deref()
+                    .and_then(|s| s.parse::<chrono::DateTime<Utc>>().ok())
+                    .unwrap_or_else(Utc::now);
+                all.push(RemoteFile {
+                    path,
+                    hash,
+                    size,
+                    modified_at,
+                });
+            }
+
+            if result.has_more.unwrap_or(false) {
+                if let Some(ref cursor) = result.cursor {
+                    let cont_resp = self
+                        .http
+                        .post("https://api.dropboxapi.com/2/files/list_folder/continue")
+                        .bearer_auth(&token.access_token)
+                        .json(&serde_json::json!({ "cursor": cursor }))
+                        .send()
+                        .await
+                        .map_err(|e| SyncError::Network(e.to_string()))?;
+                    result = cont_resp
+                        .json()
+                        .await
+                        .map_err(|e| SyncError::Network(e.to_string()))?;
+                    continue;
+                }
+            }
+            break;
+        }
+
+        Ok(all)
     }
 }
 
@@ -208,41 +312,186 @@ impl SyncProvider for DropboxProvider {
 
     async fn list_remote_files(
         &self,
-        _token: &AuthToken,
-        _remote_path: &str,
+        token: &AuthToken,
+        remote_path: &str,
     ) -> SyncResult<Vec<RemoteFile>> {
-        Err(SyncError::AuthRequired {
-            provider: "dropbox".to_string(),
-        })
+        self.list_folder_entries(token, remote_path, false).await
     }
 
-    async fn download_file(&self, _token: &AuthToken, _remote_path: &str) -> SyncResult<Vec<u8>> {
-        Err(SyncError::AuthRequired {
-            provider: "dropbox".to_string(),
-        })
+    async fn list_all_remote_files(
+        &self,
+        token: &AuthToken,
+        root_path: &str,
+    ) -> SyncResult<Vec<RemoteFile>> {
+        self.list_folder_entries(token, root_path, true).await
+    }
+
+    async fn list_remote_folders(
+        &self,
+        token: &AuthToken,
+        parent_path: &str,
+    ) -> SyncResult<Vec<String>> {
+        #[derive(Deserialize)]
+        struct Entry {
+            #[serde(rename = ".tag")]
+            tag: String,
+            name: String,
+        }
+        #[derive(Deserialize)]
+        struct ListFolderResp {
+            entries: Vec<Entry>,
+        }
+
+        let dropbox_path = if parent_path.is_empty() || parent_path == "/" {
+            String::new()
+        } else {
+            format!("/{}", parent_path.trim_matches('/'))
+        };
+
+        let resp = self
+            .http
+            .post("https://api.dropboxapi.com/2/files/list_folder")
+            .bearer_auth(&token.access_token)
+            .json(&serde_json::json!({ "path": dropbox_path, "recursive": false }))
+            .send()
+            .await
+            .map_err(|e| SyncError::Network(e.to_string()))?;
+
+        if !resp.status().is_success() {
+            return Ok(Vec::new());
+        }
+
+        let result: ListFolderResp = resp
+            .json()
+            .await
+            .map_err(|e| SyncError::Network(e.to_string()))?;
+
+        Ok(result
+            .entries
+            .into_iter()
+            .filter(|e| e.tag == "folder")
+            .map(|e| e.name)
+            .collect())
+    }
+
+    async fn download_file(&self, token: &AuthToken, remote_path: &str) -> SyncResult<Vec<u8>> {
+        #[derive(Serialize)]
+        struct DownloadArg<'a> {
+            path: &'a str,
+        }
+        let arg = serde_json::to_string(&DownloadArg { path: remote_path })
+            .map_err(|e| SyncError::Network(e.to_string()))?;
+
+        let resp = self
+            .http
+            .post("https://content.dropboxapi.com/2/files/download")
+            .bearer_auth(&token.access_token)
+            .header("Dropbox-API-Arg", &arg)
+            .header("Content-Length", "0")
+            .send()
+            .await
+            .map_err(|e| SyncError::Network(e.to_string()))?;
+
+        if !resp.status().is_success() {
+            let status = resp.status().as_u16();
+            let msg = resp.text().await.unwrap_or_default();
+            return Err(SyncError::Api { status, message: msg });
+        }
+
+        resp.bytes()
+            .await
+            .map(|b| b.to_vec())
+            .map_err(|e| SyncError::Network(e.to_string()))
     }
 
     async fn upload_file(
         &self,
-        _token: &AuthToken,
-        _remote_path: &str,
-        _content: &[u8],
+        token: &AuthToken,
+        remote_path: &str,
+        content: &[u8],
     ) -> SyncResult<RemoteFile> {
-        Err(SyncError::AuthRequired {
-            provider: "dropbox".to_string(),
+        #[derive(Serialize)]
+        struct UploadArg<'a> {
+            path: &'a str,
+            mode: &'a str,
+            autorename: bool,
+        }
+        let arg = serde_json::to_string(&UploadArg {
+            path: remote_path,
+            mode: "overwrite",
+            autorename: false,
+        })
+        .map_err(|e| SyncError::Network(e.to_string()))?;
+
+        let resp = self
+            .http
+            .post("https://content.dropboxapi.com/2/files/upload")
+            .bearer_auth(&token.access_token)
+            .header("Dropbox-API-Arg", &arg)
+            .header("Content-Type", "application/octet-stream")
+            .body(content.to_vec())
+            .send()
+            .await
+            .map_err(|e| SyncError::Network(e.to_string()))?;
+
+        if !resp.status().is_success() {
+            let status = resp.status().as_u16();
+            let msg = resp.text().await.unwrap_or_default();
+            return Err(SyncError::Api { status, message: msg });
+        }
+
+        let meta: serde_json::Value = resp
+            .json()
+            .await
+            .map_err(|e| SyncError::Network(e.to_string()))?;
+        let hash = meta
+            .get("content_hash")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+
+        Ok(RemoteFile {
+            path: remote_path.to_string(),
+            hash,
+            size: content.len() as u64,
+            modified_at: Utc::now(),
         })
     }
 
-    async fn delete_file(&self, _token: &AuthToken, _remote_path: &str) -> SyncResult<()> {
-        Err(SyncError::AuthRequired {
-            provider: "dropbox".to_string(),
-        })
+    async fn delete_file(&self, token: &AuthToken, remote_path: &str) -> SyncResult<()> {
+        let resp = self
+            .http
+            .post("https://api.dropboxapi.com/2/files/delete_v2")
+            .bearer_auth(&token.access_token)
+            .json(&serde_json::json!({ "path": remote_path }))
+            .send()
+            .await
+            .map_err(|e| SyncError::Network(e.to_string()))?;
+
+        if resp.status().is_success() || resp.status().as_u16() == 409 {
+            return Ok(());
+        }
+        let status = resp.status().as_u16();
+        let msg = resp.text().await.unwrap_or_default();
+        Err(SyncError::Api { status, message: msg })
     }
 
-    async fn create_directory(&self, _token: &AuthToken, _remote_path: &str) -> SyncResult<()> {
-        Err(SyncError::AuthRequired {
-            provider: "dropbox".to_string(),
-        })
+    async fn create_directory(&self, token: &AuthToken, remote_path: &str) -> SyncResult<()> {
+        let resp = self
+            .http
+            .post("https://api.dropboxapi.com/2/files/create_folder_v2")
+            .bearer_auth(&token.access_token)
+            .json(&serde_json::json!({ "path": remote_path, "autorename": false }))
+            .send()
+            .await
+            .map_err(|e| SyncError::Network(e.to_string()))?;
+
+        if resp.status().is_success() || resp.status().as_u16() == 409 {
+            return Ok(());
+        }
+        let status = resp.status().as_u16();
+        let msg = resp.text().await.unwrap_or_default();
+        Err(SyncError::Api { status, message: msg })
     }
 }
 

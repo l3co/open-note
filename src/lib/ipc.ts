@@ -378,6 +378,28 @@ export const resolveSyncConflict = (
   resolution: import("@/types/sync").ConflictResolution,
 ) => invoke<void>("resolve_sync_conflict", { conflictId, resolution });
 
+export const syncBidirectional = (providerName: string) =>
+  invoke<import("@/types/sync").SyncBidirectionalResult>("sync_bidirectional", {
+    providerName,
+  });
+
+export const listRemoteWorkspaces = (providerName: string) =>
+  invoke<import("@/types/sync").RemoteWorkspaceInfo[]>(
+    "list_remote_workspaces",
+    { providerName },
+  );
+
+export const downloadWorkspace = (
+  providerName: string,
+  workspaceName: string,
+  destPath: string,
+) =>
+  invoke<number>("download_workspace", {
+    providerName,
+    workspaceName,
+    destPath,
+  });
+
 // ─── Spell Check ───
 
 export const checkSpelling = (

@@ -170,6 +170,123 @@ impl GoogleDriveProvider {
             }),
         }
     }
+
+    /// Lists files (non-folders) directly inside `folder_id`, returning paths prefixed by `prefix`.
+    async fn list_files_in_folder(
+        &self,
+        token: &AuthToken,
+        folder_id: &str,
+        prefix: &str,
+    ) -> SyncResult<Vec<RemoteFile>> {
+        let query = format!(
+            "'{}' in parents and mimeType!='application/vnd.google-apps.folder' and trashed=false",
+            folder_id
+        );
+        let resp = self
+            .http
+            .get(FILES_ENDPOINT)
+            .bearer_auth(&token.access_token)
+            .query(&[
+                ("q", query.as_str()),
+                ("fields", "files(id,name,size,modifiedTime)"),
+            ])
+            .send()
+            .await
+            .map_err(|e| SyncError::Network(e.to_string()))?;
+
+        if !resp.status().is_success() {
+            let status = resp.status().as_u16();
+            let msg = resp.text().await.unwrap_or_default();
+            return Err(SyncError::Api { status, message: msg });
+        }
+
+        let result: serde_json::Value = resp
+            .json()
+            .await
+            .map_err(|e| SyncError::Network(e.to_string()))?;
+
+        Ok(result
+            .get("files")
+            .and_then(|f| f.as_array())
+            .cloned()
+            .unwrap_or_default()
+            .into_iter()
+            .filter_map(|f| {
+                let id = f.get("id")?.as_str()?.to_string();
+                let name = f.get("name")?.as_str()?.to_string();
+                let size = f
+                    .get("size")
+                    .and_then(|s| s.as_str())
+                    .and_then(|s| s.parse().ok())
+                    .unwrap_or(0);
+                let modified_at = f
+                    .get("modifiedTime")
+                    .and_then(|v| v.as_str())
+                    .and_then(|s| s.parse::<chrono::DateTime<Utc>>().ok())
+                    .unwrap_or_else(Utc::now);
+                Some(RemoteFile {
+                    path: format!("{}/{}", prefix.trim_end_matches('/'), name),
+                    hash: id,
+                    size,
+                    modified_at,
+                })
+            })
+            .collect())
+    }
+
+    /// Recursively lists all files under `folder_id`, accumulating into `out`.
+    async fn list_files_recursive(
+        &self,
+        token: &AuthToken,
+        folder_id: &str,
+        prefix: &str,
+        out: &mut Vec<RemoteFile>,
+    ) -> SyncResult<()> {
+        let files = self.list_files_in_folder(token, folder_id, prefix).await?;
+        out.extend(files);
+
+        let query = format!(
+            "'{}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false",
+            folder_id
+        );
+        let resp = self
+            .http
+            .get(FILES_ENDPOINT)
+            .bearer_auth(&token.access_token)
+            .query(&[("q", query.as_str()), ("fields", "files(id,name)")])
+            .send()
+            .await
+            .map_err(|e| SyncError::Network(e.to_string()))?;
+
+        if !resp.status().is_success() {
+            return Ok(());
+        }
+
+        let result: serde_json::Value = resp
+            .json()
+            .await
+            .map_err(|e| SyncError::Network(e.to_string()))?;
+
+        let subdirs: Vec<(String, String)> = result
+            .get("files")
+            .and_then(|f| f.as_array())
+            .cloned()
+            .unwrap_or_default()
+            .into_iter()
+            .filter_map(|f| {
+                let id = f.get("id")?.as_str()?.to_string();
+                let name = f.get("name")?.as_str()?.to_string();
+                Some((id, name))
+            })
+            .collect();
+
+        for (sub_id, sub_name) in subdirs {
+            let sub_prefix = format!("{}/{}", prefix.trim_end_matches('/'), sub_name);
+            Box::pin(self.list_files_recursive(token, &sub_id, &sub_prefix, out)).await?;
+        }
+
+        Ok(())
+    }
 }
 
 #[async_trait]
@@ -313,16 +430,68 @@ impl SyncProvider for GoogleDriveProvider {
         token: &AuthToken,
         remote_path: &str,
     ) -> SyncResult<Vec<RemoteFile>> {
-        let folder_id = self.ensure_folder_path(token, &[remote_path]).await?;
-        let query = format!("'{}' in parents and trashed=false", folder_id);
+        let parts: Vec<&str> = remote_path.split('/').filter(|s| !s.is_empty()).collect();
+        let folder_id = self.ensure_folder_path(token, &parts).await?;
+        self.list_files_in_folder(token, &folder_id, remote_path)
+            .await
+    }
+
+    async fn list_all_remote_files(
+        &self,
+        token: &AuthToken,
+        root_path: &str,
+    ) -> SyncResult<Vec<RemoteFile>> {
+        let parts: Vec<&str> = root_path.split('/').filter(|s| !s.is_empty()).collect();
+        let folder_id = self.ensure_folder_path(token, &parts).await?;
+        let mut all = Vec::new();
+        self.list_files_recursive(token, &folder_id, root_path, &mut all)
+            .await?;
+        Ok(all)
+    }
+
+    async fn list_remote_folders(
+        &self,
+        token: &AuthToken,
+        parent_path: &str,
+    ) -> SyncResult<Vec<String>> {
+        let parts: Vec<&str> = parent_path.split('/').filter(|s| !s.is_empty()).collect();
+        let folder_id = self.ensure_folder_path(token, &parts).await?;
+        let query = format!(
+            "'{}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false",
+            folder_id
+        );
         let resp = self
             .http
             .get(FILES_ENDPOINT)
             .bearer_auth(&token.access_token)
-            .query(&[
-                ("q", query.as_str()),
-                ("fields", "files(id,name,size,modifiedTime)"),
-            ])
+            .query(&[("q", query.as_str()), ("fields", "files(id,name)")])
+            .send()
+            .await
+            .map_err(|e| SyncError::Network(e.to_string()))?;
+
+        if !resp.status().is_success() {
+            return Ok(Vec::new());
+        }
+
+        let result: serde_json::Value = resp
+            .json()
+            .await
+            .map_err(|e| SyncError::Network(e.to_string()))?;
+        Ok(result
+            .get("files")
+            .and_then(|f| f.as_array())
+            .cloned()
+            .unwrap_or_default()
+            .into_iter()
+            .filter_map(|f| f.get("name")?.as_str().map(str::to_string))
+            .collect())
+    }
+
+    async fn download_file(&self, token: &AuthToken, file_id: &str) -> SyncResult<Vec<u8>> {
+        let resp = self
+            .http
+            .get(format!("{}/{}?alt=media", FILES_ENDPOINT, file_id))
+            .bearer_auth(&token.access_token)
             .send()
             .await
             .map_err(|e| SyncError::Network(e.to_string()))?;
@@ -330,46 +499,21 @@ impl SyncProvider for GoogleDriveProvider {
         if !resp.status().is_success() {
             let status = resp.status().as_u16();
             let msg = resp.text().await.unwrap_or_default();
-            return Err(SyncError::Api {
-                status,
-                message: msg,
-            });
+            return Err(SyncError::Api { status, message: msg });
         }
 
-        let result: serde_json::Value = resp
-            .json()
+        resp.bytes()
             .await
-            .map_err(|e| SyncError::Network(e.to_string()))?;
-        let files = result
-            .get("files")
-            .and_then(|f| f.as_array())
-            .cloned()
-            .unwrap_or_default();
-
-        Ok(files
-            .into_iter()
-            .filter_map(|f| {
-                let id = f.get("id")?.as_str()?.to_string();
-                let name = f.get("name")?.as_str()?.to_string();
-                let size = f
-                    .get("size")
-                    .and_then(|s| s.as_str())
-                    .and_then(|s| s.parse().ok())
-                    .unwrap_or(0);
-                Some(RemoteFile {
-                    path: format!("{}/{}", remote_path, name),
-                    hash: id,
-                    size,
-                    modified_at: Utc::now(),
-                })
-            })
-            .collect())
+            .map(|b| b.to_vec())
+            .map_err(|e| SyncError::Network(e.to_string()))
     }
 
-    async fn download_file(&self, _token: &AuthToken, _remote_path: &str) -> SyncResult<Vec<u8>> {
-        Err(SyncError::AuthRequired {
-            provider: "google_drive".to_string(),
-        })
+    async fn download_remote_file(
+        &self,
+        token: &AuthToken,
+        remote: &RemoteFile,
+    ) -> SyncResult<Vec<u8>> {
+        self.download_file(token, &remote.hash).await
     }
 
     async fn upload_file(

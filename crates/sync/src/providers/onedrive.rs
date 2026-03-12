@@ -70,6 +70,84 @@ impl OneDriveProvider {
                         .to_string(),
             })
     }
+
+    /// Lists items under `remote_path`. If `recursive=true`, traverses subdirectories.
+    async fn list_items(
+        &self,
+        token: &AuthToken,
+        remote_path: &str,
+        recursive: bool,
+    ) -> SyncResult<Vec<RemoteFile>> {
+        let url = format!(
+            "https://graph.microsoft.com/v1.0/me/drive/approot:/{}:/children",
+            remote_path.trim_matches('/')
+        );
+
+        let resp = self
+            .http
+            .get(&url)
+            .bearer_auth(&token.access_token)
+            .send()
+            .await
+            .map_err(|e| SyncError::Network(e.to_string()))?;
+
+        if !resp.status().is_success() {
+            let status = resp.status().as_u16();
+            let msg = resp.text().await.unwrap_or_default();
+            return Err(SyncError::Api { status, message: msg });
+        }
+
+        let result: serde_json::Value = resp
+            .json()
+            .await
+            .map_err(|e| SyncError::Network(e.to_string()))?;
+
+        let items = result
+            .get("value")
+            .and_then(|v| v.as_array())
+            .cloned()
+            .unwrap_or_default();
+
+        let mut all = Vec::new();
+        for item in items {
+            let name = item
+                .get("name")
+                .and_then(|v| v.as_str())
+                .unwrap_or("")
+                .to_string();
+            let item_path = format!("{}/{}", remote_path.trim_end_matches('/'), name);
+
+            if item.get("folder").is_some() {
+                if recursive {
+                    let mut sub = Box::pin(self.list_items(token, &item_path, true)).await?;
+                    all.append(&mut sub);
+                }
+            } else if item.get("file").is_some() {
+                let size = item
+                    .get("size")
+                    .and_then(|v| v.as_u64())
+                    .unwrap_or(0);
+                let hash = item
+                    .get("eTag")
+                    .and_then(|v| v.as_str())
+                    .unwrap_or("")
+                    .to_string();
+                let modified_at = item
+                    .get("lastModifiedDateTime")
+                    .and_then(|v| v.as_str())
+                    .and_then(|s| s.parse::<chrono::DateTime<Utc>>().ok())
+                    .unwrap_or_else(Utc::now);
+                all.push(RemoteFile {
+                    path: item_path,
+                    hash,
+                    size,
+                    modified_at,
+                });
+            }
+        }
+
+        Ok(all)
+    }
 }
 
 #[async_trait]
@@ -208,41 +286,180 @@ impl SyncProvider for OneDriveProvider {
 
     async fn list_remote_files(
         &self,
-        _token: &AuthToken,
-        _remote_path: &str,
+        token: &AuthToken,
+        remote_path: &str,
     ) -> SyncResult<Vec<RemoteFile>> {
-        Err(SyncError::AuthRequired {
-            provider: "onedrive".to_string(),
-        })
+        self.list_items(token, remote_path, false).await
     }
 
-    async fn download_file(&self, _token: &AuthToken, _remote_path: &str) -> SyncResult<Vec<u8>> {
-        Err(SyncError::AuthRequired {
-            provider: "onedrive".to_string(),
-        })
+    async fn list_all_remote_files(
+        &self,
+        token: &AuthToken,
+        root_path: &str,
+    ) -> SyncResult<Vec<RemoteFile>> {
+        self.list_items(token, root_path, true).await
+    }
+
+    async fn list_remote_folders(
+        &self,
+        token: &AuthToken,
+        parent_path: &str,
+    ) -> SyncResult<Vec<String>> {
+        let url = format!(
+            "https://graph.microsoft.com/v1.0/me/drive/approot:/{}:/children",
+            parent_path.trim_matches('/')
+        );
+        let resp = self
+            .http
+            .get(&url)
+            .bearer_auth(&token.access_token)
+            .send()
+            .await
+            .map_err(|e| SyncError::Network(e.to_string()))?;
+
+        if !resp.status().is_success() {
+            return Ok(Vec::new());
+        }
+
+        let result: serde_json::Value = resp
+            .json()
+            .await
+            .map_err(|e| SyncError::Network(e.to_string()))?;
+
+        Ok(result
+            .get("value")
+            .and_then(|v| v.as_array())
+            .cloned()
+            .unwrap_or_default()
+            .into_iter()
+            .filter(|item| item.get("folder").is_some())
+            .filter_map(|item| item.get("name")?.as_str().map(str::to_string))
+            .collect())
+    }
+
+    async fn download_file(&self, token: &AuthToken, remote_path: &str) -> SyncResult<Vec<u8>> {
+        let url = format!(
+            "https://graph.microsoft.com/v1.0/me/drive/approot:/{}:/content",
+            remote_path.trim_matches('/')
+        );
+        let resp = self
+            .http
+            .get(&url)
+            .bearer_auth(&token.access_token)
+            .send()
+            .await
+            .map_err(|e| SyncError::Network(e.to_string()))?;
+
+        if !resp.status().is_success() {
+            let status = resp.status().as_u16();
+            let msg = resp.text().await.unwrap_or_default();
+            return Err(SyncError::Api { status, message: msg });
+        }
+
+        resp.bytes()
+            .await
+            .map(|b| b.to_vec())
+            .map_err(|e| SyncError::Network(e.to_string()))
     }
 
     async fn upload_file(
         &self,
-        _token: &AuthToken,
-        _remote_path: &str,
-        _content: &[u8],
+        token: &AuthToken,
+        remote_path: &str,
+        content: &[u8],
     ) -> SyncResult<RemoteFile> {
-        Err(SyncError::AuthRequired {
-            provider: "onedrive".to_string(),
+        let url = format!(
+            "https://graph.microsoft.com/v1.0/me/drive/approot:/{}:/content",
+            remote_path.trim_matches('/')
+        );
+        let resp = self
+            .http
+            .put(&url)
+            .bearer_auth(&token.access_token)
+            .header("Content-Type", "application/octet-stream")
+            .body(content.to_vec())
+            .send()
+            .await
+            .map_err(|e| SyncError::Network(e.to_string()))?;
+
+        if !resp.status().is_success() {
+            let status = resp.status().as_u16();
+            let msg = resp.text().await.unwrap_or_default();
+            return Err(SyncError::Api { status, message: msg });
+        }
+
+        let meta: serde_json::Value = resp
+            .json()
+            .await
+            .map_err(|e| SyncError::Network(e.to_string()))?;
+        let hash = meta
+            .get("eTag")
+            .and_then(|v| v.as_str())
+            .unwrap_or("")
+            .to_string();
+
+        Ok(RemoteFile {
+            path: remote_path.to_string(),
+            hash,
+            size: content.len() as u64,
+            modified_at: Utc::now(),
         })
     }
 
-    async fn delete_file(&self, _token: &AuthToken, _remote_path: &str) -> SyncResult<()> {
-        Err(SyncError::AuthRequired {
-            provider: "onedrive".to_string(),
-        })
+    async fn delete_file(&self, token: &AuthToken, remote_path: &str) -> SyncResult<()> {
+        let url = format!(
+            "https://graph.microsoft.com/v1.0/me/drive/approot:/{}",
+            remote_path.trim_matches('/')
+        );
+        let resp = self
+            .http
+            .delete(&url)
+            .bearer_auth(&token.access_token)
+            .send()
+            .await
+            .map_err(|e| SyncError::Network(e.to_string()))?;
+
+        if resp.status().is_success() || resp.status().as_u16() == 404 {
+            return Ok(());
+        }
+        let status = resp.status().as_u16();
+        let msg = resp.text().await.unwrap_or_default();
+        Err(SyncError::Api { status, message: msg })
     }
 
-    async fn create_directory(&self, _token: &AuthToken, _remote_path: &str) -> SyncResult<()> {
-        Err(SyncError::AuthRequired {
-            provider: "onedrive".to_string(),
-        })
+    async fn create_directory(&self, token: &AuthToken, remote_path: &str) -> SyncResult<()> {
+        let path = remote_path.trim_matches('/');
+        let (parent, name) = match path.rfind('/') {
+            Some(i) => (&path[..i], &path[i + 1..]),
+            None => ("", path),
+        };
+        let url = if parent.is_empty() {
+            "https://graph.microsoft.com/v1.0/me/drive/approot:/children".to_string()
+        } else {
+            format!(
+                "https://graph.microsoft.com/v1.0/me/drive/approot:/{}:/children",
+                parent
+            )
+        };
+        let resp = self
+            .http
+            .post(&url)
+            .bearer_auth(&token.access_token)
+            .json(&serde_json::json!({
+                "name": name,
+                "folder": {},
+                "@microsoft.graph.conflictBehavior": "replace"
+            }))
+            .send()
+            .await
+            .map_err(|e| SyncError::Network(e.to_string()))?;
+
+        if resp.status().is_success() {
+            return Ok(());
+        }
+        let status = resp.status().as_u16();
+        let msg = resp.text().await.unwrap_or_default();
+        Err(SyncError::Api { status, message: msg })
     }
 }
 

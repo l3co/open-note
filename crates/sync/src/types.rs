@@ -137,6 +137,21 @@ pub struct FileChange {
     pub remote_hash: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RemoteWorkspaceInfo {
+    pub name: String,
+    pub provider: String,
+    pub file_count: Option<u32>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct SyncBidirectionalResult {
+    pub uploaded: u32,
+    pub downloaded: u32,
+    pub conflicts: u32,
+    pub errors: Vec<String>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
