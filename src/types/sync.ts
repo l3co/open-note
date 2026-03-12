@@ -40,3 +40,16 @@ export interface SyncConflict {
 }
 
 export type ConflictResolution = "keep_local" | "keep_remote" | "keep_both";
+
+export interface RemoteWorkspaceInfo {
+  name: string;
+  provider: string;
+  file_count: number | null;
+}
+
+export interface SyncBidirectionalResult {
+  uploaded: number;
+  downloaded: number;
+  conflicts: number;
+  errors: string[];
+}

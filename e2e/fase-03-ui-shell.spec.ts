@@ -36,9 +36,6 @@ test.describe("Fase 03 — UI Shell & Navegação", () => {
       await expect(page.locator(WORKSPACE_PICKER.createButton)).toBeVisible();
       await expect(page.locator(WORKSPACE_PICKER.openButton)).toBeVisible();
       await expect(page.locator(WORKSPACE_PICKER.cloudButton)).toBeVisible();
-
-      // Cloud deve estar desabilitado com badge "Em breve"
-      await expect(page.locator(WORKSPACE_PICKER.cloudButton)).toBeDisabled();
     });
 
     test("HP-02: sidebar exibe notebook tree com notebooks", async ({

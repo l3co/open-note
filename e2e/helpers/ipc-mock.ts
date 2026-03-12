@@ -220,6 +220,31 @@ function buildDefaultHandlers(overrides: MockOverrides = {}): MockOverrides {
     set_sync_config: () => null,
     get_sync_conflicts: () => [],
     resolve_sync_conflict: () => null,
+    get_provider_status: () => [
+      {
+        name: "google_drive",
+        displayName: "Google Drive",
+        connected: false,
+        email: null,
+        errorMsg: null,
+      },
+      {
+        name: "dropbox",
+        displayName: "Dropbox",
+        connected: false,
+        email: null,
+        errorMsg: null,
+      },
+    ],
+    sync_bidirectional: () => ({
+      uploaded: 0,
+      downloaded: 0,
+      conflicts: 0,
+      errors: [],
+    }),
+    list_remote_workspaces: () => [],
+    download_workspace: () => 0,
+    disconnect_provider_by_name: () => null,
   };
 
   return { ...defaults, ...overrides };

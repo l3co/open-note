@@ -1015,11 +1015,55 @@ body {
   color: #22c55e;
 }
 
+.sync-provider-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 6px;
+}
+
 .sync-provider-meta {
-  display: block;
   font-size: 11px;
   color: var(--text-tertiary);
-  margin-top: 4px;
+  flex: 1;
+}
+
+.sync-provider-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 3px 10px;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.sync-provider-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.sync-provider-btn.connect {
+  background: var(--accent);
+  color: #fff;
+}
+
+.sync-provider-btn.connect:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.sync-provider-btn.disconnect {
+  background: var(--bg-hover);
+  color: var(--text-secondary);
+}
+
+.sync-provider-btn.disconnect:hover:not(:disabled) {
+  background: var(--bg-hover);
+  opacity: 0.8;
 }
 
 .sync-conflict-item {

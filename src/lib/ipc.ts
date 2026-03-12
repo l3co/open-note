@@ -335,6 +335,29 @@ export const searchAllWorkspaces = (
 
 // ─── Sync ───
 
+export interface ProviderConnectionStatus {
+  name: string;
+  displayName: string;
+  connected: boolean;
+  email: string | null;
+  errorMsg: string | null;
+}
+
+export const connectProvider = (providerName: string) =>
+  invoke<string>("connect_provider", { providerName });
+
+export const disconnectProvider = (providerName: string) =>
+  invoke<void>("disconnect_provider", { providerName });
+
+export const disconnectProviderByName = (providerName: string) =>
+  invoke<void>("disconnect_provider_by_name", { providerName });
+
+export const getProviderStatus = () =>
+  invoke<ProviderConnectionStatus[]>("get_provider_status");
+
+export const syncInitialUpload = (providerName: string) =>
+  invoke<number>("sync_initial_upload", { providerName });
+
 export const getSyncProviders = () =>
   invoke<import("@/types/sync").ProviderInfo[]>("get_sync_providers");
 
@@ -354,6 +377,28 @@ export const resolveSyncConflict = (
   conflictId: string,
   resolution: import("@/types/sync").ConflictResolution,
 ) => invoke<void>("resolve_sync_conflict", { conflictId, resolution });
+
+export const syncBidirectional = (providerName: string) =>
+  invoke<import("@/types/sync").SyncBidirectionalResult>("sync_bidirectional", {
+    providerName,
+  });
+
+export const listRemoteWorkspaces = (providerName: string) =>
+  invoke<import("@/types/sync").RemoteWorkspaceInfo[]>(
+    "list_remote_workspaces",
+    { providerName },
+  );
+
+export const downloadWorkspace = (
+  providerName: string,
+  workspaceName: string,
+  destPath: string,
+) =>
+  invoke<number>("download_workspace", {
+    providerName,
+    workspaceName,
+    destPath,
+  });
 
 // ─── Spell Check ───
 
