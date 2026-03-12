@@ -94,7 +94,10 @@ impl OneDriveProvider {
         if !resp.status().is_success() {
             let status = resp.status().as_u16();
             let msg = resp.text().await.unwrap_or_default();
-            return Err(SyncError::Api { status, message: msg });
+            return Err(SyncError::Api {
+                status,
+                message: msg,
+            });
         }
 
         let result: serde_json::Value = resp
@@ -123,10 +126,7 @@ impl OneDriveProvider {
                     all.append(&mut sub);
                 }
             } else if item.get("file").is_some() {
-                let size = item
-                    .get("size")
-                    .and_then(|v| v.as_u64())
-                    .unwrap_or(0);
+                let size = item.get("size").and_then(|v| v.as_u64()).unwrap_or(0);
                 let hash = item
                     .get("eTag")
                     .and_then(|v| v.as_str())
@@ -353,7 +353,10 @@ impl SyncProvider for OneDriveProvider {
         if !resp.status().is_success() {
             let status = resp.status().as_u16();
             let msg = resp.text().await.unwrap_or_default();
-            return Err(SyncError::Api { status, message: msg });
+            return Err(SyncError::Api {
+                status,
+                message: msg,
+            });
         }
 
         resp.bytes()
@@ -385,7 +388,10 @@ impl SyncProvider for OneDriveProvider {
         if !resp.status().is_success() {
             let status = resp.status().as_u16();
             let msg = resp.text().await.unwrap_or_default();
-            return Err(SyncError::Api { status, message: msg });
+            return Err(SyncError::Api {
+                status,
+                message: msg,
+            });
         }
 
         let meta: serde_json::Value = resp
@@ -424,7 +430,10 @@ impl SyncProvider for OneDriveProvider {
         }
         let status = resp.status().as_u16();
         let msg = resp.text().await.unwrap_or_default();
-        Err(SyncError::Api { status, message: msg })
+        Err(SyncError::Api {
+            status,
+            message: msg,
+        })
     }
 
     async fn create_directory(&self, token: &AuthToken, remote_path: &str) -> SyncResult<()> {
@@ -459,7 +468,10 @@ impl SyncProvider for OneDriveProvider {
         }
         let status = resp.status().as_u16();
         let msg = resp.text().await.unwrap_or_default();
-        Err(SyncError::Api { status, message: msg })
+        Err(SyncError::Api {
+            status,
+            message: msg,
+        })
     }
 }
 

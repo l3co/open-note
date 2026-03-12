@@ -5,7 +5,9 @@ use serde::Serialize;
 use tauri::State;
 use tauri_plugin_opener::OpenerExt;
 
-use opennote_sync::manifest::{compute_hash, detect_changes, should_sync_file, SyncFileEntry, SyncManifest};
+use opennote_sync::manifest::{
+    compute_hash, detect_changes, should_sync_file, SyncFileEntry, SyncManifest,
+};
 use opennote_sync::providers;
 use opennote_sync::types::{
     ConflictResolution, ProviderInfo, RemoteWorkspaceInfo, SyncBidirectionalResult, SyncConflict,
@@ -561,9 +563,7 @@ pub async fn sync_bidirectional(
     }
 
     // ── Load manifest ────────────────────────────────────────────────────────
-    let manifest_path = workspace_root
-        .join(".opennote")
-        .join("sync_manifest.json");
+    let manifest_path = workspace_root.join(".opennote").join("sync_manifest.json");
     let mut manifest = SyncManifest::load(&manifest_path).unwrap_or_default();
 
     // ── Detect changes ───────────────────────────────────────────────────────
@@ -651,7 +651,10 @@ pub async fn sync_bidirectional(
                             let p = std::path::Path::new(&change.path);
                             let stem = p.file_stem().and_then(|s| s.to_str()).unwrap_or("file");
                             let ext = p.extension().and_then(|s| s.to_str()).unwrap_or("");
-                            let parent = p.parent().map(|p| p.to_string_lossy().to_string()).unwrap_or_default();
+                            let parent = p
+                                .parent()
+                                .map(|p| p.to_string_lossy().to_string())
+                                .unwrap_or_default();
                             if parent.is_empty() {
                                 format!("{}.conflict.{}", stem, ext)
                             } else {

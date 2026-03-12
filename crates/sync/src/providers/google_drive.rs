@@ -197,7 +197,10 @@ impl GoogleDriveProvider {
         if !resp.status().is_success() {
             let status = resp.status().as_u16();
             let msg = resp.text().await.unwrap_or_default();
-            return Err(SyncError::Api { status, message: msg });
+            return Err(SyncError::Api {
+                status,
+                message: msg,
+            });
         }
 
         let result: serde_json::Value = resp
@@ -499,7 +502,10 @@ impl SyncProvider for GoogleDriveProvider {
         if !resp.status().is_success() {
             let status = resp.status().as_u16();
             let msg = resp.text().await.unwrap_or_default();
-            return Err(SyncError::Api { status, message: msg });
+            return Err(SyncError::Api {
+                status,
+                message: msg,
+            });
         }
 
         resp.bytes()

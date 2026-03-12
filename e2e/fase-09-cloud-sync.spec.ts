@@ -26,7 +26,7 @@ test.describe("Fase 09 — Cloud Sync", () => {
       }
     });
 
-    test("HP-02: SyncSettings exibe provedores com badge 'Em breve'", async ({ page }) => {
+    test("HP-02: SyncSettings exibe provedores com botão Conectar", async ({ page }) => {
       await skipOnboarding(page);
       await setupWithWorkspace(page, {
         get_sync_providers: () => SYNC_PROVIDERS,
@@ -42,14 +42,13 @@ test.describe("Fase 09 — Cloud Sync", () => {
 
       const syncVisible = await page.locator(".sync-settings-panel, " + SYNC_SETTINGS.panel).isVisible().catch(() => false);
       if (syncVisible) {
-        // Deve exibir os 3 provedores
+        // Deve exibir os provedores
         await expect(page.getByText("Google Drive")).toBeVisible();
-        await expect(page.getByText("OneDrive")).toBeVisible();
         await expect(page.getByText("Dropbox")).toBeVisible();
 
-        // Deve exibir badges "Em breve"
-        const badges = page.getByText("Em breve");
-        await expect(badges.first()).toBeVisible();
+        // Deve exibir botões Conectar (não mais badges "Em breve")
+        const connectBtns = page.getByRole("button", { name: /conectar/i });
+        await expect(connectBtns.first()).toBeVisible();
       }
     });
 
@@ -68,7 +67,7 @@ test.describe("Fase 09 — Cloud Sync", () => {
 
       const syncVisible = await page.locator(".sync-settings-panel, " + SYNC_SETTINGS.panel).isVisible().catch(() => false);
       if (syncVisible) {
-        await expect(page.getByText("Não conectado")).toBeVisible();
+        await expect(page.getByText("Não conectado").first()).toBeVisible();
       }
     });
 
@@ -98,19 +97,15 @@ test.describe("Fase 09 — Cloud Sync", () => {
   });
 
   test.describe("Critical Path", () => {
-    test("CP-01: SyncSettings exibe conflitos quando existem", async ({ page }) => {
+    test("CP-01: SyncSettings exibe painel de sincronização quando conectado", async ({ page }) => {
       await skipOnboarding(page);
       await setupWithWorkspace(page, {
         get_sync_providers: () => SYNC_PROVIDERS,
         get_sync_status: () => ({ is_syncing: false, last_synced_at: null, last_error: null }),
-        get_sync_conflicts: () => [
-          {
-            id: "conflict-001",
-            page_id: "page-001",
-            page_title: "Notas conflitantes",
-            local_modified_at: "2025-01-15T10:00:00Z",
-            remote_modified_at: "2025-01-15T11:00:00Z",
-          },
+        get_sync_conflicts: () => [],
+        get_provider_status: () => [
+          { name: "google_drive", displayName: "Google Drive", connected: true, email: "user@gmail.com", errorMsg: null },
+          { name: "dropbox", displayName: "Dropbox", connected: false, email: null, errorMsg: null },
         ],
       });
 
@@ -121,21 +116,26 @@ test.describe("Fase 09 — Cloud Sync", () => {
 
       const syncVisible = await page.locator(".sync-settings-panel, " + SYNC_SETTINGS.panel).isVisible().catch(() => false);
       if (syncVisible) {
-        // Deve exibir seção de conflitos
-        await expect(page.getByText("Notas conflitantes")).toBeVisible();
+        // Quando conectado, deve exibir botão Sincronizar agora
+        await expect(page.getByTestId("sync-now-btn")).toBeVisible();
       }
     });
 
-    test("CP-02: SyncSettings exibe erro de sync quando existente", async ({ page }) => {
+    test("CP-02: SyncSettings exibe status sincronizando quando is_syncing=true", async ({ page }) => {
       await skipOnboarding(page);
       await setupWithWorkspace(page, {
         get_sync_providers: () => SYNC_PROVIDERS,
         get_sync_status: () => ({
-          is_syncing: false,
+          is_syncing: true,
           last_synced_at: null,
-          last_error: "Network error: connection timeout",
+          last_error: null,
+          pending_conflicts: 0,
         }),
         get_sync_conflicts: () => [],
+        get_provider_status: () => [
+          { name: "google_drive", displayName: "Google Drive", connected: true, email: "user@gmail.com", errorMsg: null },
+          { name: "dropbox", displayName: "Dropbox", connected: false, email: null, errorMsg: null },
+        ],
       });
 
       await expect(page.locator(APP.main)).toBeVisible({ timeout: 10000 });
@@ -145,7 +145,7 @@ test.describe("Fase 09 — Cloud Sync", () => {
 
       const syncVisible = await page.locator(".sync-settings-panel, " + SYNC_SETTINGS.panel).isVisible().catch(() => false);
       if (syncVisible) {
-        await expect(page.getByText("Network error: connection timeout")).toBeVisible();
+        await expect(page.getByText(/sincronizando/i)).toBeVisible();
       }
     });
   });
