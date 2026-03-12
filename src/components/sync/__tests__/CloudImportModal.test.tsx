@@ -65,7 +65,7 @@ describe("CloudImportModal", () => {
         onClose={onClose}
       />,
     );
-    const [firstBtn] = screen.getAllByText(/^Baixar$/);
+    const firstBtn = screen.getAllByText(/^Baixar$/)[0]!;
     await user.click(firstBtn);
     await waitFor(() =>
       expect(mockIpc.downloadWorkspace).toHaveBeenCalledWith(
@@ -87,7 +87,7 @@ describe("CloudImportModal", () => {
         onClose={onClose}
       />,
     );
-    const [firstBtn] = screen.getAllByText(/^Baixar$/);
+    const firstBtn = screen.getAllByText(/^Baixar$/)[0]!;
     await user.click(firstBtn);
     await waitFor(() =>
       expect(screen.getByText(/5 arquivo/i)).toBeInTheDocument(),
