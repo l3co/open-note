@@ -9,10 +9,8 @@ import { useNavigationStore } from "@/stores/useNavigationStore";
 import { useUIStore } from "@/stores/useUIStore";
 import * as ipc from "@/lib/ipc";
 import { BackgroundPattern } from "@/components/shared/BackgroundPattern";
-import { Illustration } from "@/components/shared/Illustration";
 import { Button, IconButton } from "@/components/ui";
 import logoSrc from "@/assets/logo.png";
-import folderOpenSvg from "@/assets/illustrations/folders/folder-open.svg";
 import type { AppState } from "@/types/bindings/AppState";
 
 interface WorkspacePickerProps {
@@ -174,13 +172,10 @@ export function WorkspacePicker({
                     className="interactive-ghost group flex cursor-pointer items-center rounded-lg px-3 py-2"
                     onClick={() => handleOpen(rw.path)}
                   >
-                    <Illustration
-                      src={folderOpenSvg}
-                      alt=""
+                    <FolderOpen
                       size={20}
                       className="mr-3 shrink-0"
                       style={{ color: "var(--text-tertiary)" }}
-                      adaptive
                     />
                     <div className="min-w-0 flex-1">
                       <div
@@ -212,12 +207,9 @@ export function WorkspacePicker({
             </div>
           ) : (
             <div className="mb-4 flex flex-col items-center py-6">
-              <Illustration
-                src={folderOpenSvg}
-                alt=""
+              <FolderOpen
                 size={64}
                 style={{ color: "var(--text-tertiary)", opacity: 0.4 }}
-                adaptive
               />
               <p
                 className="mt-3 text-sm"

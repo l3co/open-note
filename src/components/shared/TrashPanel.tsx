@@ -1,8 +1,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Trash2, RotateCcw } from "lucide-react";
-import { Illustration } from "@/components/shared/Illustration";
-import folderSimpleSvg from "@/assets/illustrations/folders/folder-simple.svg";
 import { useUIStore } from "@/stores/useUIStore";
 import { Dialog, Button, IconButton } from "@/components/ui";
 import * as ipc from "@/lib/ipc";
@@ -80,12 +78,9 @@ export function TrashPanel() {
             className="flex h-full flex-col items-center justify-center gap-3"
             style={{ color: "var(--text-tertiary)" }}
           >
-            <Illustration
-              src={folderSimpleSvg}
-              alt=""
+            <Trash2
               size={48}
               style={{ color: "var(--text-tertiary)", opacity: 0.3 }}
-              adaptive
             />
             <span className="text-sm">{t("trash.empty")}</span>
           </div>
