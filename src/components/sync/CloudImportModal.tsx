@@ -125,9 +125,15 @@ export function CloudImportModal({
         {normalizedBase && (
           <div
             className="flex items-center gap-2 border-b px-4 py-2.5"
-            style={{ borderColor: "var(--border)", backgroundColor: "var(--bg-secondary)" }}
+            style={{
+              borderColor: "var(--border)",
+              backgroundColor: "var(--bg-secondary)",
+            }}
           >
-            <Folder size={13} style={{ color: "var(--text-tertiary)", flexShrink: 0 }} />
+            <Folder
+              size={13}
+              style={{ color: "var(--text-tertiary)", flexShrink: 0 }}
+            />
             <span
               className="truncate font-mono text-xs"
               style={{ color: "var(--text-tertiary)" }}

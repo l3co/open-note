@@ -423,7 +423,11 @@ function SectionNode({
       </div>
 
       {isExpanded && pages.length === 0 && (
-        <EmptyHint icon={<FileText size={14} />} label={t("sidebar.no_pages")} depth={2} />
+        <EmptyHint
+          icon={<FileText size={14} />}
+          label={t("sidebar.no_pages")}
+          depth={2}
+        />
       )}
       {isExpanded &&
         pages.map((page) => (
