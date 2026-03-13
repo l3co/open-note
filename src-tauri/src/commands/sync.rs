@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 use std::path::PathBuf;
 
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use tauri::State;
 use tauri_plugin_opener::OpenerExt;
 
@@ -437,14 +437,19 @@ pub async fn list_remote_workspaces(
     Ok(workspaces)
 }
 
-/// Downloads all files from a remote workspace to a local directory.
-/// Returns the number of files downloaded.
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DownloadResult {
+    pub count: u32,
+    pub local_path: String,
+}
+
+/// Downloads all files from a remote workspace to ~/.opennote/workspaces/<name>.
+/// Returns the number of files downloaded and the local path.
 #[tauri::command]
 pub async fn download_workspace(
     provider_name: String,
     workspace_name: String,
-    dest_path: String,
-) -> Result<u32, String> {
+) -> Result<DownloadResult, String> {
     let token = opennote_sync::token_store::get_token(&provider_name)
         .map_err(|e| e.to_string())?
         .ok_or_else(|| format!("Não conectado a {provider_name}"))?;
@@ -458,7 +463,7 @@ pub async fn download_workspace(
         .await
         .map_err(|e| e.to_string())?;
 
-    let dest = PathBuf::from(&dest_path);
+    let dest = opennote_sync::token_store::workspaces_dir().join(&workspace_name);
     std::fs::create_dir_all(&dest).map_err(|e| e.to_string())?;
 
     let mut downloaded = 0u32;
@@ -483,7 +488,41 @@ pub async fn download_workspace(
         }
     }
 
-    Ok(downloaded)
+    Ok(DownloadResult {
+        count: downloaded,
+        local_path: dest.to_string_lossy().into_owned(),
+    })
+}
+
+/// Returns the ~/.opennote/ directory path.
+#[tauri::command]
+pub fn get_opennote_dir() -> String {
+    opennote_sync::token_store::opennote_dir()
+        .to_string_lossy()
+        .into_owned()
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DownloadedWorkspace {
+    pub name: String,
+    pub local_path: String,
+}
+
+/// Lists workspaces previously downloaded to ~/.opennote/workspaces/.
+#[tauri::command]
+pub fn list_downloaded_workspaces() -> Vec<DownloadedWorkspace> {
+    let dir = opennote_sync::token_store::workspaces_dir();
+    let Ok(entries) = std::fs::read_dir(&dir) else {
+        return vec![];
+    };
+    entries
+        .flatten()
+        .filter(|e| e.path().is_dir())
+        .map(|e| DownloadedWorkspace {
+            name: e.file_name().to_string_lossy().into_owned(),
+            local_path: e.path().to_string_lossy().into_owned(),
+        })
+        .collect()
 }
 
 /// Performs a full bidirectional sync of the current workspace with the cloud provider.

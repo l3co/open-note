@@ -11,6 +11,8 @@ const mockIpc = vi.hoisted(() => ({
   getSyncStatus: vi.fn(),
   disconnectProviderByName: vi.fn(),
   syncInitialUpload: vi.fn(),
+  listDownloadedWorkspaces: vi.fn().mockResolvedValue([]),
+  openWorkspace: vi.fn().mockResolvedValue(undefined),
 }));
 
 vi.mock("@/lib/ipc", () => mockIpc);
