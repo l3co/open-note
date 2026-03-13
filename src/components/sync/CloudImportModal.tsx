@@ -4,6 +4,7 @@ import {
   X,
   CloudDownload,
   FolderOpen,
+  Folder,
   Loader2,
   CheckCircle,
   AlertCircle,
@@ -44,9 +45,11 @@ export function CloudImportModal({
     setStates((prev) => ({ ...prev, [name]: state }));
   };
 
+  const normalizedBase = defaultDestDir.replace(/\/+$/, "");
+
   const downloadOne = async (ws: RemoteWorkspaceInfo) => {
     setWsState(ws.name, { status: "downloading" });
-    const dest = `${defaultDestDir}/${ws.name}`;
+    const dest = `${normalizedBase}/${ws.name}`;
     try {
       const count = await ipc.downloadWorkspace(providerName, ws.name, dest);
       setWsState(ws.name, { status: "done", count });
@@ -118,6 +121,22 @@ export function CloudImportModal({
             <X size={16} style={{ color: "var(--text-tertiary)" }} />
           </button>
         </div>
+
+        {normalizedBase && (
+          <div
+            className="flex items-center gap-2 border-b px-4 py-2.5"
+            style={{ borderColor: "var(--border)", backgroundColor: "var(--bg-secondary)" }}
+          >
+            <Folder size={13} style={{ color: "var(--text-tertiary)", flexShrink: 0 }} />
+            <span
+              className="truncate font-mono text-xs"
+              style={{ color: "var(--text-tertiary)" }}
+              title={normalizedBase}
+            >
+              {normalizedBase}
+            </span>
+          </div>
+        )}
 
         <div className="flex-1 space-y-2 overflow-y-auto p-4">
           {workspaces.map((ws) => {
