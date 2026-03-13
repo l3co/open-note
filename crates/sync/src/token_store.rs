@@ -9,12 +9,22 @@ fn entry_name(provider: &str) -> String {
     format!("sync-{provider}")
 }
 
-/// Diretório de tokens em filesystem: ~/.opennote/tokens/
-fn tokens_dir() -> PathBuf {
+/// Diretório raiz da app: ~/.opennote/
+pub fn opennote_dir() -> PathBuf {
     let home = std::env::var("HOME")
         .map(PathBuf::from)
         .unwrap_or_else(|_| PathBuf::from("."));
-    home.join(".opennote").join("tokens")
+    home.join(".opennote")
+}
+
+/// Diretório de workspaces baixados da nuvem: ~/.opennote/workspaces/
+pub fn workspaces_dir() -> PathBuf {
+    opennote_dir().join("workspaces")
+}
+
+/// Diretório de tokens em filesystem: ~/.opennote/tokens/
+fn tokens_dir() -> PathBuf {
+    opennote_dir().join("tokens")
 }
 
 fn token_file(provider: &str) -> PathBuf {

@@ -428,16 +428,29 @@ export const listRemoteWorkspaces = (providerName: string) =>
     { providerName },
   );
 
+export interface DownloadResult {
+  count: number;
+  localPath: string;
+}
+
 export const downloadWorkspace = (
   providerName: string,
   workspaceName: string,
-  destPath: string,
 ) =>
-  invoke<number>("download_workspace", {
+  invoke<DownloadResult>("download_workspace", {
     providerName,
     workspaceName,
-    destPath,
   });
+
+export const getOpennoteDir = () => invoke<string>("get_opennote_dir");
+
+export interface DownloadedWorkspace {
+  name: string;
+  localPath: string;
+}
+
+export const listDownloadedWorkspaces = () =>
+  invoke<DownloadedWorkspace[]>("list_downloaded_workspaces");
 
 // ─── Quick Notes ───
 

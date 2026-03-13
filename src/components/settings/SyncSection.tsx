@@ -3,13 +3,14 @@ import { useTranslation } from "react-i18next";
 import {
   Cloud,
   CloudOff,
+  FolderOpen,
   Loader2,
   LogOut,
   RefreshCw,
   UploadCloud,
 } from "lucide-react";
 import * as ipc from "@/lib/ipc";
-import type { ProviderConnectionStatus } from "@/lib/ipc";
+import type { DownloadedWorkspace, ProviderConnectionStatus } from "@/lib/ipc";
 import type { SyncStatus } from "@/types/sync";
 import { CloudConnectModal } from "@/components/sync/CloudConnectModal";
 
@@ -179,6 +180,86 @@ function ProviderRow({
   );
 }
 
+function DownloadedWorkspacesSection() {
+  const { t } = useTranslation();
+  const [workspaces, setWorkspaces] = useState<DownloadedWorkspace[]>([]);
+  const [opening, setOpening] = useState<string | null>(null);
+
+  useEffect(() => {
+    ipc
+      .listDownloadedWorkspaces()
+      .then(setWorkspaces)
+      .catch(() => {});
+  }, []);
+
+  if (workspaces.length === 0) return null;
+
+  const handleOpen = async (ws: DownloadedWorkspace) => {
+    setOpening(ws.name);
+    try {
+      await ipc.openWorkspace(ws.localPath);
+    } finally {
+      setOpening(null);
+    }
+  };
+
+  return (
+    <div className="space-y-2">
+      <p
+        className="text-xs font-semibold tracking-wide uppercase"
+        style={{ color: "var(--text-tertiary)" }}
+      >
+        {t("sync.downloaded_workspaces")}
+      </p>
+      {workspaces.map((ws) => (
+        <div
+          key={ws.name}
+          className="flex items-center justify-between rounded-xl border px-4 py-3"
+          style={{
+            borderColor: "var(--border)",
+            backgroundColor: "var(--bg-secondary)",
+          }}
+        >
+          <div className="flex min-w-0 items-center gap-3">
+            <FolderOpen
+              size={16}
+              style={{ color: "var(--accent)", flexShrink: 0 }}
+            />
+            <div className="min-w-0">
+              <p
+                className="truncate text-sm font-medium"
+                style={{ color: "var(--text-primary)" }}
+              >
+                {ws.name}
+              </p>
+              <p
+                className="truncate font-mono text-xs"
+                style={{ color: "var(--text-tertiary)" }}
+                title={ws.localPath}
+              >
+                {ws.localPath}
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={() => handleOpen(ws)}
+            disabled={opening === ws.name}
+            className="ml-3 flex shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            style={{ backgroundColor: "var(--accent)" }}
+          >
+            {opening === ws.name ? (
+              <Loader2 size={12} className="animate-spin" />
+            ) : (
+              <FolderOpen size={12} />
+            )}
+            {t("common.open")}
+          </button>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export function SyncSection() {
   const { t } = useTranslation();
   const [providers, setProviders] = useState<ProviderConnectionStatus[]>([]);
@@ -325,6 +406,8 @@ export function SyncSection() {
           ))}
         </div>
       )}
+
+      <DownloadedWorkspacesSection />
 
       {connectTarget && (
         <CloudConnectModal
