@@ -23,9 +23,6 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
-import { Illustration } from "@/components/shared/Illustration";
-import notesStackSvg from "@/assets/illustrations/notes/notes-stack.svg";
-import notesListSvg from "@/assets/illustrations/notes/notes-list.svg";
 import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 import { useNavigationStore } from "@/stores/useNavigationStore";
 import { usePageStore } from "@/stores/usePageStore";
@@ -333,7 +330,7 @@ function NotebookRow({
 
       {isExpanded && sections.length === 0 && (
         <EmptyHint
-          src={notesStackSvg}
+          icon={<FolderOpen size={16} />}
           label={t("sidebar.no_sections")}
           depth={1}
         />
@@ -426,7 +423,11 @@ function SectionNode({
       </div>
 
       {isExpanded && pages.length === 0 && (
-        <EmptyHint src={notesListSvg} label={t("sidebar.no_pages")} depth={2} />
+        <EmptyHint
+          icon={<FileText size={14} />}
+          label={t("sidebar.no_pages")}
+          depth={2}
+        />
       )}
       {isExpanded &&
         pages.map((page) => (
@@ -502,11 +503,11 @@ function PageRow({
 }
 
 function EmptyHint({
-  src,
+  icon,
   label,
   depth,
 }: {
-  src: string;
+  icon: React.ReactNode;
   label: string;
   depth: number;
 }) {
@@ -515,13 +516,9 @@ function EmptyHint({
       className="flex items-center gap-2 py-2"
       style={{ paddingLeft: 8 + depth * 16 }}
     >
-      <Illustration
-        src={src}
-        alt=""
-        size={20}
-        style={{ color: "var(--text-tertiary)", opacity: 0.4 }}
-        adaptive
-      />
+      <span style={{ color: "var(--text-tertiary)", opacity: 0.4 }}>
+        {icon}
+      </span>
       <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>
         {label}
       </span>

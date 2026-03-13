@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { X, Cloud, CheckCircle, Loader2, AlertCircle } from "lucide-react";
+import { documentDir } from "@tauri-apps/api/path";
 import * as ipc from "@/lib/ipc";
 import type { ProviderConnectionStatus } from "@/lib/ipc";
 import type { RemoteWorkspaceInfo } from "@/types/sync";
@@ -44,6 +45,13 @@ export function CloudConnectModal({
     RemoteWorkspaceInfo[]
   >([]);
   const [showImport, setShowImport] = useState(false);
+  const [resolvedDocDir, setResolvedDocDir] = useState<string>("");
+
+  useEffect(() => {
+    documentDir()
+      .then((dir) => setResolvedDocDir(dir))
+      .catch(() => setResolvedDocDir(""));
+  }, []);
 
   useEffect(() => {
     ipc
@@ -99,7 +107,7 @@ export function CloudConnectModal({
         providerName={selected}
         providerLabel={providerLabel}
         workspaces={remoteWorkspaces}
-        defaultDestDir="~/Documents/OpenNote"
+        defaultDestDir={resolvedDocDir ? `${resolvedDocDir}OpenNote` : ""}
         onClose={onClose}
       />
     );
