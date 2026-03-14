@@ -443,12 +443,13 @@ pub struct DownloadResult {
     pub local_path: String,
 }
 
-/// Downloads all files from a remote workspace to ~/.opennote/workspaces/<name>.
-/// Returns the number of files downloaded and the local path.
+/// Downloads all files from a remote workspace to the given local directory.
+/// Returns the number of files downloaded and the resolved local path.
 #[tauri::command]
 pub async fn download_workspace(
     provider_name: String,
     workspace_name: String,
+    dest_path: String,
 ) -> Result<DownloadResult, String> {
     let token = opennote_sync::token_store::get_token(&provider_name)
         .map_err(|e| e.to_string())?
@@ -463,7 +464,7 @@ pub async fn download_workspace(
         .await
         .map_err(|e| e.to_string())?;
 
-    let dest = opennote_sync::token_store::workspaces_dir().join(&workspace_name);
+    let dest = PathBuf::from(&dest_path);
     std::fs::create_dir_all(&dest).map_err(|e| e.to_string())?;
 
     let mut downloaded = 0u32;
@@ -508,10 +509,13 @@ pub struct DownloadedWorkspace {
     pub local_path: String,
 }
 
-/// Lists workspaces previously downloaded to ~/.opennote/workspaces/.
+/// Lists workspaces previously downloaded to ~/Documents/OpenNote/.
 #[tauri::command]
 pub fn list_downloaded_workspaces() -> Vec<DownloadedWorkspace> {
-    let dir = opennote_sync::token_store::workspaces_dir();
+    let home = std::env::var("HOME")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| PathBuf::from("."));
+    let dir = home.join("Documents").join("OpenNote");
     let Ok(entries) = std::fs::read_dir(&dir) else {
         return vec![];
     };
