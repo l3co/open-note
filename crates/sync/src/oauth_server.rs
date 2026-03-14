@@ -168,4 +168,67 @@ mod tests {
         let line = "GET /callback?state=xyz HTTP/1.1";
         assert!(extract_code_from_request(line).is_err());
     }
+
+    #[test]
+    fn extract_code_empty_request_line_returns_err() {
+        assert!(extract_code_from_request("").is_err());
+    }
+
+    #[test]
+    fn extract_code_only_one_token_returns_err() {
+        assert!(extract_code_from_request("GET").is_err());
+    }
+
+    #[test]
+    fn extract_code_multiple_params_finds_code() {
+        let line = "GET /callback?state=abc&code=mycode123&foo=bar HTTP/1.1";
+        assert_eq!(extract_code_from_request(line).unwrap(), "mycode123");
+    }
+
+    #[test]
+    fn percent_decode_plain_ascii() {
+        assert_eq!(percent_decode("hello"), "hello");
+    }
+
+    #[test]
+    fn percent_decode_plus_becomes_space() {
+        assert_eq!(percent_decode("hello+world"), "hello world");
+    }
+
+    #[test]
+    fn percent_decode_lowercase_hex() {
+        assert_eq!(percent_decode("abc%2bdef"), "abc+def");
+    }
+
+    #[test]
+    fn percent_decode_uppercase_hex() {
+        assert_eq!(percent_decode("abc%2Bdef"), "abc+def");
+    }
+
+    #[test]
+    fn percent_decode_invalid_hex_emits_percent_and_consumes_chars() {
+        // Implementation consumes the two chars after % but only emits '%'
+        assert_eq!(percent_decode("%GG"), "%");
+    }
+
+    #[test]
+    fn percent_decode_incomplete_at_end_keeps_percent() {
+        assert_eq!(percent_decode("abc%"), "abc%");
+    }
+
+    #[test]
+    fn percent_decode_incomplete_one_char_emits_percent() {
+        // Implementation consumes the partial char after % and emits only '%'
+        assert_eq!(percent_decode("abc%2"), "abc%");
+    }
+
+    #[test]
+    fn percent_decode_space_encoding() {
+        assert_eq!(percent_decode("hello%20world"), "hello world");
+    }
+
+    #[test]
+    fn percent_decode_empty_string() {
+        assert_eq!(percent_decode(""), "");
+    }
 }

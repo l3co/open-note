@@ -130,6 +130,23 @@ impl SyncCoordinator {
         Ok(())
     }
 
+    /// Derives the set of unique remote directory paths that must exist before
+    /// uploading `file_paths`. Returns paths sorted shortest-first so parent
+    /// directories are always created before their children.
+    ///
+    /// Example: `["nb/sec/page.json", "nb/sec2/page.json"]`
+    /// → `["nb", "nb/sec", "nb/sec2"]`
+    pub fn dirs_for_paths(file_paths: &[&str]) -> Vec<String> {
+        let mut dirs = std::collections::BTreeSet::new();
+        for path in file_paths {
+            let parts: Vec<&str> = path.split('/').collect();
+            for depth in 1..parts.len() {
+                dirs.insert(parts[..depth].join("/"));
+            }
+        }
+        dirs.into_iter().collect()
+    }
+
     pub fn resolve_conflict(
         &mut self,
         conflict_id: &str,
@@ -191,6 +208,223 @@ mod tests {
         coord.set_preferences(prefs.clone());
         assert!(coord.get_preferences().enabled);
         assert_eq!(coord.get_preferences().interval_seconds, 60);
+    }
+
+    // ─── dirs_for_paths ───
+
+    #[test]
+    fn dirs_for_paths_empty_list_returns_empty() {
+        assert!(SyncCoordinator::dirs_for_paths(&[]).is_empty());
+    }
+
+    #[test]
+    fn dirs_for_paths_root_file_returns_empty() {
+        // A file at root level has no parent directory to create
+        let dirs = SyncCoordinator::dirs_for_paths(&["workspace.json"]);
+        assert!(dirs.is_empty());
+    }
+
+    #[test]
+    fn dirs_for_paths_single_nested_file() {
+        let dirs = SyncCoordinator::dirs_for_paths(&["notebook/section/page.opn.json"]);
+        assert_eq!(dirs, vec!["notebook", "notebook/section"]);
+    }
+
+    #[test]
+    fn dirs_for_paths_deduplicates_shared_parents() {
+        let dirs = SyncCoordinator::dirs_for_paths(&[
+            "notebook/sec1/page1.opn.json",
+            "notebook/sec1/page2.opn.json",
+            "notebook/sec2/page3.opn.json",
+        ]);
+        assert_eq!(
+            dirs,
+            vec!["notebook", "notebook/sec1", "notebook/sec2"]
+        );
+    }
+
+    #[test]
+    fn dirs_for_paths_sorted_shortest_first() {
+        let dirs = SyncCoordinator::dirs_for_paths(&[
+            "a/b/c/d.opn.json",
+            "a/e.opn.json",
+        ]);
+        // BTreeSet gives lexicographic order; parents always shorter than children
+        assert_eq!(dirs[0], "a");
+        assert!(dirs.windows(2).all(|w| w[0].len() <= w[1].len() || w[0] < w[1]));
+    }
+
+    #[test]
+    fn dirs_for_paths_multiple_notebooks() {
+        let dirs = SyncCoordinator::dirs_for_paths(&[
+            "NB-Alpha/sec/page.json",
+            "NB-Beta/sec/page.json",
+        ]);
+        assert!(dirs.contains(&"NB-Alpha".to_string()));
+        assert!(dirs.contains(&"NB-Beta".to_string()));
+        assert!(dirs.contains(&"NB-Alpha/sec".to_string()));
+        assert!(dirs.contains(&"NB-Beta/sec".to_string()));
+        assert_eq!(dirs.len(), 4);
+    }
+
+    #[test]
+    fn dirs_for_paths_deeply_nested() {
+        let dirs = SyncCoordinator::dirs_for_paths(&["a/b/c/d/e/file.json"]);
+        assert_eq!(
+            dirs,
+            vec!["a", "a/b", "a/b/c", "a/b/c/d", "a/b/c/d/e"]
+        );
+    }
+
+    #[test]
+    fn dirs_for_paths_mixed_depth() {
+        let dirs = SyncCoordinator::dirs_for_paths(&[
+            "root.json",
+            "nb/page.json",
+            "nb/sec/deep.json",
+        ]);
+        assert_eq!(dirs, vec!["nb", "nb/sec"]);
+    }
+
+    // ─── create_directory via mock provider ───
+
+    use crate::types::{AuthToken, RemoteFile, SyncProviderType};
+    use async_trait::async_trait;
+    use std::sync::{Arc, Mutex};
+
+    #[derive(Clone)]
+    struct TrackingProvider {
+        created_dirs: Arc<Mutex<Vec<String>>>,
+    }
+
+    impl TrackingProvider {
+        fn new() -> Self {
+            Self {
+                created_dirs: Arc::new(Mutex::new(Vec::new())),
+            }
+        }
+        fn created(&self) -> Vec<String> {
+            self.created_dirs.lock().unwrap().clone()
+        }
+    }
+
+    #[async_trait]
+    impl SyncProvider for TrackingProvider {
+        fn name(&self) -> &str { "tracking" }
+        fn provider_type(&self) -> SyncProviderType { SyncProviderType::GoogleDrive }
+        fn display_name(&self) -> &str { "Tracking" }
+        fn has_credentials(&self) -> bool { true }
+        fn auth_url(&self) -> String { String::new() }
+        async fn exchange_code(&self, _: &str) -> crate::error::SyncResult<AuthToken> { unimplemented!() }
+        async fn refresh_token(&self, _: &AuthToken) -> crate::error::SyncResult<AuthToken> { unimplemented!() }
+        async fn revoke(&self, _: &AuthToken) -> crate::error::SyncResult<()> { Ok(()) }
+        async fn get_user_email(&self, _: &AuthToken) -> crate::error::SyncResult<Option<String>> { Ok(None) }
+        async fn list_remote_files(&self, _: &AuthToken, _: &str) -> crate::error::SyncResult<Vec<RemoteFile>> { Ok(vec![]) }
+        async fn list_remote_folders(&self, _: &AuthToken, _: &str) -> crate::error::SyncResult<Vec<String>> { Ok(vec![]) }
+        async fn download_file(&self, _: &AuthToken, _: &str) -> crate::error::SyncResult<Vec<u8>> { Ok(vec![]) }
+        async fn upload_file(&self, _: &AuthToken, path: &str, content: &[u8]) -> crate::error::SyncResult<RemoteFile> {
+            use chrono::Utc;
+            Ok(RemoteFile { path: path.to_string(), hash: "h".to_string(), size: content.len() as u64, modified_at: Utc::now() })
+        }
+        async fn delete_file(&self, _: &AuthToken, _: &str) -> crate::error::SyncResult<()> { Ok(()) }
+        async fn create_directory(&self, _: &AuthToken, path: &str) -> crate::error::SyncResult<()> {
+            self.created_dirs.lock().unwrap().push(path.to_string());
+            Ok(())
+        }
+    }
+
+    fn dummy_token() -> AuthToken {
+        AuthToken {
+            access_token: "tok".to_string(),
+            refresh_token: None,
+            expires_at: None,
+            token_type: "Bearer".to_string(),
+        }
+    }
+
+    #[tokio::test]
+    async fn create_directory_called_for_each_parent_dir() {
+        let provider = TrackingProvider::new();
+        let token = dummy_token();
+
+        // Simulate what sync would do: derive dirs then create them
+        let files = [
+            "notebook/section/page1.opn.json",
+            "notebook/section/page2.opn.json",
+            "notebook/section2/page3.opn.json",
+        ];
+        let dirs = SyncCoordinator::dirs_for_paths(&files);
+
+        for dir in &dirs {
+            provider.create_directory(&token, dir).await.unwrap();
+        }
+
+        let created = provider.created();
+        assert!(created.contains(&"notebook".to_string()));
+        assert!(created.contains(&"notebook/section".to_string()));
+        assert!(created.contains(&"notebook/section2".to_string()));
+        assert_eq!(created.len(), 3);
+    }
+
+    #[tokio::test]
+    async fn create_directory_parent_before_child() {
+        let provider = TrackingProvider::new();
+        let token = dummy_token();
+
+        let files = ["a/b/c/file.json"];
+        let dirs = SyncCoordinator::dirs_for_paths(&files);
+
+        for dir in &dirs {
+            provider.create_directory(&token, dir).await.unwrap();
+        }
+
+        let created = provider.created();
+        assert_eq!(created, vec!["a", "a/b", "a/b/c"]);
+
+        // Verify parent is created before child
+        let pos_a = created.iter().position(|d| d == "a").unwrap();
+        let pos_ab = created.iter().position(|d| d == "a/b").unwrap();
+        let pos_abc = created.iter().position(|d| d == "a/b/c").unwrap();
+        assert!(pos_a < pos_ab);
+        assert!(pos_ab < pos_abc);
+    }
+
+    #[tokio::test]
+    async fn create_directory_root_file_creates_no_dirs() {
+        let provider = TrackingProvider::new();
+        let token = dummy_token();
+
+        let files = ["workspace.json", "notebook.json"];
+        let dirs = SyncCoordinator::dirs_for_paths(&files);
+
+        for dir in &dirs {
+            provider.create_directory(&token, dir).await.unwrap();
+        }
+
+        assert!(provider.created().is_empty());
+    }
+
+    #[tokio::test]
+    async fn create_directory_deduplicates_shared_parents() {
+        let provider = TrackingProvider::new();
+        let token = dummy_token();
+
+        let files = [
+            "nb/sec/p1.json",
+            "nb/sec/p2.json",
+            "nb/sec/p3.json",
+        ];
+        let dirs = SyncCoordinator::dirs_for_paths(&files);
+
+        for dir in &dirs {
+            provider.create_directory(&token, dir).await.unwrap();
+        }
+
+        let created = provider.created();
+        // "nb" and "nb/sec" should each appear exactly once
+        assert_eq!(created.iter().filter(|d| d.as_str() == "nb").count(), 1);
+        assert_eq!(created.iter().filter(|d| d.as_str() == "nb/sec").count(), 1);
+        assert_eq!(created.len(), 2);
     }
 
     #[test]

@@ -171,6 +171,11 @@ impl GoogleDriveProvider {
         }
     }
 
+    #[cfg(test)]
+    pub fn client_id_for_test(&self) -> Option<&str> {
+        self.client_id.as_deref()
+    }
+
     /// Lists files (non-folders) directly inside `folder_id`, returning paths prefixed by `prefix`.
     async fn list_files_in_folder(
         &self,
@@ -636,5 +641,86 @@ fn build_auth_token(resp: TokenResponse, keep_refresh: Option<String>) -> AuthTo
         refresh_token: resp.refresh_token.or(keep_refresh),
         expires_at,
         token_type: resp.token_type,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::provider::SyncProvider;
+    use crate::types::SyncProviderType;
+
+    #[test]
+    fn new_provider_has_no_credentials() {
+        let p = GoogleDriveProvider::new();
+        assert!(!p.has_credentials());
+        assert!(p.client_id_for_test().is_none());
+    }
+
+    #[test]
+    fn with_credentials_sets_has_credentials() {
+        let p = GoogleDriveProvider::with_credentials(
+            "my_client_id".to_string(),
+            "my_secret".to_string(),
+        );
+        assert!(p.has_credentials());
+        assert_eq!(p.client_id_for_test(), Some("my_client_id"));
+    }
+
+    #[test]
+    fn with_env_credentials_reads_env_vars() {
+        std::env::set_var("GOOGLE_CLIENT_ID", "env_id");
+        std::env::set_var("GOOGLE_CLIENT_SECRET", "env_secret");
+        let p = GoogleDriveProvider::with_env_credentials();
+        assert!(p.has_credentials());
+        std::env::remove_var("GOOGLE_CLIENT_ID");
+        std::env::remove_var("GOOGLE_CLIENT_SECRET");
+    }
+
+    #[test]
+    fn metadata_methods_return_correct_values() {
+        let p = GoogleDriveProvider::new();
+        assert_eq!(p.name(), "google_drive");
+        assert_eq!(p.provider_type(), SyncProviderType::GoogleDrive);
+        assert_eq!(p.display_name(), "Google Drive");
+    }
+
+    #[test]
+    fn auth_url_with_credentials_contains_client_id() {
+        let p = GoogleDriveProvider::with_credentials(
+            "test_client_123".to_string(),
+            "secret".to_string(),
+        );
+        let url = p.auth_url();
+        assert!(url.contains("test_client_123"));
+        assert!(url.contains("accounts.google.com"));
+        assert!(url.contains("response_type=code"));
+    }
+
+    #[test]
+    fn auth_url_without_credentials_uses_not_configured() {
+        let p = GoogleDriveProvider::new();
+        let url = p.auth_url();
+        assert!(url.contains("NOT_CONFIGURED"));
+    }
+
+    #[test]
+    fn require_credentials_without_creds_returns_error() {
+        let p = GoogleDriveProvider::new();
+        assert!(p.require_credentials().is_err());
+    }
+
+    #[test]
+    fn require_credentials_with_creds_returns_ok() {
+        let p = GoogleDriveProvider::with_credentials("id".to_string(), "sec".to_string());
+        let (id, sec) = p.require_credentials().unwrap();
+        assert_eq!(id, "id");
+        assert_eq!(sec, "sec");
+    }
+
+    #[test]
+    fn default_impl_matches_new() {
+        let p = GoogleDriveProvider::default();
+        assert!(!p.has_credentials());
     }
 }

@@ -173,4 +173,63 @@ mod tests {
         let key2 = EncryptionService::derive_key("pass", &protection).unwrap();
         assert_eq!(key1, key2);
     }
+
+    #[test]
+    fn test_validate_password_success() {
+        assert!(EncryptionService::validate_password("secure123").is_ok());
+        assert!(EncryptionService::validate_password("123456").is_ok());
+    }
+
+    #[test]
+    fn test_validate_password_too_short_fails() {
+        assert!(EncryptionService::validate_password("abc").is_err());
+        assert!(EncryptionService::validate_password("abcde").is_err());
+        assert!(EncryptionService::validate_password("").is_err());
+    }
+
+    #[test]
+    fn test_derive_key_invalid_base64_salt_returns_error() {
+        let mut protection = EncryptionService::new_protection().unwrap();
+        protection.salt = "!not-valid-base64===".to_string();
+        let result = EncryptionService::derive_key("password", &protection);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_encrypt_invalid_nonce_base64_returns_error() {
+        let protection = EncryptionService::new_protection().unwrap();
+        let key = EncryptionService::derive_key("pass", &protection).unwrap();
+        let mut bad = protection.clone();
+        bad.nonce = "!not-valid-base64===".to_string();
+        let result = EncryptionService::encrypt(b"data", &key, &bad);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_decrypt_invalid_nonce_base64_returns_error() {
+        let protection = EncryptionService::new_protection().unwrap();
+        let key = EncryptionService::derive_key("pass", &protection).unwrap();
+        let ciphertext = EncryptionService::encrypt(b"hello", &key, &protection).unwrap();
+        let mut bad = protection.clone();
+        bad.nonce = "!not-valid-base64===".to_string();
+        let result = EncryptionService::decrypt(&ciphertext, &key, &bad);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_decrypt_invalid_ciphertext_base64_returns_error() {
+        let protection = EncryptionService::new_protection().unwrap();
+        let key = EncryptionService::derive_key("pass", &protection).unwrap();
+        let result = EncryptionService::decrypt("!not-valid-base64===", &key, &protection);
+        assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_encrypt_decrypt_empty_payload() {
+        let protection = EncryptionService::new_protection().unwrap();
+        let key = EncryptionService::derive_key("password123", &protection).unwrap();
+        let ciphertext = EncryptionService::encrypt(b"", &key, &protection).unwrap();
+        let decrypted = EncryptionService::decrypt(&ciphertext, &key, &protection).unwrap();
+        assert!(decrypted.is_empty());
+    }
 }
