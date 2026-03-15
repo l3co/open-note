@@ -32,6 +32,7 @@ reqwest = { version = "0.12", features = ["json"] }
 base64 = "0.22"
 lopdf = "0.34"
 rand = "0.8"
+dirs = "5"
 
 [dev-dependencies]
 tempfile = "3"

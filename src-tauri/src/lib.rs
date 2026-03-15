@@ -22,9 +22,10 @@ use commands::section::{
 use commands::spellcheck::check_spelling;
 use commands::sync::{
     connect_provider, disconnect_provider, disconnect_provider_by_name, download_workspace,
-    get_opennote_dir, get_provider_status, get_sync_config, get_sync_conflicts, get_sync_providers,
-    get_sync_status, list_downloaded_workspaces, list_remote_workspaces, resolve_sync_conflict,
-    set_sync_config, sync_bidirectional, sync_initial_upload,
+    get_default_sync_dir, get_opennote_dir, get_provider_status, get_sync_config,
+    get_sync_conflicts, get_sync_providers, get_sync_status, list_downloaded_workspaces,
+    list_remote_workspaces, resolve_sync_conflict, set_sync_config, sync_bidirectional,
+    sync_initial_upload,
 };
 use commands::tags::list_all_tags;
 use commands::template::{
@@ -144,6 +145,7 @@ pub fn run() {
             list_remote_workspaces,
             download_workspace,
             get_opennote_dir,
+            get_default_sync_dir,
             list_downloaded_workspaces,
             get_sync_providers,
             get_sync_status,
