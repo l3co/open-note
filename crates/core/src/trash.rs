@@ -220,4 +220,101 @@ mod tests {
         assert_eq!(manifest.items.len(), 1);
         assert_eq!(manifest.items[0].original_title, "Retained");
     }
+
+    #[test]
+    fn trash_manifest_default_is_empty() {
+        let manifest = TrashManifest::default();
+        assert!(manifest.items.is_empty());
+    }
+
+    #[test]
+    fn expired_items_returns_only_expired_refs() {
+        let mut manifest = TrashManifest::new();
+        let now = Utc::now();
+
+        let mut old = TrashItem::new(
+            TrashItemType::Page,
+            "Old".to_string(),
+            "p1".to_string(),
+            "NB".to_string(),
+            None,
+            0,
+        );
+        old.expires_at = now - Duration::seconds(1);
+        manifest.add_item(old);
+
+        let fresh = TrashItem::new(
+            TrashItemType::Page,
+            "Fresh".to_string(),
+            "p2".to_string(),
+            "NB".to_string(),
+            None,
+            0,
+        );
+        manifest.add_item(fresh);
+
+        let expired = manifest.expired_items(now);
+        assert_eq!(expired.len(), 1);
+        assert_eq!(expired[0].original_title, "Old");
+        // Items not removed — manifest still has 2
+        assert_eq!(manifest.items.len(), 2);
+    }
+
+    #[test]
+    fn trash_item_is_expired_true_and_false() {
+        let now = Utc::now();
+
+        let mut item = TrashItem::new(
+            TrashItemType::Section,
+            "Test".to_string(),
+            "path".to_string(),
+            "NB".to_string(),
+            Some("Sec".to_string()),
+            0,
+        );
+
+        item.expires_at = now - Duration::seconds(1);
+        assert!(item.is_expired(now));
+
+        item.expires_at = now + Duration::seconds(1);
+        assert!(!item.is_expired(now));
+    }
+
+    #[test]
+    fn remove_item_nonexistent_returns_none() {
+        let mut manifest = TrashManifest::new();
+        let result = manifest.remove_item("does-not-exist");
+        assert!(result.is_none());
+    }
+
+    #[test]
+    fn trash_item_type_serialization() {
+        assert_eq!(
+            serde_json::to_string(&TrashItemType::Page).unwrap(),
+            "\"page\""
+        );
+        assert_eq!(
+            serde_json::to_string(&TrashItemType::Section).unwrap(),
+            "\"section\""
+        );
+        assert_eq!(
+            serde_json::to_string(&TrashItemType::Notebook).unwrap(),
+            "\"notebook\""
+        );
+    }
+
+    #[test]
+    fn trash_item_new_with_section_stores_section() {
+        let item = TrashItem::new(
+            TrashItemType::Page,
+            "Page".to_string(),
+            "nb/sec/page.opn.json".to_string(),
+            "MyNotebook".to_string(),
+            Some("MySection".to_string()),
+            512,
+        );
+        assert_eq!(item.original_section, Some("MySection".to_string()));
+        assert_eq!(item.original_notebook, "MyNotebook");
+        assert_eq!(item.size_bytes, 512);
+    }
 }

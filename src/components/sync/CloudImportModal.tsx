@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import {
   X,
   CloudDownload,
+  Folder,
   FolderOpen,
   Loader2,
   CheckCircle,
@@ -16,6 +17,7 @@ interface CloudImportModalProps {
   providerName: string;
   providerLabel: string;
   workspaces: RemoteWorkspaceInfo[];
+  defaultDestDir: string;
   onClose: () => void;
 }
 
@@ -32,6 +34,7 @@ export function CloudImportModal({
   providerName,
   providerLabel,
   workspaces,
+  defaultDestDir,
   onClose,
 }: CloudImportModalProps) {
   const { t } = useTranslation();
@@ -44,19 +47,23 @@ export function CloudImportModal({
     setStates((prev) => ({ ...prev, [name]: state }));
   };
 
+  const normalizedBase = defaultDestDir.replace(/\/+$/, "");
+
   const downloadOne = async (ws: RemoteWorkspaceInfo) => {
     setWsState(ws.name, { status: "downloading" });
+    const dest = `${normalizedBase}/${ws.name}`;
     try {
       const result: DownloadResult = await ipc.downloadWorkspace(
         providerName,
         ws.name,
+        dest,
       );
       setWsState(ws.name, {
         status: "done",
         count: result.count,
-        localPath: result.localPath,
+        localPath: result.local_path,
       });
-      ipc.openWorkspace(result.localPath).catch(() => {});
+      ipc.openWorkspace(result.local_path).catch(() => {});
     } catch (e) {
       setWsState(ws.name, { status: "error", error: String(e) });
     }
@@ -125,6 +132,28 @@ export function CloudImportModal({
             <X size={16} style={{ color: "var(--text-tertiary)" }} />
           </button>
         </div>
+
+        {normalizedBase && (
+          <div
+            className="flex items-center gap-2 border-b px-4 py-2.5"
+            style={{
+              borderColor: "var(--border)",
+              backgroundColor: "var(--bg-secondary)",
+            }}
+          >
+            <Folder
+              size={13}
+              style={{ color: "var(--text-tertiary)", flexShrink: 0 }}
+            />
+            <span
+              className="truncate font-mono text-xs"
+              style={{ color: "var(--text-tertiary)" }}
+              title={normalizedBase}
+            >
+              {normalizedBase}
+            </span>
+          </div>
+        )}
 
         <div className="flex-1 space-y-2 overflow-y-auto p-4">
           {workspaces.map((ws) => {
