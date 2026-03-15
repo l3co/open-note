@@ -446,6 +446,8 @@ export const downloadWorkspace = (
 
 export const getOpennoteDir = () => invoke<string>("get_opennote_dir");
 
+export const getDefaultSyncDir = () => invoke<string>("get_default_sync_dir");
+
 export interface DownloadedWorkspace {
   name: string;
   local_path: string;

@@ -10,6 +10,7 @@ const mockIpc = vi.hoisted(() => ({
   connectProvider: vi.fn(),
   listRemoteWorkspaces: vi.fn(),
   syncBidirectional: vi.fn(),
+  getDefaultSyncDir: vi.fn(),
 }));
 
 vi.mock("@/lib/ipc", () => mockIpc);
@@ -36,6 +37,9 @@ describe("CloudConnectModal", () => {
         errorMsg: null,
       },
     ]);
+    mockIpc.getDefaultSyncDir.mockResolvedValue(
+      "/home/user/Documents/OpenNote",
+    );
     mockIpc.connectProvider.mockResolvedValue("user@gmail.com");
     mockIpc.listRemoteWorkspaces.mockResolvedValue([]);
     mockIpc.syncBidirectional.mockResolvedValue({

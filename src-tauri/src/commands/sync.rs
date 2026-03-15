@@ -503,19 +503,39 @@ pub fn get_opennote_dir() -> String {
         .into_owned()
 }
 
+/// Returns the cross-platform default sync directory: `{documents_dir}/OpenNote`.
+/// Uses the `dirs` crate which respects OS locale and XDG conventions.
+///
+/// - **Linux**: `$XDG_DOCUMENTS_DIR/OpenNote` (e.g. `/home/user/Documentos/OpenNote`)
+/// - **macOS**: `$HOME/Documents/OpenNote`
+/// - **Windows**: `{FOLDERID_Documents}\OpenNote`
+/// - **Android/iOS**: Falls back to home/data dir + `Documents/OpenNote`
+fn default_sync_dir() -> PathBuf {
+    let doc_dir = dirs::document_dir().unwrap_or_else(|| {
+        // Fallback: home_dir/Documents (covers Android/iOS edge cases)
+        dirs::home_dir()
+            .unwrap_or_else(|| PathBuf::from("."))
+            .join("Documents")
+    });
+    doc_dir.join("OpenNote")
+}
+
+/// Returns the resolved default sync directory path as a string.
+#[tauri::command]
+pub fn get_default_sync_dir() -> String {
+    default_sync_dir().to_string_lossy().into_owned()
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct DownloadedWorkspace {
     pub name: String,
     pub local_path: String,
 }
 
-/// Lists workspaces previously downloaded to ~/Documents/OpenNote/.
+/// Lists workspaces previously downloaded to `{documents_dir}/OpenNote/`.
 #[tauri::command]
 pub fn list_downloaded_workspaces() -> Vec<DownloadedWorkspace> {
-    let home = std::env::var("HOME")
-        .map(PathBuf::from)
-        .unwrap_or_else(|_| PathBuf::from("."));
-    let dir = home.join("Documents").join("OpenNote");
+    let dir = default_sync_dir();
     let Ok(entries) = std::fs::read_dir(&dir) else {
         return vec![];
     };
