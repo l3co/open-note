@@ -237,29 +237,23 @@ mod tests {
             "notebook/sec1/page2.opn.json",
             "notebook/sec2/page3.opn.json",
         ]);
-        assert_eq!(
-            dirs,
-            vec!["notebook", "notebook/sec1", "notebook/sec2"]
-        );
+        assert_eq!(dirs, vec!["notebook", "notebook/sec1", "notebook/sec2"]);
     }
 
     #[test]
     fn dirs_for_paths_sorted_shortest_first() {
-        let dirs = SyncCoordinator::dirs_for_paths(&[
-            "a/b/c/d.opn.json",
-            "a/e.opn.json",
-        ]);
+        let dirs = SyncCoordinator::dirs_for_paths(&["a/b/c/d.opn.json", "a/e.opn.json"]);
         // BTreeSet gives lexicographic order; parents always shorter than children
         assert_eq!(dirs[0], "a");
-        assert!(dirs.windows(2).all(|w| w[0].len() <= w[1].len() || w[0] < w[1]));
+        assert!(dirs
+            .windows(2)
+            .all(|w| w[0].len() <= w[1].len() || w[0] < w[1]));
     }
 
     #[test]
     fn dirs_for_paths_multiple_notebooks() {
-        let dirs = SyncCoordinator::dirs_for_paths(&[
-            "NB-Alpha/sec/page.json",
-            "NB-Beta/sec/page.json",
-        ]);
+        let dirs =
+            SyncCoordinator::dirs_for_paths(&["NB-Alpha/sec/page.json", "NB-Beta/sec/page.json"]);
         assert!(dirs.contains(&"NB-Alpha".to_string()));
         assert!(dirs.contains(&"NB-Beta".to_string()));
         assert!(dirs.contains(&"NB-Alpha/sec".to_string()));
@@ -270,19 +264,13 @@ mod tests {
     #[test]
     fn dirs_for_paths_deeply_nested() {
         let dirs = SyncCoordinator::dirs_for_paths(&["a/b/c/d/e/file.json"]);
-        assert_eq!(
-            dirs,
-            vec!["a", "a/b", "a/b/c", "a/b/c/d", "a/b/c/d/e"]
-        );
+        assert_eq!(dirs, vec!["a", "a/b", "a/b/c", "a/b/c/d", "a/b/c/d/e"]);
     }
 
     #[test]
     fn dirs_for_paths_mixed_depth() {
-        let dirs = SyncCoordinator::dirs_for_paths(&[
-            "root.json",
-            "nb/page.json",
-            "nb/sec/deep.json",
-        ]);
+        let dirs =
+            SyncCoordinator::dirs_for_paths(&["root.json", "nb/page.json", "nb/sec/deep.json"]);
         assert_eq!(dirs, vec!["nb", "nb/sec"]);
     }
 
@@ -310,24 +298,72 @@ mod tests {
 
     #[async_trait]
     impl SyncProvider for TrackingProvider {
-        fn name(&self) -> &str { "tracking" }
-        fn provider_type(&self) -> SyncProviderType { SyncProviderType::GoogleDrive }
-        fn display_name(&self) -> &str { "Tracking" }
-        fn has_credentials(&self) -> bool { true }
-        fn auth_url(&self) -> String { String::new() }
-        async fn exchange_code(&self, _: &str) -> crate::error::SyncResult<AuthToken> { unimplemented!() }
-        async fn refresh_token(&self, _: &AuthToken) -> crate::error::SyncResult<AuthToken> { unimplemented!() }
-        async fn revoke(&self, _: &AuthToken) -> crate::error::SyncResult<()> { Ok(()) }
-        async fn get_user_email(&self, _: &AuthToken) -> crate::error::SyncResult<Option<String>> { Ok(None) }
-        async fn list_remote_files(&self, _: &AuthToken, _: &str) -> crate::error::SyncResult<Vec<RemoteFile>> { Ok(vec![]) }
-        async fn list_remote_folders(&self, _: &AuthToken, _: &str) -> crate::error::SyncResult<Vec<String>> { Ok(vec![]) }
-        async fn download_file(&self, _: &AuthToken, _: &str) -> crate::error::SyncResult<Vec<u8>> { Ok(vec![]) }
-        async fn upload_file(&self, _: &AuthToken, path: &str, content: &[u8]) -> crate::error::SyncResult<RemoteFile> {
-            use chrono::Utc;
-            Ok(RemoteFile { path: path.to_string(), hash: "h".to_string(), size: content.len() as u64, modified_at: Utc::now() })
+        fn name(&self) -> &str {
+            "tracking"
         }
-        async fn delete_file(&self, _: &AuthToken, _: &str) -> crate::error::SyncResult<()> { Ok(()) }
-        async fn create_directory(&self, _: &AuthToken, path: &str) -> crate::error::SyncResult<()> {
+        fn provider_type(&self) -> SyncProviderType {
+            SyncProviderType::GoogleDrive
+        }
+        fn display_name(&self) -> &str {
+            "Tracking"
+        }
+        fn has_credentials(&self) -> bool {
+            true
+        }
+        fn auth_url(&self) -> String {
+            String::new()
+        }
+        async fn exchange_code(&self, _: &str) -> crate::error::SyncResult<AuthToken> {
+            unimplemented!()
+        }
+        async fn refresh_token(&self, _: &AuthToken) -> crate::error::SyncResult<AuthToken> {
+            unimplemented!()
+        }
+        async fn revoke(&self, _: &AuthToken) -> crate::error::SyncResult<()> {
+            Ok(())
+        }
+        async fn get_user_email(&self, _: &AuthToken) -> crate::error::SyncResult<Option<String>> {
+            Ok(None)
+        }
+        async fn list_remote_files(
+            &self,
+            _: &AuthToken,
+            _: &str,
+        ) -> crate::error::SyncResult<Vec<RemoteFile>> {
+            Ok(vec![])
+        }
+        async fn list_remote_folders(
+            &self,
+            _: &AuthToken,
+            _: &str,
+        ) -> crate::error::SyncResult<Vec<String>> {
+            Ok(vec![])
+        }
+        async fn download_file(&self, _: &AuthToken, _: &str) -> crate::error::SyncResult<Vec<u8>> {
+            Ok(vec![])
+        }
+        async fn upload_file(
+            &self,
+            _: &AuthToken,
+            path: &str,
+            content: &[u8],
+        ) -> crate::error::SyncResult<RemoteFile> {
+            use chrono::Utc;
+            Ok(RemoteFile {
+                path: path.to_string(),
+                hash: "h".to_string(),
+                size: content.len() as u64,
+                modified_at: Utc::now(),
+            })
+        }
+        async fn delete_file(&self, _: &AuthToken, _: &str) -> crate::error::SyncResult<()> {
+            Ok(())
+        }
+        async fn create_directory(
+            &self,
+            _: &AuthToken,
+            path: &str,
+        ) -> crate::error::SyncResult<()> {
             self.created_dirs.lock().unwrap().push(path.to_string());
             Ok(())
         }
@@ -409,11 +445,7 @@ mod tests {
         let provider = TrackingProvider::new();
         let token = dummy_token();
 
-        let files = [
-            "nb/sec/p1.json",
-            "nb/sec/p2.json",
-            "nb/sec/p3.json",
-        ];
+        let files = ["nb/sec/p1.json", "nb/sec/p2.json", "nb/sec/p3.json"];
         let dirs = SyncCoordinator::dirs_for_paths(&files);
 
         for dir in &dirs {

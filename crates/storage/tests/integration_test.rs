@@ -730,7 +730,13 @@ fn ensure_quick_notes_idempotent() {
 
     assert_eq!(id1, id2);
     let notebooks = FsStorageEngine::list_notebooks(&root).unwrap();
-    assert_eq!(notebooks.iter().filter(|nb| nb.name == "Quick Notes").count(), 1);
+    assert_eq!(
+        notebooks
+            .iter()
+            .filter(|nb| nb.name == "Quick Notes")
+            .count(),
+        1
+    );
 }
 
 #[test]

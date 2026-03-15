@@ -169,8 +169,14 @@ mod tests {
         let block = Block::Checklist(ChecklistBlock {
             base: BlockBase::new(0),
             items: vec![
-                ChecklistItem { text: "Buy milk".to_string(), checked: false },
-                ChecklistItem { text: "Buy eggs".to_string(), checked: true },
+                ChecklistItem {
+                    text: "Buy milk".to_string(),
+                    checked: false,
+                },
+                ChecklistItem {
+                    text: "Buy eggs".to_string(),
+                    checked: true,
+                },
             ],
         });
         let text = extract_text_from_block(&block);
@@ -286,7 +292,9 @@ mod tests {
 
     #[test]
     fn extract_protected_page_returns_empty() {
-        use opennote_core::page::{EncryptionAlgorithm, KdfParams, KeyDerivationFunction, PageProtection};
+        use opennote_core::page::{
+            EncryptionAlgorithm, KdfParams, KeyDerivationFunction, PageProtection,
+        };
         let mut page = Page::new(opennote_core::id::SectionId::new(), "Secret").unwrap();
         page.protection = Some(PageProtection {
             algorithm: EncryptionAlgorithm::AesGcm256,
@@ -328,17 +336,19 @@ mod tests {
 
     #[test]
     fn extract_multiple_blocks_joined_by_newline() {
-        use opennote_core::block::{BlockBase, MarkdownBlock, CodeBlock};
+        use opennote_core::block::{BlockBase, CodeBlock, MarkdownBlock};
         let mut page = Page::new(opennote_core::id::SectionId::new(), "Multi").unwrap();
         page.add_block(Block::Markdown(MarkdownBlock {
             base: BlockBase::new(0),
             content: "First block".to_string(),
-        })).unwrap();
+        }))
+        .unwrap();
         page.add_block(Block::Code(CodeBlock {
             base: BlockBase::new(1),
             language: None,
             content: "Second block".to_string(),
-        })).unwrap();
+        }))
+        .unwrap();
         let text = extract_text_from_page(&page);
         assert!(text.contains("First block"));
         assert!(text.contains("Second block"));

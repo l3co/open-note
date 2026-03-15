@@ -151,11 +151,7 @@ mod tests {
         async fn delete_file(&self, _token: &AuthToken, _remote_path: &str) -> SyncResult<()> {
             unimplemented!()
         }
-        async fn create_directory(
-            &self,
-            _token: &AuthToken,
-            _remote_path: &str,
-        ) -> SyncResult<()> {
+        async fn create_directory(&self, _token: &AuthToken, _remote_path: &str) -> SyncResult<()> {
             unimplemented!()
         }
     }
@@ -173,7 +169,10 @@ mod tests {
     async fn default_list_all_remote_files_delegates_to_list_remote_files() {
         let provider = MockProvider;
         let token = dummy_token();
-        let files = provider.list_all_remote_files(&token, "root").await.unwrap();
+        let files = provider
+            .list_all_remote_files(&token, "root")
+            .await
+            .unwrap();
         assert_eq!(files.len(), 1);
         assert_eq!(files[0].path, "file.txt");
     }
@@ -188,7 +187,10 @@ mod tests {
             size: 0,
             modified_at: Utc::now(),
         };
-        let data = provider.download_remote_file(&token, &remote).await.unwrap();
+        let data = provider
+            .download_remote_file(&token, &remote)
+            .await
+            .unwrap();
         assert_eq!(data, b"my/file.txt");
     }
 }
