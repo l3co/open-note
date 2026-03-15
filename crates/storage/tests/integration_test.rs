@@ -622,6 +622,193 @@ fn test_read_only_workspace() {
     fs::set_permissions(&root, fs::Permissions::from_mode(0o755)).unwrap();
 }
 
+// ─── Additional coverage: engine uncovered paths ───
+
+#[test]
+fn save_workspace_persists_changes() {
+    let (_dir, root) = setup_workspace();
+    let mut ws = FsStorageEngine::load_workspace(&root).unwrap();
+    ws.name = "Renamed WS".to_string();
+    FsStorageEngine::save_workspace(&ws).unwrap();
+
+    let reloaded = FsStorageEngine::load_workspace(&root).unwrap();
+    assert_eq!(reloaded.name, "Renamed WS");
+}
+
+#[test]
+fn move_section_between_notebooks() {
+    let (_dir, root) = setup_workspace();
+    let nb1 = FsStorageEngine::create_notebook(&root, "Source NB").unwrap();
+    let nb2 = FsStorageEngine::create_notebook(&root, "Target NB").unwrap();
+    let sec = FsStorageEngine::create_section(&root, nb1.id, "Movable Sec").unwrap();
+
+    let moved = FsStorageEngine::move_section(&root, sec.id, nb2.id).unwrap();
+    assert_eq!(moved.notebook_id, nb2.id);
+
+    let secs_nb1 = FsStorageEngine::list_sections(&root, nb1.id).unwrap();
+    let secs_nb2 = FsStorageEngine::list_sections(&root, nb2.id).unwrap();
+    assert!(secs_nb1.is_empty());
+    assert_eq!(secs_nb2.len(), 1);
+}
+
+#[test]
+fn move_section_same_notebook_is_noop() {
+    let (_dir, root) = setup_workspace();
+    let nb = FsStorageEngine::create_notebook(&root, "NB").unwrap();
+    let sec = FsStorageEngine::create_section(&root, nb.id, "Sec").unwrap();
+
+    let result = FsStorageEngine::move_section(&root, sec.id, nb.id).unwrap();
+    assert_eq!(result.id, sec.id);
+
+    let secs = FsStorageEngine::list_sections(&root, nb.id).unwrap();
+    assert_eq!(secs.len(), 1);
+}
+
+#[test]
+fn import_asset_from_file() {
+    let (_dir, root) = setup_workspace();
+    let nb = FsStorageEngine::create_notebook(&root, "NB").unwrap();
+    let sec = FsStorageEngine::create_section(&root, nb.id, "Sec").unwrap();
+
+    let tmp_dir = TempDir::new().unwrap();
+    let src = tmp_dir.path().join("test_image.png");
+    fs::write(&src, b"fake png data").unwrap();
+
+    let asset_path = FsStorageEngine::import_asset(&root, sec.id, &src).unwrap();
+    assert!(asset_path.ends_with(".png"));
+    assert!(root.join(&asset_path).exists());
+}
+
+#[test]
+fn reorder_sections() {
+    let (_dir, root) = setup_workspace();
+    let nb = FsStorageEngine::create_notebook(&root, "NB").unwrap();
+    let sec1 = FsStorageEngine::create_section(&root, nb.id, "Alpha").unwrap();
+    let sec2 = FsStorageEngine::create_section(&root, nb.id, "Beta").unwrap();
+
+    FsStorageEngine::reorder_sections(&root, &[(sec2.id, 0), (sec1.id, 1)]).unwrap();
+
+    let sections = FsStorageEngine::list_sections(&root, nb.id).unwrap();
+    assert_eq!(sections[0].id, sec2.id);
+    assert_eq!(sections[1].id, sec1.id);
+}
+
+#[test]
+fn create_page_from_existing_page() {
+    let (_dir, root) = setup_workspace();
+    let nb = FsStorageEngine::create_notebook(&root, "NB").unwrap();
+    let sec = FsStorageEngine::create_section(&root, nb.id, "Sec").unwrap();
+
+    let template_page = opennote_core::page::Page::new(sec.id, "Template Page").unwrap();
+    let created = FsStorageEngine::create_page_from(&root, sec.id, template_page).unwrap();
+
+    let pages = FsStorageEngine::list_pages(&root, sec.id).unwrap();
+    assert_eq!(pages.len(), 1);
+    assert_eq!(pages[0].id, created.id);
+    assert_eq!(pages[0].title, "Template Page");
+}
+
+#[test]
+fn ensure_quick_notes_creates_notebook_and_section() {
+    let (_dir, root) = setup_workspace();
+
+    let section_id = FsStorageEngine::ensure_quick_notes(&root).unwrap();
+
+    let ws = FsStorageEngine::load_workspace(&root).unwrap();
+    assert_eq!(ws.settings.quick_notes_section_id, Some(section_id));
+
+    let notebooks = FsStorageEngine::list_notebooks(&root).unwrap();
+    assert!(notebooks.iter().any(|nb| nb.name == "Quick Notes"));
+}
+
+#[test]
+fn ensure_quick_notes_idempotent() {
+    let (_dir, root) = setup_workspace();
+
+    let id1 = FsStorageEngine::ensure_quick_notes(&root).unwrap();
+    let id2 = FsStorageEngine::ensure_quick_notes(&root).unwrap();
+
+    assert_eq!(id1, id2);
+    let notebooks = FsStorageEngine::list_notebooks(&root).unwrap();
+    assert_eq!(
+        notebooks
+            .iter()
+            .filter(|nb| nb.name == "Quick Notes")
+            .count(),
+        1
+    );
+}
+
+#[test]
+fn list_all_tags_across_pages() {
+    let (_dir, root) = setup_workspace();
+    let nb = FsStorageEngine::create_notebook(&root, "NB").unwrap();
+    let sec = FsStorageEngine::create_section(&root, nb.id, "Sec").unwrap();
+
+    let mut p1 = FsStorageEngine::create_page(&root, sec.id, "Page 1").unwrap();
+    p1.add_tag("rust");
+    p1.add_tag("programming");
+    FsStorageEngine::update_page(&root, &p1).unwrap();
+
+    let mut p2 = FsStorageEngine::create_page(&root, sec.id, "Page 2").unwrap();
+    p2.add_tag("rust");
+    p2.add_tag("notes");
+    FsStorageEngine::update_page(&root, &p2).unwrap();
+
+    let tags = FsStorageEngine::list_all_tags(&root).unwrap();
+    assert!(tags.contains(&"rust".to_string()));
+    assert!(tags.contains(&"programming".to_string()));
+    assert!(tags.contains(&"notes".to_string()));
+    assert_eq!(tags.iter().filter(|t| t.as_str() == "rust").count(), 1); // deduped
+    assert!(tags.windows(2).all(|w| w[0] <= w[1])); // sorted
+}
+
+#[test]
+fn list_all_tags_empty_workspace_returns_empty() {
+    let (_dir, root) = setup_workspace();
+    let tags = FsStorageEngine::list_all_tags(&root).unwrap();
+    assert!(tags.is_empty());
+}
+
+#[test]
+fn get_random_pages_returns_at_most_count() {
+    let (_dir, root) = setup_workspace();
+    let nb = FsStorageEngine::create_notebook(&root, "NB").unwrap();
+    let sec = FsStorageEngine::create_section(&root, nb.id, "Sec").unwrap();
+
+    for i in 0..5 {
+        FsStorageEngine::create_page(&root, sec.id, &format!("Page {i}")).unwrap();
+    }
+
+    let pages = FsStorageEngine::get_random_pages(&root, 3, &[]).unwrap();
+    assert!(pages.len() <= 3);
+}
+
+#[test]
+fn get_random_pages_excludes_ids() {
+    let (_dir, root) = setup_workspace();
+    let nb = FsStorageEngine::create_notebook(&root, "NB").unwrap();
+    let sec = FsStorageEngine::create_section(&root, nb.id, "Sec").unwrap();
+
+    let p1 = FsStorageEngine::create_page(&root, sec.id, "Page 1").unwrap();
+    FsStorageEngine::create_page(&root, sec.id, "Page 2").unwrap();
+    FsStorageEngine::create_page(&root, sec.id, "Page 3").unwrap();
+
+    let pages = FsStorageEngine::get_random_pages(&root, 10, &[p1.id]).unwrap();
+    assert!(!pages.iter().any(|p| p.id == p1.id));
+}
+
+#[test]
+fn update_notebook_persists() {
+    let (_dir, root) = setup_workspace();
+    let mut nb = FsStorageEngine::create_notebook(&root, "NB").unwrap();
+    nb.name = "Updated NB".to_string();
+    FsStorageEngine::update_notebook(&root, &nb).unwrap();
+
+    let notebooks = FsStorageEngine::list_notebooks(&root).unwrap();
+    assert_eq!(notebooks[0].name, "Updated NB");
+}
+
 // ─── Phase 2 Retrofit: Schema Migration ───
 
 #[test]

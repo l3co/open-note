@@ -25,7 +25,7 @@ describe("CloudImportModal", () => {
     vi.clearAllMocks();
     mockIpc.downloadWorkspace.mockResolvedValue({
       count: 5,
-      localPath: "/home/user/.opennote/workspaces/Trabalho",
+      local_path: "/Users/user/Documents/OpenNote/Trabalho",
     });
     mockIpc.openWorkspace.mockResolvedValue(undefined);
   });
@@ -36,6 +36,7 @@ describe("CloudImportModal", () => {
         providerName="google_drive"
         providerLabel="Google Drive"
         workspaces={workspaces}
+        defaultDestDir="/Users/user/Documents/OpenNote"
         onClose={onClose}
       />,
     );
@@ -50,6 +51,7 @@ describe("CloudImportModal", () => {
         providerName="google_drive"
         providerLabel="Google Drive"
         workspaces={workspaces}
+        defaultDestDir="/Users/user/Documents/OpenNote"
         onClose={onClose}
       />,
     );
@@ -64,6 +66,7 @@ describe("CloudImportModal", () => {
         providerName="google_drive"
         providerLabel="Google Drive"
         workspaces={workspaces}
+        defaultDestDir="/Users/user/Documents/OpenNote"
         onClose={onClose}
       />,
     );
@@ -73,6 +76,7 @@ describe("CloudImportModal", () => {
       expect(mockIpc.downloadWorkspace).toHaveBeenCalledWith(
         "google_drive",
         "Trabalho",
+        "/Users/user/Documents/OpenNote/Trabalho",
       ),
     );
   });
@@ -84,6 +88,7 @@ describe("CloudImportModal", () => {
         providerName="google_drive"
         providerLabel="Google Drive"
         workspaces={workspaces}
+        defaultDestDir="/Users/user/Documents/OpenNote"
         onClose={onClose}
       />,
     );
@@ -104,6 +109,7 @@ describe("CloudImportModal", () => {
         workspaces={[
           { name: "Trabalho", provider: "google_drive", file_count: null },
         ]}
+        defaultDestDir="/Users/user/Documents/OpenNote"
         onClose={onClose}
       />,
     );
@@ -120,6 +126,7 @@ describe("CloudImportModal", () => {
         providerName="google_drive"
         providerLabel="Google Drive"
         workspaces={workspaces}
+        defaultDestDir="/Users/user/Documents/OpenNote"
         onClose={onClose}
       />,
     );
@@ -136,6 +143,7 @@ describe("CloudImportModal", () => {
         providerName="google_drive"
         providerLabel="Google Drive"
         workspaces={workspaces}
+        defaultDestDir="/Users/user/Documents/OpenNote"
         onClose={onClose}
       />,
     );
@@ -146,7 +154,7 @@ describe("CloudImportModal", () => {
   it("shows Fechar instead of Pular after all done", async () => {
     mockIpc.downloadWorkspace.mockResolvedValue({
       count: 3,
-      localPath: "/home/user/.opennote/workspaces/Trabalho",
+      local_path: "/Users/user/Documents/OpenNote/Trabalho",
     });
     const user = userEvent.setup();
     render(
@@ -156,6 +164,7 @@ describe("CloudImportModal", () => {
         workspaces={[
           { name: "Trabalho", provider: "google_drive", file_count: null },
         ]}
+        defaultDestDir="/Users/user/Documents/OpenNote"
         onClose={onClose}
       />,
     );

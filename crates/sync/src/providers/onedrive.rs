@@ -490,3 +490,72 @@ fn build_auth_token(resp: TokenResponse, keep_refresh: Option<String>) -> AuthTo
         token_type: resp.token_type,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::provider::SyncProvider;
+    use crate::types::SyncProviderType;
+
+    #[test]
+    fn new_provider_has_no_credentials() {
+        let p = OneDriveProvider::new();
+        assert!(!p.has_credentials());
+    }
+
+    #[test]
+    fn with_credentials_sets_has_credentials() {
+        let p = OneDriveProvider::with_credentials("my_client_id".to_string());
+        assert!(p.has_credentials());
+    }
+
+    #[test]
+    fn with_env_credentials_reads_env_var() {
+        std::env::set_var("ONEDRIVE_CLIENT_ID", "env_id");
+        let p = OneDriveProvider::with_env_credentials();
+        assert!(p.has_credentials());
+        std::env::remove_var("ONEDRIVE_CLIENT_ID");
+    }
+
+    #[test]
+    fn metadata_methods_return_correct_values() {
+        let p = OneDriveProvider::new();
+        assert_eq!(p.name(), "onedrive");
+        assert_eq!(p.provider_type(), SyncProviderType::OneDrive);
+        assert_eq!(p.display_name(), "OneDrive");
+    }
+
+    #[test]
+    fn auth_url_with_credentials_contains_client_id() {
+        let p = OneDriveProvider::with_credentials("test_id_456".to_string());
+        let url = p.auth_url();
+        assert!(url.contains("test_id_456"));
+        assert!(url.contains("microsoftonline.com"));
+        assert!(url.contains("response_type=code"));
+    }
+
+    #[test]
+    fn auth_url_without_credentials_uses_not_configured() {
+        let p = OneDriveProvider::new();
+        let url = p.auth_url();
+        assert!(url.contains("NOT_CONFIGURED"));
+    }
+
+    #[test]
+    fn require_client_id_without_id_returns_error() {
+        let p = OneDriveProvider::new();
+        assert!(p.require_client_id().is_err());
+    }
+
+    #[test]
+    fn require_client_id_with_id_returns_ok() {
+        let p = OneDriveProvider::with_credentials("my_id".to_string());
+        assert_eq!(p.require_client_id().unwrap(), "my_id");
+    }
+
+    #[test]
+    fn default_impl_matches_new() {
+        let p = OneDriveProvider::default();
+        assert!(!p.has_credentials());
+    }
+}

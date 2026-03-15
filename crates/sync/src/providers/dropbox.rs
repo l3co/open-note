@@ -525,3 +525,79 @@ fn build_auth_token(resp: TokenResponse, keep_refresh: Option<String>) -> AuthTo
         token_type: resp.token_type,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::provider::SyncProvider;
+    use crate::types::SyncProviderType;
+
+    #[test]
+    fn new_provider_has_no_credentials() {
+        let p = DropboxProvider::new();
+        assert!(!p.has_credentials());
+    }
+
+    #[test]
+    fn with_credentials_sets_has_credentials() {
+        let p = DropboxProvider::with_credentials(
+            "my_app_key".to_string(),
+            "my_app_secret".to_string(),
+        );
+        assert!(p.has_credentials());
+    }
+
+    #[test]
+    fn with_env_credentials_reads_env_vars() {
+        std::env::set_var("DROPBOX_CLIENT_ID", "env_key");
+        std::env::set_var("DROPBOX_CLIENT_SECRET", "env_secret");
+        let p = DropboxProvider::with_env_credentials();
+        assert!(p.has_credentials());
+        std::env::remove_var("DROPBOX_CLIENT_ID");
+        std::env::remove_var("DROPBOX_CLIENT_SECRET");
+    }
+
+    #[test]
+    fn metadata_methods_return_correct_values() {
+        let p = DropboxProvider::new();
+        assert_eq!(p.name(), "dropbox");
+        assert_eq!(p.provider_type(), SyncProviderType::Dropbox);
+        assert_eq!(p.display_name(), "Dropbox");
+    }
+
+    #[test]
+    fn auth_url_with_credentials_contains_client_id() {
+        let p = DropboxProvider::with_credentials("dropbox_key_789".to_string(), "sec".to_string());
+        let url = p.auth_url();
+        assert!(url.contains("dropbox_key_789"));
+        assert!(url.contains("dropbox.com"));
+        assert!(url.contains("response_type=code"));
+    }
+
+    #[test]
+    fn auth_url_without_credentials_uses_not_configured() {
+        let p = DropboxProvider::new();
+        let url = p.auth_url();
+        assert!(url.contains("NOT_CONFIGURED"));
+    }
+
+    #[test]
+    fn require_credentials_without_creds_returns_error() {
+        let p = DropboxProvider::new();
+        assert!(p.require_credentials().is_err());
+    }
+
+    #[test]
+    fn require_credentials_with_creds_returns_ok() {
+        let p = DropboxProvider::with_credentials("key".to_string(), "secret".to_string());
+        let (key, sec) = p.require_credentials().unwrap();
+        assert_eq!(key, "key");
+        assert_eq!(sec, "secret");
+    }
+
+    #[test]
+    fn default_impl_matches_new() {
+        let p = DropboxProvider::default();
+        assert!(!p.has_credentials());
+    }
+}

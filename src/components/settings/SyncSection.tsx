@@ -197,7 +197,7 @@ function DownloadedWorkspacesSection() {
   const handleOpen = async (ws: DownloadedWorkspace) => {
     setOpening(ws.name);
     try {
-      await ipc.openWorkspace(ws.localPath);
+      await ipc.openWorkspace(ws.local_path);
     } finally {
       setOpening(null);
     }
@@ -235,9 +235,9 @@ function DownloadedWorkspacesSection() {
               <p
                 className="truncate font-mono text-xs"
                 style={{ color: "var(--text-tertiary)" }}
-                title={ws.localPath}
+                title={ws.local_path}
               >
-                {ws.localPath}
+                {ws.local_path}
               </p>
             </div>
           </div>
