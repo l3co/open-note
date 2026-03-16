@@ -81,7 +81,7 @@ describe("CloudImportModal", () => {
     );
   });
 
-  it("shows done state after download completes", async () => {
+  it("shows done state and Open button after download completes", async () => {
     const user = userEvent.setup();
     render(
       <CloudImportModal
@@ -97,6 +97,76 @@ describe("CloudImportModal", () => {
     await waitFor(() =>
       expect(screen.getByText(/5 arquivo/i)).toBeInTheDocument(),
     );
+    expect(screen.getByText(/abrir/i)).toBeInTheDocument();
+  });
+
+  it("does NOT auto-open workspace after download", async () => {
+    const user = userEvent.setup();
+    render(
+      <CloudImportModal
+        providerName="google_drive"
+        providerLabel="Google Drive"
+        workspaces={[
+          { name: "Trabalho", provider: "google_drive", file_count: null },
+        ]}
+        defaultDestDir="/Users/user/Documents/OpenNote"
+        onClose={onClose}
+      />,
+    );
+    await user.click(screen.getByText(/^Baixar$/));
+    await waitFor(() =>
+      expect(screen.getByText(/5 arquivo/i)).toBeInTheDocument(),
+    );
+    expect(mockIpc.openWorkspace).not.toHaveBeenCalled();
+  });
+
+  it("opens workspace and closes modal when Open button is clicked", async () => {
+    const user = userEvent.setup();
+    render(
+      <CloudImportModal
+        providerName="google_drive"
+        providerLabel="Google Drive"
+        workspaces={[
+          { name: "Trabalho", provider: "google_drive", file_count: null },
+        ]}
+        defaultDestDir="/Users/user/Documents/OpenNote"
+        onClose={onClose}
+      />,
+    );
+    await user.click(screen.getByText(/^Baixar$/));
+    await waitFor(() => expect(screen.getByText(/abrir/i)).toBeInTheDocument());
+    await user.click(screen.getByText(/abrir/i));
+    await waitFor(() =>
+      expect(mockIpc.openWorkspace).toHaveBeenCalledWith(
+        "/Users/user/Documents/OpenNote/Trabalho",
+      ),
+    );
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it("shows open error when openWorkspace fails", async () => {
+    mockIpc.openWorkspace.mockRejectedValue(
+      new Error("permission denied (os error 13)"),
+    );
+    const user = userEvent.setup();
+    render(
+      <CloudImportModal
+        providerName="google_drive"
+        providerLabel="Google Drive"
+        workspaces={[
+          { name: "Trabalho", provider: "google_drive", file_count: null },
+        ]}
+        defaultDestDir="/Users/user/Documents/OpenNote"
+        onClose={onClose}
+      />,
+    );
+    await user.click(screen.getByText(/^Baixar$/));
+    await waitFor(() => expect(screen.getByText(/abrir/i)).toBeInTheDocument());
+    await user.click(screen.getByText(/abrir/i));
+    await waitFor(() =>
+      expect(screen.getByText(/erro ao abrir/i)).toBeInTheDocument(),
+    );
+    expect(onClose).not.toHaveBeenCalled();
   });
 
   it("shows error state when download fails", async () => {
