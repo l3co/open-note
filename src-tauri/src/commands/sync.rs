@@ -465,28 +465,88 @@ pub async fn download_workspace(
         .map_err(|e| e.to_string())?;
 
     let dest = PathBuf::from(&dest_path);
-    std::fs::create_dir_all(&dest).map_err(|e| e.to_string())?;
+    std::fs::create_dir_all(&dest).map_err(|e| {
+        format!(
+            "Não foi possível criar o diretório '{}': {e}",
+            dest.display()
+        )
+    })?;
+
+    // Explicitly set directory permissions on Unix so the workspace is writable.
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(&dest, std::fs::Permissions::from_mode(0o755));
+    }
 
     let mut downloaded = 0u32;
+    let mut last_write_error: Option<String> = None;
+
     for remote_file in &remote_files {
         let relative = remote_file
             .path
             .trim_start_matches(&remote_root)
             .trim_start_matches('/');
+
+        // Skip entries that resolve to the workspace root itself (folder entries).
+        if relative.is_empty() {
+            continue;
+        }
+
         let local_path = dest.join(relative);
 
         if let Some(parent) = local_path.parent() {
-            let _ = std::fs::create_dir_all(parent);
+            if let Err(e) = std::fs::create_dir_all(parent) {
+                last_write_error = Some(format!(
+                    "Não foi possível criar '{}': {e}",
+                    parent.display()
+                ));
+                continue;
+            }
+            // Ensure subdirectories are also writable on Unix.
+            #[cfg(unix)]
+            {
+                use std::os::unix::fs::PermissionsExt;
+                let _ = std::fs::set_permissions(parent, std::fs::Permissions::from_mode(0o755));
+            }
         }
 
         match provider.download_remote_file(&token, remote_file).await {
-            Ok(content) => {
-                if std::fs::write(&local_path, &content).is_ok() {
+            Ok(content) => match std::fs::write(&local_path, &content) {
+                Ok(()) => {
+                    // Ensure files are readable/writable by the owner on Unix.
+                    #[cfg(unix)]
+                    {
+                        use std::os::unix::fs::PermissionsExt;
+                        let _ = std::fs::set_permissions(
+                            &local_path,
+                            std::fs::Permissions::from_mode(0o644),
+                        );
+                    }
                     downloaded += 1;
                 }
+                Err(e) => {
+                    last_write_error = Some(format!(
+                        "Não foi possível salvar '{}': {e}",
+                        local_path.display()
+                    ));
+                }
+            },
+            Err(e) => {
+                last_write_error = Some(format!("Erro ao baixar '{}': {e}", remote_file.path));
             }
-            Err(_) => continue,
         }
+    }
+
+    // If workspace.json was never written, surface the error so the user understands
+    // why the workspace cannot be opened afterwards.
+    let ws_json = dest.join("workspace.json");
+    if !ws_json.exists() {
+        let reason = last_write_error
+            .unwrap_or_else(|| "nenhum arquivo foi encontrado no workspace remoto".to_string());
+        return Err(format!(
+            "workspace.json não encontrado após o download. {reason}"
+        ));
     }
 
     Ok(DownloadResult {

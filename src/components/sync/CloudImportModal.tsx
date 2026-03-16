@@ -8,6 +8,7 @@ import {
   Loader2,
   CheckCircle,
   AlertCircle,
+  ExternalLink,
 } from "lucide-react";
 import * as ipc from "@/lib/ipc";
 import type { DownloadResult } from "@/lib/ipc";
@@ -28,6 +29,7 @@ interface WorkspaceState {
   count?: number;
   localPath?: string;
   error?: string;
+  openError?: string;
 }
 
 export function CloudImportModal({
@@ -43,8 +45,17 @@ export function CloudImportModal({
   );
   const [downloadingAll, setDownloadingAll] = useState(false);
 
-  const setWsState = (name: string, state: WorkspaceState) => {
-    setStates((prev) => ({ ...prev, [name]: state }));
+  const setWsState = (
+    name: string,
+    state: WorkspaceState | ((prev: WorkspaceState) => WorkspaceState),
+  ) => {
+    setStates((prev) => ({
+      ...prev,
+      [name]:
+        typeof state === "function"
+          ? state(prev[name] ?? { status: "idle" })
+          : state,
+    }));
   };
 
   const normalizedBase = defaultDestDir.replace(/\/+$/, "");
@@ -63,9 +74,18 @@ export function CloudImportModal({
         count: result.count,
         localPath: result.local_path,
       });
-      ipc.openWorkspace(result.local_path).catch(() => {});
     } catch (e) {
       setWsState(ws.name, { status: "error", error: String(e) });
+    }
+  };
+
+  const openOne = async (name: string, localPath: string) => {
+    setWsState(name, (prev) => ({ ...prev, openError: undefined }));
+    try {
+      await ipc.openWorkspace(localPath);
+      onClose();
+    } catch (e) {
+      setWsState(name, (prev) => ({ ...prev, openError: String(e) }));
     }
   };
 
@@ -209,10 +229,30 @@ export function CloudImportModal({
                 )}
 
                 {wsState.status === "done" && (
-                  <span className="flex items-center gap-1 text-xs font-medium text-green-500">
-                    <CheckCircle size={13} />
-                    {t("sync.import_done", { count: wsState.count ?? 0 })}
-                  </span>
+                  <div className="flex flex-col items-end gap-1">
+                    <span className="flex items-center gap-1 text-xs font-medium text-green-500">
+                      <CheckCircle size={13} />
+                      {t("sync.import_done", { count: wsState.count ?? 0 })}
+                    </span>
+                    {wsState.localPath && (
+                      <button
+                        onClick={() => openOne(ws.name, wsState.localPath!)}
+                        className="flex items-center gap-1 rounded-lg px-3 py-1 text-xs font-medium text-white transition-opacity hover:opacity-90"
+                        style={{ backgroundColor: "var(--accent)" }}
+                      >
+                        <ExternalLink size={11} />
+                        {t("sync.import_open")}
+                      </button>
+                    )}
+                    {wsState.openError && (
+                      <span
+                        className="max-w-[180px] truncate text-xs text-red-400"
+                        title={wsState.openError}
+                      >
+                        {t("sync.import_open_error")}
+                      </span>
+                    )}
+                  </div>
                 )}
 
                 {wsState.status === "error" && (
