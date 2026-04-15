@@ -262,11 +262,7 @@ describe("PageEditor — save behavior", () => {
     );
   });
 
-  // NOTE: This test is skipped because useAutoSave is mocked (lines 94-98) to bypass
-  // real timer-based debouncing — its forceSave calls onSave immediately without any
-  // setTimeout. The test will become meaningful after Task 3 removes the useAutoSave
-  // hook and wires real setTimeout-based debouncing directly into PageEditor.
-  it.skip("calls updateBlocks after 1000ms debounce following a content update", async () => {
+  it("calls updateBlocks after 1000ms debounce following a content update", async () => {
     render(<PageEditor page={makePage()} />);
 
     act(() => {
