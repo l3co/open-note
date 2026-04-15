@@ -218,6 +218,12 @@ describe("PageEditor", () => {
 describe("PageEditor — save behavior", () => {
   beforeEach(() => {
     vi.useFakeTimers();
+    usePageStore.setState({
+      updateBlocks: vi.fn().mockResolvedValue(undefined),
+      updatePageTitle: vi.fn().mockResolvedValue(undefined),
+      lockState: "unlocked",
+      clearCurrentPage: vi.fn(),
+    });
   });
 
   afterEach(() => {
@@ -226,29 +232,18 @@ describe("PageEditor — save behavior", () => {
   });
 
   it("does not call updateBlocks immediately on handleUpdate", () => {
-    const updateBlocks = vi.fn().mockResolvedValue({});
-    usePageStore.setState({
-      updateBlocks,
-      updatePageTitle: vi.fn().mockResolvedValue(undefined),
-      lockState: "unlocked",
-      clearCurrentPage: vi.fn(),
-    });
-
     render(<PageEditor page={makePage()} />);
 
-    // No save should happen synchronously on mount
-    expect(updateBlocks).not.toHaveBeenCalled();
+    // Fire handleUpdate by clicking the block editor mock — this triggers
+    // onUpdate → handleUpdate → scheduleSave, but must NOT call updateBlocks synchronously.
+    act(() => {
+      fireEvent.click(screen.getByTestId("block-editor-mock"));
+    });
+
+    expect(usePageStore.getState().updateBlocks).not.toHaveBeenCalled();
   });
 
   it("calls updateBlocks after blur triggers forceSave with pending content", () => {
-    const updateBlocks = vi.fn().mockResolvedValue({});
-    usePageStore.setState({
-      updateBlocks,
-      updatePageTitle: vi.fn().mockResolvedValue(undefined),
-      lockState: "unlocked",
-      clearCurrentPage: vi.fn(),
-    });
-
     render(<PageEditor page={makePage()} />);
 
     // Simulate a content update via the block editor mock
@@ -261,6 +256,27 @@ describe("PageEditor — save behavior", () => {
       fireEvent.blur(screen.getByTestId("page-editor"));
     });
 
-    expect(updateBlocks).toHaveBeenCalledWith("page-1", []);
+    expect(usePageStore.getState().updateBlocks).toHaveBeenCalledWith(
+      "page-1",
+      [],
+    );
+  });
+
+  // NOTE: This test is skipped because useAutoSave is mocked (lines 94-98) to bypass
+  // real timer-based debouncing — its forceSave calls onSave immediately without any
+  // setTimeout. The test will become meaningful after Task 3 removes the useAutoSave
+  // hook and wires real setTimeout-based debouncing directly into PageEditor.
+  it.skip("calls updateBlocks after 1000ms debounce following a content update", async () => {
+    render(<PageEditor page={makePage()} />);
+
+    act(() => {
+      fireEvent.click(screen.getByTestId("block-editor-mock"));
+    });
+    expect(usePageStore.getState().updateBlocks).not.toHaveBeenCalled();
+
+    await act(async () => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(usePageStore.getState().updateBlocks).toHaveBeenCalled();
   });
 });
