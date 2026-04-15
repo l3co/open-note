@@ -65,12 +65,18 @@ export function PageEditor({ page }: PageEditorProps) {
     }
   }, [page.id, updateBlocks]);
 
-  // Clean up timer on unmount
+  // Clean up timer on unmount — also flush any pending content so keystrokes within
+  // the last 1000ms aren't lost when the user switches pages.
   useEffect(() => {
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      if (pendingDocRef.current) {
+        updateBlocks(page.id, tiptapToBlocks(pendingDocRef.current));
+        pendingDocRef.current = null;
+      }
     };
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []); // empty deps intentional — runs only on unmount; page.id/updateBlocks captured at mount time are correct for the page this instance was created for
 
   const handleModeChange = useCallback(
     (newMode: EditorMode) => {
@@ -97,7 +103,8 @@ export function PageEditor({ page }: PageEditorProps) {
     setMarkdownContent(md);
     const doc = markdownToTiptap(md);
     pendingDocRef.current = doc;
-  }, []);
+    scheduleSave();
+  }, [scheduleSave]);
 
   const handleTitleChange = useCallback(
     async (newTitle: string) => {
