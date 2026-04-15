@@ -1,5 +1,5 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent, act } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { PageEditor } from "../PageEditor";
 import { usePageStore } from "@/stores/usePageStore";
 import { useUIStore } from "@/stores/useUIStore";
@@ -212,5 +212,55 @@ describe("PageEditor", () => {
     expect(screen.getByTestId("markdown-editor-mock")).toHaveValue(
       "# New content",
     );
+  });
+});
+
+describe("PageEditor — save behavior", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.clearAllMocks();
+  });
+
+  it("does not call updateBlocks immediately on handleUpdate", () => {
+    const updateBlocks = vi.fn().mockResolvedValue({});
+    usePageStore.setState({
+      updateBlocks,
+      updatePageTitle: vi.fn().mockResolvedValue(undefined),
+      lockState: "unlocked",
+      clearCurrentPage: vi.fn(),
+    });
+
+    render(<PageEditor page={makePage()} />);
+
+    // No save should happen synchronously on mount
+    expect(updateBlocks).not.toHaveBeenCalled();
+  });
+
+  it("calls updateBlocks after blur triggers forceSave with pending content", () => {
+    const updateBlocks = vi.fn().mockResolvedValue({});
+    usePageStore.setState({
+      updateBlocks,
+      updatePageTitle: vi.fn().mockResolvedValue(undefined),
+      lockState: "unlocked",
+      clearCurrentPage: vi.fn(),
+    });
+
+    render(<PageEditor page={makePage()} />);
+
+    // Simulate a content update via the block editor mock
+    act(() => {
+      fireEvent.click(screen.getByTestId("block-editor-mock"));
+    });
+
+    // Simulate blur to trigger forceSave — mocked useAutoSave calls onSave immediately
+    act(() => {
+      fireEvent.blur(screen.getByTestId("page-editor"));
+    });
+
+    expect(updateBlocks).toHaveBeenCalledWith("page-1", []);
   });
 });
