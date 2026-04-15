@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef, useEffect, useMemo } from "react";
 import type { JSONContent, Editor } from "@tiptap/react";
 import type { Page } from "@/types/bindings/Page";
 import { TitleEditor } from "@/components/editor/TitleEditor";
@@ -39,7 +39,7 @@ export function PageEditor({ page }: PageEditorProps) {
   // Compute initial content — only passed to BlockEditor as initialContent (not re-rendered on update).
   // The key performance win is that handleUpdate no longer calls setState, so this line
   // running on re-render is harmless (re-renders are now infrequent).
-  const initialContent = blocksToTiptap(page.blocks);
+  const initialContent = useMemo(() => blocksToTiptap(page.blocks), [page.id]);
 
   // Debounced save — stores latest unsaved content and fires after 1000ms
   const scheduleSave = useCallback(() => {
