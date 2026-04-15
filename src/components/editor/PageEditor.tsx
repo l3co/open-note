@@ -39,6 +39,7 @@ export function PageEditor({ page }: PageEditorProps) {
   // Compute initial content — only passed to BlockEditor as initialContent (not re-rendered on update).
   // The key performance win is that handleUpdate no longer calls setState, so this line
   // running on re-render is harmless (re-renders are now infrequent).
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const initialContent = useMemo(() => blocksToTiptap(page.blocks), [page.id]);
 
   // Debounced save — stores latest unsaved content and fires after 1000ms
@@ -46,11 +47,11 @@ export function PageEditor({ page }: PageEditorProps) {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
       if (pendingDocRef.current) {
-        updateBlocks(page.id, tiptapToBlocks(pendingDocRef.current));
+        updateBlocks(page.id, tiptapToBlocks(pendingDocRef.current, page.blocks));
         pendingDocRef.current = null;
       }
     }, 1000);
-  }, [page.id, updateBlocks]);
+  }, [page.id, page.blocks, updateBlocks]);
 
   // Immediate save — called on blur
   const forceSave = useCallback(() => {
@@ -60,10 +61,10 @@ export function PageEditor({ page }: PageEditorProps) {
     }
     const doc = pendingDocRef.current ?? editorRef.current?.getJSON() ?? null;
     if (doc) {
-      updateBlocks(page.id, tiptapToBlocks(doc));
+      updateBlocks(page.id, tiptapToBlocks(doc, page.blocks));
       pendingDocRef.current = null;
     }
-  }, [page.id, updateBlocks]);
+  }, [page.id, page.blocks, updateBlocks]);
 
   // Clean up timer on unmount — also flush any pending content so keystrokes within
   // the last 1000ms aren't lost when the user switches pages.
@@ -71,12 +72,12 @@ export function PageEditor({ page }: PageEditorProps) {
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       if (pendingDocRef.current) {
-        updateBlocks(page.id, tiptapToBlocks(pendingDocRef.current));
+        updateBlocks(page.id, tiptapToBlocks(pendingDocRef.current, page.blocks));
         pendingDocRef.current = null;
       }
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // empty deps intentional — runs only on unmount; page.id/updateBlocks captured at mount time are correct for the page this instance was created for
+  }, []); // empty deps intentional — runs only on unmount; page.id/page.blocks/updateBlocks captured at mount time are correct for the page this instance was created for
 
   const handleModeChange = useCallback(
     (newMode: EditorMode) => {

@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -42,7 +42,9 @@ export function BlockEditor({
   const editorConfig = useUIStore((s) => s.editorConfig);
 
   const onUpdateRef = useRef(onUpdate);
-  onUpdateRef.current = onUpdate;
+  useLayoutEffect(() => {
+    onUpdateRef.current = onUpdate;
+  });
 
   const editor = useEditor({
     extensions: [
