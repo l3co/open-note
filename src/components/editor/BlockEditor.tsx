@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
@@ -40,6 +40,9 @@ export function BlockEditor({
   onEditorReady,
 }: BlockEditorProps) {
   const editorConfig = useUIStore((s) => s.editorConfig);
+
+  const onUpdateRef = useRef(onUpdate);
+  onUpdateRef.current = onUpdate;
 
   const editor = useEditor({
     extensions: [
@@ -96,7 +99,7 @@ export function BlockEditor({
     ],
     content: initialContent,
     onUpdate: ({ editor: ed }) => {
-      onUpdate(ed.getJSON());
+      onUpdateRef.current(ed.getJSON());
     },
     editorProps: {
       attributes: {
