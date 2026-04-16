@@ -29,6 +29,7 @@ interface WorkspaceState {
   status: WorkspaceStatus;
   count?: number;
   localPath?: string;
+  alreadyExists?: boolean;
   error?: string;
   openError?: string;
 }
@@ -74,6 +75,7 @@ export function CloudImportModal({
         status: "done",
         count: result.count,
         localPath: result.local_path,
+        alreadyExists: result.count === 0 && !!result.local_path,
       });
     } catch (e) {
       setWsState(ws.name, { status: "error", error: String(e) });
@@ -235,7 +237,9 @@ export function CloudImportModal({
                   <div className="flex flex-col items-end gap-1">
                     <span className="flex items-center gap-1 text-xs font-medium text-green-500">
                       <CheckCircle size={13} />
-                      {t("sync.import_done", { count: wsState.count ?? 0 })}
+                      {wsState.alreadyExists
+                        ? t("sync.import_already_exists")
+                        : t("sync.import_done", { count: wsState.count ?? 0 })}
                     </span>
                     {wsState.localPath && (
                       <button
@@ -248,12 +252,14 @@ export function CloudImportModal({
                       </button>
                     )}
                     {wsState.openError && (
-                      <span
-                        className="max-w-[180px] truncate text-xs text-red-400"
-                        title={wsState.openError}
-                      >
-                        {t("sync.import_open_error")}
-                      </span>
+                      <details className="mt-1 max-w-[220px]">
+                        <summary className="cursor-pointer text-xs text-red-400">
+                          {t("sync.import_open_error")}
+                        </summary>
+                        <pre className="mt-1 max-h-24 overflow-auto rounded bg-red-950/30 p-1.5 text-[10px] break-all whitespace-pre-wrap text-red-300 select-text">
+                          {wsState.openError}
+                        </pre>
+                      </details>
                     )}
                   </div>
                 )}

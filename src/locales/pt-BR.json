@@ -283,6 +283,7 @@
       "import_skip": "Pular",
       "import_downloading": "Baixando...",
       "import_done": "{{count}} arquivo(s) baixados com sucesso",
+      "import_already_exists": "Já existe localmente",
       "import_open": "Abrir",
       "import_open_error": "Erro ao abrir workspace",
       "import_error": "Erro ao baixar: {{error}}",
