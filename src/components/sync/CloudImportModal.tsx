@@ -256,7 +256,7 @@ export function CloudImportModal({
                         <summary className="cursor-pointer text-xs text-red-400">
                           {t("sync.import_open_error")}
                         </summary>
-                        <pre className="mt-1 max-h-24 overflow-auto whitespace-pre-wrap break-all rounded bg-red-950/30 p-1.5 text-[10px] text-red-300 select-text">
+                        <pre className="mt-1 max-h-24 overflow-auto rounded bg-red-950/30 p-1.5 text-[10px] break-all whitespace-pre-wrap text-red-300 select-text">
                           {wsState.openError}
                         </pre>
                       </details>
