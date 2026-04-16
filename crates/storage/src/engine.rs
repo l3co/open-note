@@ -155,40 +155,39 @@ impl FsStorageEngine {
         Ok(workspace)
     }
 
-    /// Ensures the workspace root and its directly-accessed files have usable
-    /// Unix permissions regardless of how they were created or the process umask.
-    /// Failures are silently ignored — the subsequent operations will surface any
-    /// real problem with a clearer error.
+    /// Recursively walks the entire workspace tree and sets every directory to
+    /// 0o755 and every file to 0o644, regardless of how they were created or the
+    /// process umask.  This is intentionally broad: it fixes files downloaded by
+    /// the sync provider (which uses `std::fs::write` and inherits the umask),
+    /// residual `.tmp` files from crashed writes, and any other stale-permission
+    /// artifact.  Failures on individual entries are silently ignored — the
+    /// subsequent I/O operations will surface any real problem with a clear error.
     #[cfg(unix)]
     fn repair_workspace_permissions(root_path: &Path) {
         use std::os::unix::fs::PermissionsExt;
 
-        // Workspace root directory must be traversable and writable.
-        let _ = fs::set_permissions(root_path, fs::Permissions::from_mode(0o755));
-
-        // Fix the files open_workspace will read or write directly.
-        let targets: &[(&str, u32)] = &[
-            (WORKSPACE_FILE, 0o644),       // workspace.json
-            (".lock", 0o644),              // lock file (if present from previous run)
-            (".lock.tmp", 0o644),          // residual tmp from crashed write
-            ("workspace.json.tmp", 0o644), // residual tmp from crashed write
-        ];
-        for (name, mode) in targets {
-            let p = root_path.join(name);
-            if p.exists() {
-                let _ = fs::set_permissions(&p, fs::Permissions::from_mode(*mode));
+        fn walk(path: &Path) {
+            // Use symlink_metadata so we never follow symlinks.
+            let Ok(meta) = fs::symlink_metadata(path) else {
+                return;
+            };
+            if meta.file_type().is_symlink() {
+                return;
+            }
+            if meta.is_dir() {
+                let _ = fs::set_permissions(path, fs::Permissions::from_mode(0o755));
+                let Ok(entries) = fs::read_dir(path) else {
+                    return;
+                };
+                for entry in entries.flatten() {
+                    walk(&entry.path());
+                }
+            } else if meta.is_file() {
+                let _ = fs::set_permissions(path, fs::Permissions::from_mode(0o644));
             }
         }
 
-        // Trash directory must be traversable if it exists.
-        let trash = root_path.join(TRASH_DIR);
-        if trash.exists() {
-            let _ = fs::set_permissions(&trash, fs::Permissions::from_mode(0o755));
-            let manifest = trash.join(TRASH_MANIFEST_FILE);
-            if manifest.exists() {
-                let _ = fs::set_permissions(&manifest, fs::Permissions::from_mode(0o644));
-            }
-        }
+        walk(root_path);
     }
 
     #[cfg(not(unix))]
