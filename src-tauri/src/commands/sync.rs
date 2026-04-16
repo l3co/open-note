@@ -69,7 +69,7 @@ pub async fn connect_provider(
     opennote_sync::token_store::store_token(&provider_name, &token).map_err(|e| e.to_string())?;
 
     if let Ok(Some(id)) = state.get_focused_id() {
-        let _ = state.with_workspace_mut(&id, |ctx| {
+        if let Err(e) = state.with_workspace_mut(&id, |ctx| {
             if let Some(ref mut coord) = ctx.sync_coordinator {
                 let mut prefs = coord.get_preferences().clone();
                 prefs.provider = Some(provider_type);
@@ -78,7 +78,9 @@ pub async fn connect_provider(
                 coord.set_preferences(prefs);
             }
             Ok(())
-        });
+        }) {
+            log::warn!("[connect_provider] Falha ao atualizar coordinator: {e}");
+        }
     }
 
     Ok(email.unwrap_or_else(|| "conectado".to_string()))
@@ -100,7 +102,7 @@ pub async fn disconnect_provider(
     opennote_sync::token_store::delete_token(&provider_name).map_err(|e| e.to_string())?;
 
     if let Ok(Some(id)) = state.get_focused_id() {
-        let _ = state.with_workspace_mut(&id, |ctx| {
+        if let Err(e) = state.with_workspace_mut(&id, |ctx| {
             if let Some(ref mut coord) = ctx.sync_coordinator {
                 coord.clear_provider();
                 let mut prefs = coord.get_preferences().clone();
@@ -109,7 +111,9 @@ pub async fn disconnect_provider(
                 coord.set_preferences(prefs);
             }
             Ok(())
-        });
+        }) {
+            log::warn!("[disconnect_provider] Falha ao atualizar coordinator: {e}");
+        }
     }
 
     Ok(())
