@@ -462,6 +462,24 @@ pub async fn download_workspace(
     let provider_type = parse_provider_type(&provider_name)?;
     let provider = providers::create_provider(provider_type);
 
+    // Before downloading, check whether this workspace already exists locally by
+    // comparing names against recently opened workspaces. If found, skip the
+    // download and return the existing path to avoid duplicates.
+    if let Ok(app_state) = opennote_storage::engine::FsStorageEngine::load_app_state() {
+        if let Some(existing) = app_state
+            .recent_workspaces
+            .iter()
+            .find(|rw| rw.name == workspace_name)
+        {
+            if existing.path.join("workspace.json").exists() {
+                return Ok(DownloadResult {
+                    count: 0,
+                    local_path: existing.path.to_string_lossy().into_owned(),
+                });
+            }
+        }
+    }
+
     let remote_root = format!("OpenNote/{}", workspace_name);
     let remote_files = provider
         .list_all_remote_files(&token, &remote_root)

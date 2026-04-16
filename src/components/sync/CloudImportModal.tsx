@@ -29,6 +29,7 @@ interface WorkspaceState {
   status: WorkspaceStatus;
   count?: number;
   localPath?: string;
+  alreadyExists?: boolean;
   error?: string;
   openError?: string;
 }
@@ -74,6 +75,7 @@ export function CloudImportModal({
         status: "done",
         count: result.count,
         localPath: result.local_path,
+        alreadyExists: result.count === 0 && !!result.local_path,
       });
     } catch (e) {
       setWsState(ws.name, { status: "error", error: String(e) });
@@ -235,7 +237,9 @@ export function CloudImportModal({
                   <div className="flex flex-col items-end gap-1">
                     <span className="flex items-center gap-1 text-xs font-medium text-green-500">
                       <CheckCircle size={13} />
-                      {t("sync.import_done", { count: wsState.count ?? 0 })}
+                      {wsState.alreadyExists
+                        ? t("sync.import_already_exists")
+                        : t("sync.import_done", { count: wsState.count ?? 0 })}
                     </span>
                     {wsState.localPath && (
                       <button
