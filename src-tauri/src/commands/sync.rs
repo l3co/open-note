@@ -382,30 +382,18 @@ pub async fn sync_initial_upload(
 /// Writes `content` to `path` with mode 0o644 on Unix, bypassing the process
 /// umask.  Without an explicit mode, files created under a restrictive umask
 /// (e.g. 0o077) end up 0o600 or less and cause EACCES on subsequent opens.
+/// Writes `content` to `path` and ensures the file ends up with mode 0o644.
+///
+/// `chmod(2)` ignores the process umask, so the post-write chmod reliably sets
+/// 0o644 regardless of what umask was in effect during the write.
 fn write_file_0644(path: &std::path::Path, content: &[u8]) -> std::io::Result<()> {
+    std::fs::write(path, content)?;
     #[cfg(unix)]
     {
-        use std::io::Write;
-        use std::os::unix::fs::OpenOptionsExt;
-        // Zero the umask temporarily: open(2) applies the umask to the requested
-        // mode, so a restrictive umask would silently strip write/execute bits.
-        let old = unsafe { libc::umask(0) };
-        let result = (|| {
-            let mut f = std::fs::OpenOptions::new()
-                .write(true)
-                .create(true)
-                .truncate(true)
-                .mode(0o644)
-                .open(path)?;
-            f.write_all(content)
-        })();
-        unsafe { libc::umask(old) };
-        result
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o644));
     }
-    #[cfg(not(unix))]
-    {
-        std::fs::write(path, content)
-    }
+    Ok(())
 }
 
 fn collect_sync_files(root: &PathBuf) -> Vec<PathBuf> {
