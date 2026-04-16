@@ -732,6 +732,16 @@ pub async fn sync_bidirectional(
                             }
                             match std::fs::write(&local_path, &content) {
                                 Ok(()) => {
+                                    // Garante permissão de leitura/escrita pelo dono, independente do umask.
+                                    // Sem isto, arquivos baixados podem ter 0o600 e bloquear abertura posterior.
+                                    #[cfg(unix)]
+                                    {
+                                        use std::os::unix::fs::PermissionsExt;
+                                        let _ = std::fs::set_permissions(
+                                            &local_path,
+                                            std::fs::Permissions::from_mode(0o644),
+                                        );
+                                    }
                                     let local_hash = compute_hash(&content);
                                     manifest.update_entry(
                                         &change.path,
