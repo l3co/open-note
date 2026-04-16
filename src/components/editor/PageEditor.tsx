@@ -48,7 +48,10 @@ export function PageEditor({ page }: PageEditorProps) {
     if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
       if (pendingDocRef.current) {
-        updateBlocks(page.id, tiptapToBlocks(pendingDocRef.current, page.blocks));
+        updateBlocks(
+          page.id,
+          tiptapToBlocks(pendingDocRef.current, page.blocks),
+        );
         pendingDocRef.current = null;
       }
     }, 1000);
@@ -74,11 +77,14 @@ export function PageEditor({ page }: PageEditorProps) {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
       if (titleTimerRef.current) clearTimeout(titleTimerRef.current);
       if (pendingDocRef.current) {
-        updateBlocks(page.id, tiptapToBlocks(pendingDocRef.current, page.blocks));
+        updateBlocks(
+          page.id,
+          tiptapToBlocks(pendingDocRef.current, page.blocks),
+        );
         pendingDocRef.current = null;
       }
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // empty deps intentional — runs only on unmount; page.id/page.blocks/updateBlocks captured at mount time are correct for the page this instance was created for
 
   const handleModeChange = useCallback(
@@ -87,7 +93,9 @@ export function PageEditor({ page }: PageEditorProps) {
 
       if (newMode === "markdown") {
         const currentDoc =
-          editorRef.current?.getJSON() ?? pendingDocRef.current ?? initialContent;
+          editorRef.current?.getJSON() ??
+          pendingDocRef.current ??
+          initialContent;
         setMarkdownContent(tiptapToMarkdown(currentDoc));
       } else {
         const doc = markdownToTiptap(markdownContent);
@@ -102,12 +110,15 @@ export function PageEditor({ page }: PageEditorProps) {
     [mode, initialContent, markdownContent],
   );
 
-  const handleMarkdownChange = useCallback((md: string) => {
-    setMarkdownContent(md);
-    const doc = markdownToTiptap(md);
-    pendingDocRef.current = doc;
-    scheduleSave();
-  }, [scheduleSave]);
+  const handleMarkdownChange = useCallback(
+    (md: string) => {
+      setMarkdownContent(md);
+      const doc = markdownToTiptap(md);
+      pendingDocRef.current = doc;
+      scheduleSave();
+    },
+    [scheduleSave],
+  );
 
   const handleTitleChange = useCallback(
     (newTitle: string) => {

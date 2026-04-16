@@ -187,7 +187,9 @@ describe("PageEditor", () => {
       target: { value: "New Title" },
     });
     expect(usePageStore.getState().updatePageTitle).not.toHaveBeenCalled();
-    await act(async () => { vi.advanceTimersByTime(500); });
+    await act(async () => {
+      vi.advanceTimersByTime(500);
+    });
     expect(usePageStore.getState().updatePageTitle).toHaveBeenCalledWith(
       "New Title",
     );
