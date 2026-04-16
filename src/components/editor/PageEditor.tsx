@@ -25,6 +25,7 @@ export function PageEditor({ page }: PageEditorProps) {
   const contentAreaRef = useRef<HTMLDivElement>(null);
   const pendingDocRef = useRef<JSONContent | null>(null);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const titleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const [mode, setMode] = useState<EditorMode>("richtext");
   const [markdownContent, setMarkdownContent] = useState("");
@@ -71,6 +72,7 @@ export function PageEditor({ page }: PageEditorProps) {
   useEffect(() => {
     return () => {
       if (saveTimerRef.current) clearTimeout(saveTimerRef.current);
+      if (titleTimerRef.current) clearTimeout(titleTimerRef.current);
       if (pendingDocRef.current) {
         updateBlocks(page.id, tiptapToBlocks(pendingDocRef.current, page.blocks));
         pendingDocRef.current = null;
@@ -108,10 +110,13 @@ export function PageEditor({ page }: PageEditorProps) {
   }, [scheduleSave]);
 
   const handleTitleChange = useCallback(
-    async (newTitle: string) => {
+    (newTitle: string) => {
       const trimmed = newTitle.trim();
       if (!trimmed || trimmed === page.title) return;
-      await updatePageTitle(trimmed);
+      if (titleTimerRef.current) clearTimeout(titleTimerRef.current);
+      titleTimerRef.current = setTimeout(() => {
+        updatePageTitle(trimmed);
+      }, 500);
     },
     [page.title, updatePageTitle],
   );

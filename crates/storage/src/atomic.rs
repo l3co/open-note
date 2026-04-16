@@ -97,6 +97,9 @@ mod tests {
         atomic_write_json(&path, &"hello").unwrap();
         let mode = std::fs::metadata(&path).unwrap().permissions().mode();
         // Verifica que owner pode ler (0o400) e escrever (0o200)
-        assert!(mode & 0o600 == 0o600, "file must be owner-readable and writable, got mode {mode:o}");
+        assert!(
+            mode & 0o600 == 0o600,
+            "file must be owner-readable and writable, got mode {mode:o}"
+        );
     }
 }

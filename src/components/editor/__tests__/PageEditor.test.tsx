@@ -180,14 +180,18 @@ describe("PageEditor", () => {
     expect(screen.getByTestId("ink-overlay-mock")).toBeInTheDocument();
   });
 
-  it("calls updatePageTitle on title change", () => {
+  it("calls updatePageTitle on title change after debounce", async () => {
+    vi.useFakeTimers();
     render(<PageEditor page={makePage()} />);
     fireEvent.change(screen.getByTestId("title-editor-mock"), {
       target: { value: "New Title" },
     });
+    expect(usePageStore.getState().updatePageTitle).not.toHaveBeenCalled();
+    await act(async () => { vi.advanceTimersByTime(500); });
     expect(usePageStore.getState().updatePageTitle).toHaveBeenCalledWith(
       "New Title",
     );
+    vi.useRealTimers();
   });
 
   it("calls forceSave on blur", () => {
