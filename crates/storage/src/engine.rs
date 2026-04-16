@@ -99,6 +99,11 @@ impl FsStorageEngine {
     }
 
     pub fn open_workspace(root_path: &Path) -> StorageResult<Workspace> {
+        // Repair permissions before any I/O so that stale files with bad permissions
+        // (e.g. a .lock left by a crashed run with 0o000 mode, or files downloaded
+        // under a restrictive umask) do not cause EACCES on the subsequent operations.
+        Self::repair_workspace_permissions(root_path);
+
         lock::acquire_lock(root_path)?;
         let mut workspace = Self::load_workspace(root_path)?;
         workspace.updated_at = Utc::now();
@@ -107,6 +112,47 @@ impl FsStorageEngine {
         Self::cleanup_expired_trash(root_path)?;
 
         Ok(workspace)
+    }
+
+    /// Ensures the workspace root and its directly-accessed files have usable
+    /// Unix permissions regardless of how they were created or the process umask.
+    /// Failures are silently ignored — the subsequent operations will surface any
+    /// real problem with a clearer error.
+    #[cfg(unix)]
+    fn repair_workspace_permissions(root_path: &Path) {
+        use std::os::unix::fs::PermissionsExt;
+
+        // Workspace root directory must be traversable and writable.
+        let _ = fs::set_permissions(root_path, fs::Permissions::from_mode(0o755));
+
+        // Fix the files open_workspace will read or write directly.
+        let targets: &[(&str, u32)] = &[
+            (WORKSPACE_FILE, 0o644),       // workspace.json
+            (".lock", 0o644),              // lock file (if present from previous run)
+            (".lock.tmp", 0o644),          // residual tmp from crashed write
+            ("workspace.json.tmp", 0o644), // residual tmp from crashed write
+        ];
+        for (name, mode) in targets {
+            let p = root_path.join(name);
+            if p.exists() {
+                let _ = fs::set_permissions(&p, fs::Permissions::from_mode(*mode));
+            }
+        }
+
+        // Trash directory must be traversable if it exists.
+        let trash = root_path.join(TRASH_DIR);
+        if trash.exists() {
+            let _ = fs::set_permissions(&trash, fs::Permissions::from_mode(0o755));
+            let manifest = trash.join(TRASH_MANIFEST_FILE);
+            if manifest.exists() {
+                let _ = fs::set_permissions(&manifest, fs::Permissions::from_mode(0o644));
+            }
+        }
+    }
+
+    #[cfg(not(unix))]
+    fn repair_workspace_permissions(_root_path: &Path) {
+        // No-op on Windows — ACL-based permissions are not subject to umask issues.
     }
 
     pub fn close_workspace(root_path: &Path) -> StorageResult<()> {
