@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { X, Cloud, CheckCircle, Loader2, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
 import * as ipc from "@/lib/ipc";
 import type { ProviderConnectionStatus } from "@/lib/ipc";
 import type { RemoteWorkspaceInfo } from "@/types/sync";
@@ -96,6 +97,7 @@ export function CloudConnectModal({
     } catch (e) {
       setErrorMsg(String(e));
       setStatus("error");
+      toast.error(t("sync.connect_error"));
     }
   };
 

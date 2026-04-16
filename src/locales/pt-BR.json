@@ -294,6 +294,7 @@
       "connect_waiting": "Aguardando autorização no navegador...",
       "connect_waiting_short": "Aguardando...",
       "connect_success": "Conectado com sucesso!",
+      "connect_error": "Falha ao conectar ao provedor",
       "disconnect": "Desconectar",
       "connected": "Conectado",
       "not_connected": "Não conectado"

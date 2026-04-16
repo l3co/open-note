@@ -279,6 +279,7 @@
       "connect_waiting": "Waiting for authorization in browser...",
       "connect_waiting_short": "Waiting...",
       "connect_success": "Connected successfully!",
+      "connect_error": "Failed to connect to provider",
       "disconnect": "Disconnect",
       "connected": "Connected",
       "not_connected": "Not connected"
