@@ -515,10 +515,8 @@ pub async fn download_workspace(
                 use std::os::unix::fs::PermissionsExt;
                 let mut ancestor = parent;
                 while ancestor != dest {
-                    let _ = std::fs::set_permissions(
-                        ancestor,
-                        std::fs::Permissions::from_mode(0o755),
-                    );
+                    let _ =
+                        std::fs::set_permissions(ancestor, std::fs::Permissions::from_mode(0o755));
                     match ancestor.parent() {
                         Some(p) => ancestor = p,
                         None => break,
