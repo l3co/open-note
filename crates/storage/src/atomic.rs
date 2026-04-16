@@ -22,6 +22,15 @@ pub fn atomic_write_bytes(path: &Path, data: &[u8]) -> StorageResult<()> {
 
     fs::rename(&tmp_path, path)?;
 
+    // Explicit chmod after rename so permissions are not subject to the process umask.
+    // Without this, files opened from a downloaded workspace can get e.g. 0o600 and
+    // cause EACCES (OS error 13) when the app tries to rewrite them on next open.
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = fs::set_permissions(path, fs::Permissions::from_mode(0o644));
+    }
+
     if let Some(parent) = path.parent() {
         if let Ok(dir) = fs::File::open(parent) {
             let _ = dir.sync_all();
