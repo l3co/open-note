@@ -75,6 +75,8 @@ jobs:
           DROPBOX_CLIENT_ID: ${{ secrets.DROPBOX_CLIENT_ID }}
           DROPBOX_CLIENT_SECRET: ${{ secrets.DROPBOX_CLIENT_SECRET }}
           ONEDRIVE_CLIENT_ID: ${{ secrets.ONEDRIVE_CLIENT_ID }}
+          # Ad-hoc signing so bundle_dmg.sh can run codesign without a real certificate
+          APPLE_SIGNING_IDENTITY: "-"
         with:
           tagName: ${{ github.event.inputs.tag }}
           releaseName: Open Note ${{ github.event.inputs.tag }}
