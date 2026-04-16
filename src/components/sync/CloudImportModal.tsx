@@ -10,6 +10,7 @@ import {
   AlertCircle,
   ExternalLink,
 } from "lucide-react";
+import { toast } from "sonner";
 import * as ipc from "@/lib/ipc";
 import type { DownloadResult } from "@/lib/ipc";
 import type { RemoteWorkspaceInfo } from "@/types/sync";
@@ -85,7 +86,9 @@ export function CloudImportModal({
       await ipc.openWorkspace(localPath);
       onClose();
     } catch (e) {
-      setWsState(name, (prev) => ({ ...prev, openError: String(e) }));
+      const errStr = String(e);
+      setWsState(name, (prev) => ({ ...prev, openError: errStr }));
+      toast.error(t("sync.import_open_error"));
     }
   };
 

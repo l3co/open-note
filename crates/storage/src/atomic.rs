@@ -88,4 +88,18 @@ mod tests {
         assert!(!tmp_path.exists());
         assert!(path.exists());
     }
+
+    #[test]
+    fn atomic_write_sets_readable_permissions() {
+        use std::os::unix::fs::PermissionsExt;
+        let dir = TempDir::new().unwrap();
+        let path = dir.path().join("test.json");
+        atomic_write_json(&path, &"hello").unwrap();
+        let mode = std::fs::metadata(&path).unwrap().permissions().mode();
+        // Verifica que owner pode ler (0o400) e escrever (0o200)
+        assert!(
+            mode & 0o600 == 0o600,
+            "file must be owner-readable and writable, got mode {mode:o}"
+        );
+    }
 }

@@ -11,8 +11,8 @@
 }
 .interactive-ghost:focus-visible {
   background-color: var(--bg-hover);
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--accent);
 }
 .interactive-ghost[data-active="true"],
 .interactive-ghost.active {
@@ -36,8 +36,8 @@
 }
 .interactive-subtle:focus-visible {
   background-color: var(--bg-active);
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
+  outline: none;
+  box-shadow: inset 0 0 0 2px var(--accent);
 }
 .interactive-subtle[data-active="true"] {
   background-color: var(--bg-active);
@@ -60,8 +60,8 @@
 }
 .interactive-danger:focus-visible {
   background-color: rgba(239, 68, 68, 0.1);
-  outline: 2px solid rgb(239, 68, 68);
-  outline-offset: -2px;
+  outline: none;
+  box-shadow: inset 0 0 0 2px rgb(239, 68, 68);
 }
 .interactive-danger:disabled {
   opacity: 0.5;
@@ -83,8 +83,10 @@
   transform: scale(0.98);
 }
 .interactive-accent:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
+  outline: none;
+  box-shadow:
+    0 0 0 1.5px color-mix(in srgb, var(--accent) 70%, transparent),
+    0 0 8px 3px color-mix(in srgb, var(--accent) 22%, transparent);
 }
 .interactive-accent:disabled {
   opacity: 0.5;

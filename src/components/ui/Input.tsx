@@ -34,13 +34,12 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
 
     // Typography & Layout
     const baseClasses =
-      "flex items-center w-full bg-[var(--bg-secondary)] border border-[var(--border-subtle)] rounded-lg transition-colors duration-200 outline-none text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)]";
+      "input-wrapper flex items-center w-full bg-[var(--bg-secondary)] border border-[var(--border-subtle)] rounded-lg transition-colors duration-200 outline-none text-[var(--text-primary)] placeholder:text-[var(--text-tertiary)]";
 
-    const focusClasses =
-      "focus-within:border-[var(--accent)] focus-within:ring-1 focus-within:ring-[var(--accent)]";
+    const focusClasses = "";
 
     const errorClasses = error
-      ? "border-red-500 focus-within:border-red-500 focus-within:ring-red-500"
+      ? "border-red-500 [&:focus-within]:border-red-500 [&:focus-within]:[box-shadow:0_0_0_1.5px_rgba(239,68,68,0.7),0_0_8px_3px_rgba(239,68,68,0.22)]"
       : "";
 
     const disabledClasses = disabled
@@ -85,7 +84,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
             ref={ref}
             disabled={disabled}
             className={clsx(
-              "w-full border-none bg-transparent p-0 outline-none focus:ring-0",
+              "input-inner w-full border-none bg-transparent p-0",
               sizeClasses,
               iconPaddingClasses,
             )}

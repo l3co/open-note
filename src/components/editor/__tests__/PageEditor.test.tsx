@@ -1,5 +1,5 @@
-import { render, screen, fireEvent } from "@testing-library/react";
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent, act } from "@testing-library/react";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { PageEditor } from "../PageEditor";
 import { usePageStore } from "@/stores/usePageStore";
 import { useUIStore } from "@/stores/useUIStore";
@@ -180,14 +180,20 @@ describe("PageEditor", () => {
     expect(screen.getByTestId("ink-overlay-mock")).toBeInTheDocument();
   });
 
-  it("calls updatePageTitle on title change", () => {
+  it("calls updatePageTitle on title change after debounce", async () => {
+    vi.useFakeTimers();
     render(<PageEditor page={makePage()} />);
     fireEvent.change(screen.getByTestId("title-editor-mock"), {
       target: { value: "New Title" },
     });
+    expect(usePageStore.getState().updatePageTitle).not.toHaveBeenCalled();
+    await act(async () => {
+      vi.advanceTimersByTime(500);
+    });
     expect(usePageStore.getState().updatePageTitle).toHaveBeenCalledWith(
       "New Title",
     );
+    vi.useRealTimers();
   });
 
   it("calls forceSave on blur", () => {
@@ -212,5 +218,67 @@ describe("PageEditor", () => {
     expect(screen.getByTestId("markdown-editor-mock")).toHaveValue(
       "# New content",
     );
+  });
+});
+
+describe("PageEditor — save behavior", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    usePageStore.setState({
+      updateBlocks: vi.fn().mockResolvedValue(undefined),
+      updatePageTitle: vi.fn().mockResolvedValue(undefined),
+      lockState: "unlocked",
+      clearCurrentPage: vi.fn(),
+    });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.clearAllMocks();
+  });
+
+  it("does not call updateBlocks immediately on handleUpdate", () => {
+    render(<PageEditor page={makePage()} />);
+
+    // Fire handleUpdate by clicking the block editor mock — this triggers
+    // onUpdate → handleUpdate → scheduleSave, but must NOT call updateBlocks synchronously.
+    act(() => {
+      fireEvent.click(screen.getByTestId("block-editor-mock"));
+    });
+
+    expect(usePageStore.getState().updateBlocks).not.toHaveBeenCalled();
+  });
+
+  it("calls updateBlocks after blur triggers forceSave with pending content", () => {
+    render(<PageEditor page={makePage()} />);
+
+    // Simulate a content update via the block editor mock
+    act(() => {
+      fireEvent.click(screen.getByTestId("block-editor-mock"));
+    });
+
+    // Simulate blur to trigger forceSave — mocked useAutoSave calls onSave immediately
+    act(() => {
+      fireEvent.blur(screen.getByTestId("page-editor"));
+    });
+
+    expect(usePageStore.getState().updateBlocks).toHaveBeenCalledWith(
+      "page-1",
+      [],
+    );
+  });
+
+  it("calls updateBlocks after 1000ms debounce following a content update", async () => {
+    render(<PageEditor page={makePage()} />);
+
+    act(() => {
+      fireEvent.click(screen.getByTestId("block-editor-mock"));
+    });
+    expect(usePageStore.getState().updateBlocks).not.toHaveBeenCalled();
+
+    await act(async () => {
+      vi.advanceTimersByTime(1000);
+    });
+    expect(usePageStore.getState().updateBlocks).toHaveBeenCalled();
   });
 });
