@@ -507,11 +507,21 @@ pub async fn download_workspace(
                 ));
                 continue;
             }
-            // Ensure subdirectories are also writable on Unix.
+            // Set 0o755 on ALL intermediate directories between dest and this file's parent,
+            // not just the direct parent. create_dir_all may create several levels that
+            // inherit the process umask instead of getting explicit permissions.
             #[cfg(unix)]
             {
                 use std::os::unix::fs::PermissionsExt;
-                let _ = std::fs::set_permissions(parent, std::fs::Permissions::from_mode(0o755));
+                let mut ancestor = parent;
+                while ancestor != dest {
+                    let _ =
+                        std::fs::set_permissions(ancestor, std::fs::Permissions::from_mode(0o755));
+                    match ancestor.parent() {
+                        Some(p) => ancestor = p,
+                        None => break,
+                    }
+                }
             }
         }
 
