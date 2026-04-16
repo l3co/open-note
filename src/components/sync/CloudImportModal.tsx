@@ -248,12 +248,14 @@ export function CloudImportModal({
                       </button>
                     )}
                     {wsState.openError && (
-                      <span
-                        className="max-w-[180px] truncate text-xs text-red-400"
-                        title={wsState.openError}
-                      >
-                        {t("sync.import_open_error")}
-                      </span>
+                      <details className="mt-1 max-w-[220px]">
+                        <summary className="cursor-pointer text-xs text-red-400">
+                          {t("sync.import_open_error")}
+                        </summary>
+                        <pre className="mt-1 max-h-24 overflow-auto whitespace-pre-wrap break-all rounded bg-red-950/30 p-1.5 text-[10px] text-red-300 select-text">
+                          {wsState.openError}
+                        </pre>
+                      </details>
                     )}
                   </div>
                 )}

@@ -104,13 +104,54 @@ impl FsStorageEngine {
         // under a restrictive umask) do not cause EACCES on the subsequent operations.
         Self::repair_workspace_permissions(root_path);
 
-        lock::acquire_lock(root_path)?;
-        let mut workspace = Self::load_workspace(root_path)?;
+        log::debug!("[open_workspace] acquire_lock at '{}'", root_path.display());
+        lock::acquire_lock(root_path).map_err(|e| {
+            log::error!(
+                "[open_workspace] acquire_lock FAILED at '{}': {e}",
+                root_path.display()
+            );
+            e
+        })?;
+
+        log::debug!(
+            "[open_workspace] load_workspace at '{}'",
+            root_path.display()
+        );
+        let mut workspace = Self::load_workspace(root_path).map_err(|e| {
+            log::error!(
+                "[open_workspace] load_workspace FAILED at '{}': {e}",
+                root_path.join(WORKSPACE_FILE).display()
+            );
+            e
+        })?;
+
         workspace.updated_at = Utc::now();
-        Self::save_workspace(&workspace)?;
 
-        Self::cleanup_expired_trash(root_path)?;
+        log::debug!(
+            "[open_workspace] save_workspace at '{}'",
+            root_path.display()
+        );
+        Self::save_workspace(&workspace).map_err(|e| {
+            log::error!(
+                "[open_workspace] save_workspace FAILED at '{}': {e}",
+                root_path.join(WORKSPACE_FILE).display()
+            );
+            e
+        })?;
 
+        log::debug!(
+            "[open_workspace] cleanup_expired_trash at '{}'",
+            root_path.display()
+        );
+        Self::cleanup_expired_trash(root_path).map_err(|e| {
+            log::error!(
+                "[open_workspace] cleanup_expired_trash FAILED at '{}': {e}",
+                root_path.display()
+            );
+            e
+        })?;
+
+        log::debug!("[open_workspace] success at '{}'", root_path.display());
         Ok(workspace)
     }
 

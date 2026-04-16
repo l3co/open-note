@@ -24,13 +24,17 @@ pub fn acquire_lock(workspace_root: &Path) -> StorageResult<()> {
     let path = lock_path(workspace_root);
 
     if path.exists() {
-        let content = fs::read_to_string(&path)?;
+        let content = fs::read_to_string(&path).map_err(|e| {
+            std::io::Error::new(e.kind(), format!("read_lock '{}': {e}", path.display()))
+        })?;
         if let Ok(lock) = serde_json::from_str::<LockFile>(&content) {
             if is_process_alive(lock.pid) {
                 return Err(StorageError::WorkspaceLocked { pid: lock.pid });
             }
         }
-        fs::remove_file(&path)?;
+        fs::remove_file(&path).map_err(|e| {
+            std::io::Error::new(e.kind(), format!("remove_lock '{}': {e}", path.display()))
+        })?;
     }
 
     let lock = LockFile {

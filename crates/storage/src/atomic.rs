@@ -16,11 +16,24 @@ pub fn atomic_write_bytes(path: &Path, data: &[u8]) -> StorageResult<()> {
         fs::create_dir_all(parent)?;
     }
 
-    let mut file = fs::File::create(&tmp_path)?;
-    file.write_all(data)?;
+    let mut file = fs::File::create(&tmp_path).map_err(|e| {
+        std::io::Error::new(e.kind(), format!("create '{}': {e}", tmp_path.display()))
+    })?;
+    file.write_all(data).map_err(|e| {
+        std::io::Error::new(e.kind(), format!("write '{}': {e}", tmp_path.display()))
+    })?;
     file.sync_all()?;
 
-    fs::rename(&tmp_path, path)?;
+    fs::rename(&tmp_path, path).map_err(|e| {
+        std::io::Error::new(
+            e.kind(),
+            format!(
+                "rename '{}' -> '{}': {e}",
+                tmp_path.display(),
+                path.display()
+            ),
+        )
+    })?;
 
     // Explicit chmod after rename so permissions are not subject to the process umask.
     // Without this, files opened from a downloaded workspace can get e.g. 0o600 and
