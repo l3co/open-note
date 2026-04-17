@@ -1,87 +1,85 @@
 # Build & Deploy — Open Note
 
-Guia completo de build, release, distribuição e CI/CD do Open Note.
+Complete guide for building, releasing, and distributing Open Note.
 
 ---
 
-## 1. Build de Desenvolvimento
+## 1. Development Builds
 
-### Frontend (Vite)
-
+**Frontend (Vite):**
 ```bash
-npm run dev          # Dev server com HMR na porta 1420
-npm run build        # Build de produção (TypeScript check + Vite)
-npm run preview      # Preview do build de produção
+npm run dev          # Dev server with HMR on port 1420
+npm run build        # Production build (TypeScript check + Vite)
+npm run preview      # Preview the production build
 ```
 
-### Backend (Rust)
-
+**Backend (Rust):**
 ```bash
 cargo build --workspace              # Debug build
-cargo build --workspace --release    # Release build (otimizado)
+cargo build --workspace --release    # Release build (optimized)
 ```
 
-### App completo (Tauri)
-
+**Full app (Tauri):**
 ```bash
 npm run tauri dev      # Dev mode (frontend HMR + Rust hot reload)
-npm run tauri build    # Build de produção (gera instalador)
+npm run tauri build    # Production build (generates installer)
 ```
 
 ---
 
-## 2. Build de Produção
+## 2. Production Builds
 
-O build de produção gera um instalador nativo para cada plataforma:
+The production build generates a native installer for each platform:
 
-| Plataforma | Target | Formato |
+| Platform | Target | Format |
 |---|---|---|
 | **macOS** (Apple Silicon) | `aarch64-apple-darwin` | `.dmg`, `.app` |
 | **macOS** (Intel) | `x86_64-apple-darwin` | `.dmg`, `.app` |
-| **Linux** | `x86_64-unknown-linux-gnu` | `.deb`, `.AppImage` |
+| **macOS** (Universal) | `universal-apple-darwin` | `.dmg`, `.app` |
+| **Linux** | `x86_64-unknown-linux-gnu` | `.deb`, `.AppImage`, `.rpm` |
 | **Windows** | `x86_64-pc-windows-msvc` | `.msi`, `.exe` |
 
-### Gerando o build
-
 ```bash
-# Build para a plataforma atual
+# Build for current platform
 npm run tauri build
 
-# Build para target específico
+# Build for specific target
 npm run tauri build -- --target aarch64-apple-darwin
+
+# Build universal macOS binary
+npm run tauri build -- --target universal-apple-darwin
 ```
 
-Os artefatos são gerados em:
+Output artifacts:
 ```
 src-tauri/target/release/bundle/
 ├── dmg/         # macOS
 ├── deb/         # Linux .deb
 ├── appimage/    # Linux AppImage
+├── rpm/         # Linux RPM
 └── msi/         # Windows
 ```
 
-### Tamanho esperado
-
-O binário Tauri é significativamente menor que Electron:
-- **macOS:** ~8-12 MB (.app)
-- **Linux:** ~10-15 MB (.AppImage)
-- **Windows:** ~8-12 MB (.exe)
+**Expected binary sizes** (Tauri is significantly smaller than Electron):
+- **macOS:** ~8–12 MB (.app)
+- **Linux:** ~10–15 MB (.AppImage)
+- **Windows:** ~8–12 MB (.exe)
 
 ---
 
-## 3. Configuração Tauri
+## 3. Tauri Configuration
 
-Arquivo: `src-tauri/tauri.conf.json`
+File: `src-tauri/tauri.conf.json`
 
-Configurações relevantes:
-- **App identifier:** definido no conf
-- **Window:** título, dimensões, decorações
-- **Security:** capabilities em `capabilities/default.json`
-- **Icons:** gerados para todas as plataformas em `src-tauri/icons/`
+Key settings:
+- **App identifier** — bundle identifier
+- **Window** — title, dimensions, decorations
+- **Security** — capabilities in `capabilities/default.json`
+- **Icons** — generated for all platforms in `src-tauri/icons/`
 
-### Capabilities (Permissões)
+**Capabilities (permissions):**
 
-O Tauri v2 usa um modelo de capabilities granulares:
+Tauri v2 uses granular capabilities. Only explicitly listed permissions are granted:
 
 ```json
 // src-tauri/capabilities/default.json
@@ -96,156 +94,115 @@ O Tauri v2 usa um modelo de capabilities granulares:
 }
 ```
 
-Somente as permissões explicitamente listadas são concedidas à janela.
-
 ---
 
 ## 4. CI/CD Pipeline
 
 ### GitHub Actions
 
-Definido em `.github/workflows/ci.yml`. Executado em push/PR para `main`.
+Defined in `.github/workflows/ci.yml` (push/PR) and `.github/workflows/release.yml` (manual release).
 
-#### Fluxo
-
+**CI flow:**
 ```
-Push/PR → Lint → Test → Build (multi-OS)
+Push/PR → Lint → Test → Build (macOS + Linux + Windows)
 ```
 
-#### Jobs
+**CI jobs:**
 
-| Job | Runner | Dependências | Duração |
+| Job | Runner | Dependencies | Duration |
 |---|---|---|---|
-| `lint-rust` | ubuntu-latest | — | ~2min |
-| `lint-frontend` | ubuntu-latest | — | ~1min |
-| `test-rust` | ubuntu-latest | lint-rust | ~3min |
-| `test-frontend` | ubuntu-latest | lint-frontend | ~2min |
-| `test-e2e` | ubuntu-latest | lint-frontend | ~3min |
-| `build` | macOS, Linux, Windows | todos os testes | ~10min |
+| `lint-rust` | ubuntu-latest | — | ~2 min |
+| `lint-frontend` | ubuntu-latest | — | ~1 min |
+| `test-rust` | ubuntu-latest | lint-rust | ~3 min |
+| `test-frontend` | ubuntu-latest | lint-frontend | ~2 min |
+| `test-e2e` | ubuntu-latest | lint-frontend | ~3 min |
+| `build` | macOS, Linux, Windows | all tests | ~10 min |
 
-#### Caching
+**Caching:**
+- **Cargo:** `~/.cargo/registry`, `~/.cargo/git`, `target/` — key based on `Cargo.lock`
+- **npm:** native `actions/setup-node` cache based on `package-lock.json`
 
-- **Cargo:** `~/.cargo/registry`, `~/.cargo/git`, `target/` — key baseada em `Cargo.lock`
-- **npm:** cache nativo do `actions/setup-node` baseado em `package-lock.json`
+**Automated checks:**
 
-### Verificações automáticas
-
-| Verificação | Comando | Falha se |
+| Check | Command | Fails if |
 |---|---|---|
-| Rust formatting | `cargo fmt --check --all` | Código não formatado |
-| Rust linting | `cargo clippy -- -D warnings` | Qualquer warning |
-| Rust tests | `cargo test --workspace` | Teste falha |
-| TS bindings | `git diff --exit-code src/types/bindings/` | Bindings desatualizados |
-| ESLint | `npm run lint` | Violação de regra |
-| Prettier | `npm run format:check` | Código não formatado |
-| TypeScript | `npm run typecheck` | Erro de tipo |
-| Frontend tests | `npm run test:coverage` | Teste falha ou coverage baixo |
-| E2E tests | `npx playwright test` | Teste falha |
+| Rust formatting | `cargo fmt --check --all` | Code not formatted |
+| Rust linting | `cargo clippy -- -D warnings` | Any warning |
+| Rust tests | `cargo test --workspace` | Any test fails |
+| TS bindings | `git diff --exit-code src/types/bindings/` | Bindings out of date |
+| ESLint | `npm run lint` | Rule violation |
+| Prettier | `npm run format:check` | Code not formatted |
+| TypeScript | `npm run typecheck` | Type error |
+| Frontend tests | `npm run test:coverage` | Test fails or coverage below threshold |
+| E2E tests | `npx playwright test` | Test fails |
 
 ---
 
 ## 5. Release Flow
 
-### Versionamento
+**Versioning:** Semantic Versioning (`MAJOR.MINOR.PATCH`):
+- **MAJOR:** Breaking changes in the data format
+- **MINOR:** New features (new block type, new IPC command)
+- **PATCH:** Bug fixes, performance improvements
 
-Segue Semantic Versioning (`MAJOR.MINOR.PATCH`):
-
-- **MAJOR:** Breaking changes no formato de dados
-- **MINOR:** Novas features (novo block type, novo IPC command)
-- **PATCH:** Bug fixes, melhorias de performance
-
-Versão definida em:
+Version is defined in:
 - `package.json` → `version`
 - `src-tauri/Cargo.toml` → `version`
 - `src-tauri/tauri.conf.json` → `version`
 
-### Processo de release
+**Release process** (via `.github/workflows/release.yml`):
 
-1. Atualizar versão nos 3 arquivos
-2. Atualizar changelog (se existir)
-3. Commit: `chore: bump version to X.Y.Z`
-4. Tag: `git tag vX.Y.Z`
-5. Push: `git push origin main --tags`
-6. CI gera builds para as 3 plataformas
-7. Criar GitHub Release com artefatos
+1. Merge all changes to `main`
+2. Trigger the `Release` workflow manually on GitHub with a version tag (e.g., `v1.2.0`)
+3. CI builds for macOS (universal), Linux (deb + AppImage + rpm), and Windows (msi + exe)
+4. A draft GitHub Release is created with all artifacts attached
+5. Review and publish the draft release
 
-### Futuramente: Auto-Update
-
-O Tauri v2 suporta auto-update nativo. Quando habilitado:
-1. App verifica endpoint de atualização no startup
-2. Se nova versão disponível, baixa em background
-3. Notifica o usuário
-4. Instala na próxima reinicialização
-
-Requer:
-- Endpoint de update (GitHub Releases ou servidor custom)
-- Code signing (macOS: Developer ID, Windows: Authenticode)
+```bash
+# The release workflow handles everything — just trigger it on GitHub Actions
+# with the desired tag (e.g., v1.2.0)
+```
 
 ---
 
 ## 6. Code Signing
 
-### macOS
+**macOS:**
 
-Requer Apple Developer ID Certificate para distribuição fora da App Store:
+Requires Apple Developer ID Certificate for distribution outside the App Store:
 
 ```bash
-# Variáveis de ambiente para CI
-APPLE_CERTIFICATE          # Base64 do .p12
-APPLE_CERTIFICATE_PASSWORD # Senha do certificado
-APPLE_SIGNING_IDENTITY     # "Developer ID Application: Nome (TEAM_ID)"
-APPLE_API_KEY             # Para notarização
-APPLE_API_ISSUER          # Issuer ID
+# CI environment variables
+APPLE_CERTIFICATE           # Base64-encoded .p12
+APPLE_CERTIFICATE_PASSWORD  # Certificate password
+APPLE_SIGNING_IDENTITY      # "Developer ID Application: Name (TEAM_ID)"
+                            # Use "-" for ad-hoc signing in CI without a certificate
+APPLE_API_KEY               # For notarization
+APPLE_API_ISSUER            # Issuer ID
 ```
 
-### Windows
+**Windows:**
 
-Requer certificado Authenticode para evitar warning do SmartScreen:
+Requires Authenticode certificate to avoid SmartScreen warnings:
 
 ```bash
-WINDOWS_CERTIFICATE        # Base64 do .pfx
+WINDOWS_CERTIFICATE          # Base64-encoded .pfx
 WINDOWS_CERTIFICATE_PASSWORD
 ```
 
-### Linux
-
-Não requer code signing para distribuição.
+**Linux:** No code signing required for distribution.
 
 ---
 
-## 7. Landing Page
+## 7. System Dependencies by Platform
 
-A landing page estática está em `site/`:
-
-```
-site/
-├── assets/
-│   ├── css/
-│   └── images/
-├── index.html
-├── privacy.html
-└── terms.html
-```
-
-### Deploy via GitHub Pages
-
-Definido em `.github/workflows/gh-pages.yml`:
-- Trigger: push na branch `main`
-- Publica conteúdo de `site/` no GitHub Pages
-
----
-
-## 8. Dependências de Sistema por Plataforma
-
-### macOS
-
+**macOS:**
 ```bash
 xcode-select --install
-# Xcode Command Line Tools inclui tudo necessário
+# Xcode Command Line Tools includes everything needed
 ```
 
-### Ubuntu/Debian
-
+**Ubuntu/Debian:**
 ```bash
 sudo apt-get install -y \
   libwebkit2gtk-4.1-dev \
@@ -256,17 +213,21 @@ sudo apt-get install -y \
   libayatana-appindicator3-dev
 ```
 
-### Windows
+**Fedora:**
+```bash
+dnf install -y \
+  webkit2gtk4.1-devel openssl-devel gtk3-devel \
+  librsvg2-devel patchelf libappindicator-gtk3-devel rpm-build
+```
 
-- Visual Studio Build Tools 2022 (C++ workload)
-- WebView2 Runtime (incluso no Windows 11)
+**Windows:** Visual Studio Build Tools 2022 (C++ workload) + WebView2 Runtime (included in Windows 11)
 
 ---
 
-## Documentos Relacionados
+## Related Documents
 
-| Documento | Conteúdo |
+| Document | Content |
 |---|---|
-| [DEVELOPMENT.md](./DEVELOPMENT.md) | Guia de desenvolvimento |
-| [TESTING.md](./TESTING.md) | Estratégia de testes |
-| [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) | Problemas comuns |
+| [DEVELOPMENT.md](./DEVELOPMENT.md) | Development guide |
+| [TESTING.md](./TESTING.md) | Test strategy |
+| [TROUBLESHOOTING.md](./TROUBLESHOOTING.md) | Common problems |

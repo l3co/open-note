@@ -1,20 +1,20 @@
-# Glossário — Linguagem Ubíqua do Open Note
+# Glossary — Open Note Ubiquitous Language
 
-Este glossário formaliza os termos do domínio (DDD) usados no código, documentação e comunicação do projeto. Todos os desenvolvedores devem usar estes termos de forma consistente.
+This glossary formalizes the domain terms (DDD) used in the code, documentation, and project communication. All developers should use these terms consistently.
 
 ---
 
-## Hierarquia de Conteúdo
+## Content Hierarchy
 
-| Termo | Definição | Tipo Rust | Arquivo |
+| Term | Definition | Rust type | File |
 |---|---|---|---|
-| **Workspace** | Container de nível mais alto. Mapeia para um diretório no filesystem que contém notebooks, configurações e dados derivados. Um usuário pode ter múltiplos workspaces. | `Workspace` | `crates/core/src/workspace.rs` |
-| **Notebook** | Agrupamento dentro de um workspace. Equivalente a um "caderno" no OneNote. Mapeia para um subdiretório do workspace. Possui nome, cor, ícone e ordem. | `Notebook` | `crates/core/src/notebook.rs` |
-| **Section** | Subdivisão de um notebook. Equivalente a uma "aba" ou "seção" do OneNote. Mapeia para um subdiretório do notebook. Contém pages e um diretório `assets/`. | `Section` | `crates/core/src/section.rs` |
-| **Page** | Documento individual dentro de uma section. Persistido como arquivo `.opn.json`. Contém blocos, anotações, tags e preferências de editor. | `Page` | `crates/core/src/page.rs` |
-| **Block** | Unidade atômica de conteúdo dentro de uma page. Tagged union com 11 variantes (text, code, checklist, table, image, ink, pdf, divider, callout, embed, markdown). Cada bloco tem ID, ordem e timestamps. | `Block` (enum) | `crates/core/src/block.rs` |
+| **Workspace** | Top-level container. Maps to a directory on the filesystem containing notebooks, settings, and derived data. A user can have multiple workspaces. | `Workspace` | `crates/core/src/workspace.rs` |
+| **Notebook** | Grouping within a workspace. Equivalent to a "notebook" in OneNote. Maps to a subdirectory of the workspace. Has a name, color, icon, and order. | `Notebook` | `crates/core/src/notebook.rs` |
+| **Section** | Subdivision of a notebook. Equivalent to a "tab" or "section" in OneNote. Maps to a subdirectory of the notebook. Contains pages and an `assets/` directory. | `Section` | `crates/core/src/section.rs` |
+| **Page** | Individual document within a section. Persisted as an `.opn.json` file. Contains blocks, annotations, tags, and editor preferences. | `Page` | `crates/core/src/page.rs` |
+| **Block** | Atomic unit of content within a page. Tagged union with 11 variants (text, code, checklist, table, image, ink, pdf, divider, callout, embed, markdown). Each block has an ID, order, and timestamps. | `Block` (enum) | `crates/core/src/block.rs` |
 
-### Relação hierárquica
+### Hierarchical relationship
 
 ```
 Workspace (1) → Notebook (N) → Section (N) → Page (N) → Block (N)
@@ -22,155 +22,154 @@ Workspace (1) → Notebook (N) → Section (N) → Page (N) → Block (N)
 
 ---
 
-## Tipos de Block
+## Block Types
 
-| Tipo | Tag JSON | Descrição | Struct Rust |
+| Type | JSON tag | Description | Rust struct |
 |---|---|---|---|
-| **TextBlock** | `"text"` | Texto rico armazenado como TipTap JSON (`content.tiptap_json`). Headings, parágrafos, listas, formatação inline. | `TextBlock` |
-| **MarkdownBlock** | `"markdown"` | Conteúdo Markdown raw como string. | `MarkdownBlock` |
-| **CodeBlock** | `"code"` | Bloco de código com language tag opcional e syntax highlighting. | `CodeBlock` |
-| **ChecklistBlock** | `"checklist"` | Lista de itens com checkbox (`ChecklistItem { text, checked }`). | `ChecklistBlock` |
-| **TableBlock** | `"table"` | Tabela como `Vec<Vec<String>>` com flag `has_header`. | `TableBlock` |
-| **ImageBlock** | `"image"` | Referência a asset local (`src`), com alt text e dimensões opcionais. | `ImageBlock` |
-| **InkBlock** | `"ink"` | Desenho livre / handwriting. Canvas isolado com strokes e dimensões fixas. | `InkBlock` |
-| **PdfBlock** | `"pdf"` | Documento PDF renderizado via pdf.js. Referência ao asset com total de páginas. | `PdfBlock` |
-| **DividerBlock** | `"divider"` | Separador visual horizontal. Sem conteúdo adicional. | `DividerBlock` |
-| **CalloutBlock** | `"callout"` | Destaque com variante (`info`, `warning`, `error`, `success`, `tip`) e texto. | `CalloutBlock` |
-| **EmbedBlock** | `"embed"` | Conteúdo embarcado (URL, título, descrição, thumbnail). Links, vídeos, previews. | `EmbedBlock` |
+| **TextBlock** | `"text"` | Rich text stored as TipTap JSON (`content.tiptap_json`). Headings, paragraphs, lists, inline formatting. | `TextBlock` |
+| **MarkdownBlock** | `"markdown"` | Raw Markdown content as a string. | `MarkdownBlock` |
+| **CodeBlock** | `"code"` | Code block with optional language tag and syntax highlighting. | `CodeBlock` |
+| **ChecklistBlock** | `"checklist"` | List of items with checkboxes (`ChecklistItem { text, checked }`). | `ChecklistBlock` |
+| **TableBlock** | `"table"` | Table as `Vec<Vec<String>>` with a `has_header` flag. | `TableBlock` |
+| **ImageBlock** | `"image"` | Reference to a local asset (`src`), with alt text and optional dimensions. | `ImageBlock` |
+| **InkBlock** | `"ink"` | Freehand drawing / handwriting. Isolated canvas with strokes and fixed dimensions. | `InkBlock` |
+| **PdfBlock** | `"pdf"` | PDF document rendered via pdf.js. Reference to asset with total page count. | `PdfBlock` |
+| **DividerBlock** | `"divider"` | Horizontal visual separator. No additional content. | `DividerBlock` |
+| **CalloutBlock** | `"callout"` | Highlight box with variant (`info`, `warning`, `error`, `success`, `tip`) and text. | `CalloutBlock` |
+| **EmbedBlock** | `"embed"` | Embedded content (URL, title, description, thumbnail). Links, videos, previews. | `EmbedBlock` |
 
 ---
 
-## Anotações & Ink
+## Annotations & Ink
 
-| Termo | Definição | Tipo Rust |
+| Term | Definition | Rust type |
 |---|---|---|
-| **PageAnnotations** | Container de anotações de uma page: strokes (desenhos), highlights (marcações de texto) e cache SVG. | `PageAnnotations` |
-| **AnchoredStroke** | Traço de tinta ancorado a um bloco específico (ou em coordenadas absolutas se o bloco foi deletado). Contém pontos, cor, tamanho, ferramenta e opacidade. | `AnchoredStroke` |
-| **StrokeAnchor** | Ponto de ancoragem de um stroke — referência ao bloco + offset X/Y + página PDF opcional. | `StrokeAnchor` |
-| **StrokePoint** | Ponto individual de um traço com coordenadas (x, y) e pressão (pressure). | `StrokePoint` |
-| **HighlightAnnotation** | Marcação de texto dentro de um bloco, definida por offsets de caractere (start/end) com cor e opacidade. | `HighlightAnnotation` |
-| **InkTool** | Ferramenta de desenho: `pen`, `marker` ou `eraser`. | `InkTool` (enum) |
-| **Ink Overlay** | Camada Canvas transparente sobre o conteúdo da page que permite anotar por cima do texto/imagens. Strokes são ancorados a blocos DOM. | — (conceito frontend) |
-| **Ink Block** | Bloco dedicado a desenho livre, com canvas isolado e dimensões fixas. Diferente do Overlay. | `InkBlock` |
+| **PageAnnotations** | Container for a page's annotations: strokes (drawings), highlights (text markings), and SVG cache. | `PageAnnotations` |
+| **AnchoredStroke** | Ink stroke anchored to a specific block (or absolute coordinates if the block was deleted). Contains points, color, size, tool, and opacity. | `AnchoredStroke` |
+| **StrokeAnchor** | Anchor point of a stroke — block reference + X/Y offset + optional PDF page. | `StrokeAnchor` |
+| **StrokePoint** | Individual point of a stroke with coordinates (x, y) and pressure. | `StrokePoint` |
+| **HighlightAnnotation** | Text marking within a block, defined by character offsets (start/end) with color and opacity. | `HighlightAnnotation` |
+| **InkTool** | Drawing tool: `pen`, `marker`, or `eraser`. | `InkTool` (enum) |
+| **Ink Overlay** | Transparent Canvas layer over the page content that allows annotating on top of text/images. Strokes are anchored to DOM blocks. | — (frontend concept) |
+| **Ink Block** | Dedicated block for freehand drawing, with an isolated canvas and fixed dimensions. Different from the Overlay. | `InkBlock` |
 
 ---
 
-## Identidade & Value Objects
+## Identity & Value Objects
 
-| Termo | Definição | Tipo Rust |
+| Term | Definition | Rust type |
 |---|---|---|
-| **Newtype ID** | Padrão de tipo forte para IDs. Cada entidade tem seu próprio tipo (`PageId`, `NotebookId`, etc.) wrapping um `Uuid`. Previne mistura acidental de IDs entre entidades. | `define_id!` macro |
-| **WorkspaceId** | ID único de um workspace. | `WorkspaceId(Uuid)` |
-| **NotebookId** | ID único de um notebook. | `NotebookId(Uuid)` |
-| **SectionId** | ID único de uma section. | `SectionId(Uuid)` |
-| **PageId** | ID único de uma page. | `PageId(Uuid)` |
-| **BlockId** | ID único de um bloco dentro de uma page. | `BlockId(Uuid)` |
-| **StrokeId** | ID único de um stroke (traço de tinta). | `StrokeId(Uuid)` |
-| **AnnotationId** | ID único de uma anotação (highlight). | `AnnotationId(Uuid)` |
-| **Color** | Value object para cor hexadecimal validada (`#rrggbb` ou `#rgb`). | `Color` |
-| **Slug** | String derivada do título de uma page, usada como nome de arquivo. Normalização Unicode, remoção de caracteres especiais, detecção de colisão com sufixo numérico. | `unique_slug()` |
+| **Newtype ID** | Strong typing pattern for IDs. Each entity has its own type (`PageId`, `NotebookId`, etc.) wrapping a `Uuid`. Prevents accidental mixing of IDs between entities. | `define_id!` macro |
+| **WorkspaceId** | Unique workspace ID. | `WorkspaceId(Uuid)` |
+| **NotebookId** | Unique notebook ID. | `NotebookId(Uuid)` |
+| **SectionId** | Unique section ID. | `SectionId(Uuid)` |
+| **PageId** | Unique page ID. | `PageId(Uuid)` |
+| **BlockId** | Unique block ID within a page. | `BlockId(Uuid)` |
+| **StrokeId** | Unique stroke (ink trace) ID. | `StrokeId(Uuid)` |
+| **AnnotationId** | Unique annotation (highlight) ID. | `AnnotationId(Uuid)` |
+| **Color** | Value object for a validated hex color (`#rrggbb` or `#rgb`). | `Color` |
+| **Slug** | String derived from a page title, used as the filename. Unicode normalization, special character removal, collision detection with numeric suffix. | `unique_slug()` |
 
 ---
 
-## Persistência & Storage
+## Persistence & Storage
 
-| Termo | Definição | Localização |
+| Term | Definition | Location |
 |---|---|---|
-| **`.opn.json`** | Formato de arquivo de page. JSON estruturado com schema versionado contendo blocks, annotations, tags e metadata. | `crates/storage/` |
-| **Schema Version** | Número inteiro no JSON da page (`schema_version: 1`). Permite migração automática quando o formato evolui. | `page.rs::CURRENT_SCHEMA_VERSION` |
-| **Migration** | Função pura `fn migrate_vN_to_vM(Value) -> Value` que transforma JSON de uma versão para outra. | `crates/storage/src/migrations.rs` |
-| **Atomic Write** | Padrão write-to-tmp + rename + fsync para garantir que arquivos nunca fiquem em estado corrupto. | `crates/storage/src/atomic.rs` |
-| **FsStorageEngine** | Engine de persistência filesystem. Implementa CRUD para todas as entidades, trash, assets e app state. Struct sem estado (métodos estáticos). | `crates/storage/src/engine.rs` |
-| **Workspace Lock** | Arquivo `.lock` com PID do processo. Previne acesso concorrente ao mesmo workspace. Detecção de lock stale quando o processo não existe mais. | `crates/storage/src/lock.rs` |
-| **AppState** | Estado global da aplicação persistido em `~/.opennote/app_state.json`. Contém workspaces recentes, settings globais (tema, idioma) e bounds da janela. | `crates/core/src/settings.rs` |
-| **Trash (Lixeira)** | Diretório `.trash/` dentro do workspace. Soft-delete com retenção de 30 dias. `TrashManifest` rastreia itens. Expirados são removidos automaticamente. | `crates/core/src/trash.rs` |
-| **TrashManifest** | Arquivo JSON (`trash_manifest.json`) que lista todos os itens na lixeira com metadata (tipo, título original, path, datas, tamanho). | `TrashManifest` |
-| **Asset** | Arquivo binário (imagem, PDF, SVG de ink) associado a uma section. Armazenado em `{section}/assets/`. Acompanha a page em operações de move e delete. | `FsStorageEngine::import_asset` |
+| **`.opn.json`** | Page file format. Versioned JSON with blocks, annotations, tags, and metadata. | `crates/storage/` |
+| **Schema Version** | Integer in the page JSON (`schema_version: 1`). Enables automatic migration when the format evolves. | `page.rs::CURRENT_SCHEMA_VERSION` |
+| **Migration** | Pure function `fn migrate_vN_to_vM(Value) -> Value` that transforms JSON from one version to another. | `crates/storage/src/migrations.rs` |
+| **Atomic Write** | write-to-tmp + rename + fsync pattern to guarantee files are never left in a corrupt state. | `crates/storage/src/atomic.rs` |
+| **FsStorageEngine** | Filesystem persistence engine. Implements CRUD for all entities, trash, assets, and app state. Stateless struct (static methods). | `crates/storage/src/engine.rs` |
+| **Workspace Lock** | `.lock` file with the process PID. Prevents concurrent access to the same workspace. Stale lock detection when the process no longer exists. | `crates/storage/src/lock.rs` |
+| **AppState** | Global application state persisted in `~/.opennote/app_state.json`. Contains recent workspaces, global settings (theme, language), and window bounds. | `crates/core/src/settings.rs` |
+| **Trash** | `.trash/` directory inside the workspace. Soft-delete with 30-day retention. `TrashManifest` tracks items. Expired items are removed automatically. | `crates/core/src/trash.rs` |
+| **TrashManifest** | JSON file (`trash_manifest.json`) that lists all items in the trash with metadata (type, original title, path, dates, size). | `TrashManifest` |
+| **Asset** | Binary file (image, PDF, ink SVG) associated with a section. Stored in `{section}/assets/`. Follows the page on move and delete operations. | `FsStorageEngine::import_asset` |
 
 ---
 
-## Busca & Indexação
+## Search & Indexing
 
-| Termo | Definição | Localização |
+| Term | Definition | Location |
 |---|---|---|
-| **SearchEngine** | Wrapper sobre Tantivy 0.22. Indexa pages com título (boost 2.0), conteúdo, tags (boost 1.5), notebook/section info. | `crates/search/src/engine.rs` |
-| **Tantivy** | Engine de busca full-text em Rust (similar ao Lucene). Usado para indexação local, sem servidor. | Dependência externa |
-| **Custom Tokenizer** | Tokenizer "opennote" registrado no index: `SimpleTokenizer → RemoveLongFilter → LowerCaser → AsciiFoldingFilter`. Permite buscar "café" digitando "cafe". | `crates/search/src/schema.rs` |
-| **Text Extraction** | Processo de extrair texto legível de todos os tipos de bloco para indexação. Ink, PDF e divider são ignorados. | `crates/search/src/extract.rs` |
-| **QuickOpen** | Dialog (Cmd+P) para busca rápida por título de page. Usa `quick_open` do SearchEngine. | Frontend |
-| **SearchPanel** | Painel lateral (Cmd+Shift+F) para busca full-text com snippets e filtros. | Frontend |
-| **Snippet** | Trecho de texto ao redor do termo encontrado, exibido nos resultados de busca. | `SearchEngine::search` |
+| **SearchEngine** | Tantivy wrapper. Indexes pages with title (boost 2.0), content, tags (boost 1.5), notebook/section info. | `crates/search/src/engine.rs` |
+| **Tantivy** | Full-text search engine written in Rust (similar to Lucene). Used for local indexing, no server required. | External dependency |
+| **Custom Tokenizer** | "opennote" tokenizer registered in the index: `SimpleTokenizer → RemoveLongFilter → LowerCaser → AsciiFoldingFilter`. Allows searching "cafe" to match "café". | `crates/search/src/schema.rs` |
+| **Text Extraction** | Process of extracting readable text from all block types for indexing. Ink, PDF, and divider are ignored. | `crates/search/src/extract.rs` |
+| **QuickOpen** | Dialog (`Cmd+P`) for fast page title search. Uses `quick_open` from SearchEngine. | Frontend |
+| **SearchPanel** | Side panel (`Cmd+Shift+F`) for full-text search with snippets and filters. | Frontend |
+| **Snippet** | Text excerpt around the found term, displayed in search results. | `SearchEngine::search` |
 
 ---
 
-## Sincronização (Cloud Sync)
+## Cloud Sync
 
-| Termo | Definição | Localização |
+| Term | Definition | Location |
 |---|---|---|
-| **SyncProvider** | Trait async que define a interface para provedores de nuvem: auth, list, upload, download, delete, create_directory. | `crates/sync/src/provider.rs` |
-| **SyncCoordinator** | Orquestrador workspace-scoped. Gerencia providers, preferências, detecção de mudanças e resolução de conflitos. | `crates/sync/src/coordinator.rs` |
-| **SyncManifest** | Arquivo JSON que rastreia hashes SHA-256 de arquivos sincronizados. Persiste em `.opennote/sync_manifest.json`. | `crates/sync/src/manifest.rs` |
-| **FileChange** | Resultado da comparação entre arquivo local e remoto. Tipos: `LocalOnly`, `RemoteOnly`, `LocalModified`, `RemoteModified`, `BothModified`, `LocalDeleted`, `Unchanged`. | `FileChangeKind` (enum) |
-| **ConflictResolution** | Estratégia para resolver conflitos de sync: `KeepLocal`, `KeepRemote`, `KeepBoth` (cria cópia com sufixo). | `ConflictResolution` (enum) |
-| **AuthToken** | Token OAuth2 com access_token, refresh_token opcional e data de expiração. | `AuthToken` |
-| **Local-First** | Princípio: dados sempre locais primeiro. App funciona 100% offline. Sync é opt-in e nunca obrigatório. | Conceito arquitetural |
-| **Cloud-Aware** | UI mostra opções de cloud desde o início (badge "Em breve"), mas nunca força. Migração local → cloud a qualquer momento. Desconectar nunca deleta dados. | Conceito de UX |
+| **SyncProvider** | Async trait defining the interface for cloud providers: auth, list, upload, download, delete, create_directory. | `crates/sync/src/provider.rs` |
+| **SyncCoordinator** | Workspace-scoped orchestrator. Manages providers, preferences, change detection, and conflict resolution. | `crates/sync/src/coordinator.rs` |
+| **SyncManifest** | JSON file tracking SHA-256 hashes of synced files. Persisted at `.opennote/sync_manifest.json`. | `crates/sync/src/manifest.rs` |
+| **FileChange** | Result of comparing a local file against its remote counterpart. Types: `LocalOnly`, `RemoteOnly`, `LocalModified`, `RemoteModified`, `BothModified`, `LocalDeleted`, `Unchanged`. | `FileChangeKind` (enum) |
+| **ConflictResolution** | Strategy for resolving sync conflicts: `KeepLocal`, `KeepRemote`, `KeepBoth` (creates copy with suffix). | `ConflictResolution` (enum) |
+| **AuthToken** | OAuth2 token with access_token, optional refresh_token, and expiration date. | `AuthToken` |
+| **Local-First** | Principle: data is always local first. App works 100% offline. Sync is opt-in and never mandatory. | Architectural concept |
+| **Cloud-Aware** | UI shows cloud options from the start, but never forces them. Disconnecting never deletes data. | UX concept |
 
 ---
 
-## Configurações & Temas
+## Settings & Themes
 
-| Termo | Definição | Tipo Rust |
+| Term | Definition | Rust type |
 |---|---|---|
-| **GlobalSettings** | Configurações do app (tema, idioma, bounds da janela). Persiste em `~/.opennote/app_state.json`. | `GlobalSettings` |
-| **WorkspaceSettings** | Configurações por workspace (auto-save interval, sidebar width, última page aberta). Persiste em `workspace.json`. | `WorkspaceSettings` |
-| **EditorPreferences** | Configurações por page (modo de edição, split view). Persiste dentro do `.opn.json` da page. | `EditorPreferences` |
-| **EditorMode** | Modo de edição da page: `RichText` (TipTap) ou `Markdown` (CodeMirror). Toggle via Cmd+Shift+M. | `EditorMode` (enum) |
-| **ThemeConfig** | Configuração de tema com 3 camadas: `base_theme`, `accent_color`, `chrome_tint`. | `ThemeConfig` |
-| **BaseTheme** | Tema base visual: `Light`, `Dark`, `Paper` (sépia) ou `System` (segue OS). Aplicado via `data-theme` no HTML. | `BaseTheme` (enum) |
-| **ChromeTint** | Tonalidade do chrome (sidebar/toolbar): `Neutral` (cinza) ou `Tinted` (colorido pela accent color via `color-mix()`). Aplicado via `data-chrome` no HTML. | `ChromeTint` (enum) |
-| **Accent Color** | Cor de destaque da UI. 10 paletas disponíveis: Blue, Indigo, Purple, Berry, Red, Orange, Amber, Green, Teal, Graphite. Cada uma gera 4 variantes CSS (base, hover, subtle, onAccent). | `accent_color: String` |
+| **GlobalSettings** | App-wide settings (theme, language, window bounds). Persisted in `~/.opennote/app_state.json`. | `GlobalSettings` |
+| **WorkspaceSettings** | Per-workspace settings (auto-save interval, sidebar width, last opened page). Persisted in `workspace.json`. | `WorkspaceSettings` |
+| **EditorPreferences** | Per-page settings (editor mode, split view). Persisted inside the page's `.opn.json`. | `EditorPreferences` |
+| **EditorMode** | Page editing mode: `RichText` (TipTap) or `Markdown` (CodeMirror). Toggle via `Cmd+Shift+M`. | `EditorMode` (enum) |
+| **ThemeConfig** | Theme configuration with 3 layers: `base_theme`, `accent_color`, `chrome_tint`. | `ThemeConfig` |
+| **BaseTheme** | Base visual theme: `Light`, `Dark`, `Paper` (sepia), or `System` (follows OS). Applied via `data-theme` on the HTML element. | `BaseTheme` (enum) |
+| **ChromeTint** | Tint of the chrome (sidebar/toolbar): `Neutral` (gray) or `Tinted` (accent color via `color-mix()`). Applied via `data-chrome` on the HTML element. | `ChromeTint` (enum) |
+| **Accent Color** | UI highlight color. 10 palettes available: Blue, Indigo, Purple, Berry, Red, Orange, Amber, Green, Teal, Graphite. Each generates 4 CSS variants (base, hover, subtle, onAccent). | `accent_color: String` |
 
 ---
 
-## IPC & Arquitetura
+## IPC & Architecture
 
-| Termo | Definição | Localização |
+| Term | Definition | Location |
 |---|---|---|
-| **IPC Command** | Função Rust decorada com `#[tauri::command]` que é invocável pelo frontend via `invoke()`. O projeto tem 46 commands registrados. | `src-tauri/src/commands/` |
-| **AppManagedState** | Estado compartilhado do backend gerenciado pelo Tauri. Contém workspace root, SaveCoordinator, SearchEngine e SyncCoordinator — todos protegidos por `Mutex`. | `src-tauri/src/state.rs` |
-| **SaveCoordinator** | Gerenciador de saves concorrentes. Mantém um `Mutex` por `PageId` para serializar operações de read-modify-write na mesma page. | `src-tauri/src/state.rs` |
-| **TypeScript Bindings** | Tipos TypeScript gerados automaticamente via `ts-rs` a partir de structs/enums Rust com `#[derive(TS)]`. Exportados para `src/types/bindings/`. CI valida que estão atualizados. | `ts-rs` crate |
-| **Clean Architecture** | Dependências apontam para dentro. `src-tauri → storage → core`. Domínio nunca importa frameworks. | Princípio |
-| **Bounded Context** | Separação DDD em 4 contextos: Core (domínio puro), Storage (persistência), Search (indexação), Sync (nuvem). Cada um é um crate Cargo independente. | `crates/` |
+| **IPC Command** | Rust function decorated with `#[tauri::command]`, invokable by the frontend via `invoke()`. | `src-tauri/src/commands/` |
+| **AppManagedState** | Shared backend state managed by Tauri. Holds up to 10 `WorkspaceContext` instances plus the `SaveCoordinator`. | `src-tauri/src/state.rs` |
+| **SaveCoordinator** | Concurrent save manager. Maintains one `Mutex` per `PageId` to serialize read-modify-write operations on the same page. | `src-tauri/src/state.rs` |
+| **TypeScript Bindings** | TypeScript types auto-generated by `ts-rs` from Rust structs/enums with `#[derive(TS)]`. Exported to `src/types/bindings/`. CI validates they are up to date. | `ts-rs` crate |
+| **Clean Architecture** | Dependencies point inward: `src-tauri → storage → core`. Domain never imports frameworks. | Principle |
+| **Bounded Context** | DDD separation into 4 contexts: Core (pure domain), Storage (persistence), Search (indexing), Sync (cloud). Each is an independent Cargo crate. | `crates/` |
 
 ---
 
 ## Frontend
 
-| Termo | Definição | Localização |
+| Term | Definition | Location |
 |---|---|---|
-| **Zustand Store** | Store de estado reativo. Separados por domínio: `useWorkspaceStore`, `useNavigationStore`, `usePageStore`, `useUIStore`, `useAnnotationStore`. | `src/stores/` |
-| **TipTap** | Framework de editor rich text baseado em ProseMirror (v3). Extensível via nodes e marks. Usado no modo RichText. | `src/components/editor/` |
-| **CodeMirror** | Editor de código (v6). Usado no modo Markdown com syntax highlighting. | `src/components/editor/MarkdownEditor.tsx` |
-| **Serialization** | Camada de conversão entre `Block[]` do domínio e `JSONContent` do TipTap. `blocksToTiptap()` e `tiptapToBlocks()`. | `src/lib/serialization.ts` |
-| **SlashCommandMenu** | Menu de comandos ativado ao digitar `/` no editor. 13 comandos organizados por categoria (texto, estrutura, mídia). | `src/components/editor/SlashCommandMenu.tsx` |
-| **FloatingToolbar** | BubbleMenu do TipTap que aparece ao selecionar texto. Oferece formatação inline (bold, italic, link, etc.). | `src/components/editor/FloatingToolbar.tsx` |
-| **Auto-Save** | Hook `useAutoSave` que debounce saves com intervalo configurável (default 1s). Flush on unmount. | `src/hooks/useAutoSave.ts` |
-| **i18n** | Internacionalização via `react-i18next`. 2 idiomas: pt-BR (padrão) e en. Troca sem restart. | `src/lib/i18n.ts` |
-| **Toast** | Notificação temporária via `sonner`. 4 tipos: success, error, warning, info. Hook `useToast()`. | Transversal |
+| **Zustand Store** | Reactive state store. Separated by domain: `useWorkspaceStore`, `useMultiWorkspaceStore`, `useNavigationStore`, `usePageStore`, `useUIStore`. | `src/stores/` |
+| **TipTap** | Rich text editor framework based on ProseMirror (v3). Extensible via nodes and marks. Used in RichText mode. | `src/components/editor/` |
+| **CodeMirror** | Code editor (v6). Used in Markdown mode with syntax highlighting. | `src/components/editor/MarkdownEditor.tsx` |
+| **Serialization** | Conversion layer between domain `Block[]` and TipTap `JSONContent`. `blocksToTiptap()` and `tiptapToBlocks()`. | `src/lib/serialization.ts` |
+| **SlashCommandMenu** | Command menu activated by typing `/` in the editor. 13 commands organized by category (text, structure, media). | `src/components/editor/SlashCommandMenu.tsx` |
+| **FloatingToolbar** | TipTap BubbleMenu that appears when text is selected. Offers inline formatting (bold, italic, link, etc.). | `src/components/editor/FloatingToolbar.tsx` |
+| **Auto-Save** | `useAutoSave` hook that debounces saves with a configurable interval (default 1s). Flushes on unmount. | `src/hooks/useAutoSave.ts` |
+| **i18n** | Internationalization via `react-i18next`. 2 languages: pt-BR (default) and en. Language switch without restart. | `src/lib/i18n.ts` |
 
 ---
 
-## Limites & Regras de Negócio
+## Business Rules & Limits
 
-| Regra | Valor | Onde é aplicada |
+| Rule | Value | Where enforced |
 |---|---|---|
-| **Hard Block Limit** | 500 blocos por page | `Page::add_block()` retorna erro |
-| **Soft Block Limit** | 200 blocos por page | `Page::is_over_soft_limit()` — warning no StatusBar |
-| **Trash Retention** | 30 dias | `TrashItem::new()` calcula `expires_at` |
-| **Max Recent Workspaces** | 10 | `AppState::add_recent_workspace()` trunca |
-| **Auto-Save Debounce** | 1000ms (configurável) | `WorkspaceSettings.auto_save_interval_ms` |
-| **Title Validation** | Não pode ser vazio nem apenas espaços | `Page::new()`, `Notebook::new()`, `Section::new()`, `Workspace::new()` |
-| **Tag Normalization** | Lowercase + trim, duplicatas ignoradas | `Page::add_tag()` |
-| **Color Validation** | Hex válido (#rgb ou #rrggbb) | `Color::new()` |
+| **Hard Block Limit** | 500 blocks per page | `Page::add_block()` returns an error |
+| **Soft Block Limit** | 200 blocks per page | `Page::is_over_soft_limit()` — warning in StatusBar |
+| **Trash Retention** | 30 days | `TrashItem::new()` calculates `expires_at` |
+| **Max Recent Workspaces** | 10 | `AppState::add_recent_workspace()` truncates |
+| **Auto-Save Debounce** | 1000ms (configurable) | `WorkspaceSettings.auto_save_interval_ms` |
+| **Title Validation** | Cannot be empty or only whitespace | `Page::new()`, `Notebook::new()`, `Section::new()`, `Workspace::new()` |
+| **Tag Normalization** | Lowercase + trim, duplicates ignored | `Page::add_tag()` |
+| **Color Validation** | Valid hex (#rgb or #rrggbb) | `Color::new()` |
