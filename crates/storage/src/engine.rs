@@ -131,13 +131,16 @@ impl FsStorageEngine {
             "[open_workspace] save_workspace at '{}'",
             root_path.display()
         );
-        Self::save_workspace(&workspace).map_err(|e| {
-            log::error!(
-                "[open_workspace] save_workspace FAILED at '{}': {e}",
+        // Non-fatal: updated_at is cosmetic metadata. If the workspace directory has
+        // restrictive permissions (e.g. downloaded under a bad umask), the repair above
+        // may not have fully fixed it yet.  We log the problem but still open the
+        // workspace so the user is not locked out.
+        if let Err(e) = Self::save_workspace(&workspace) {
+            log::warn!(
+                "[open_workspace] save_workspace FAILED at '{}' (non-fatal, workspace will still open): {e}",
                 root_path.join(WORKSPACE_FILE).display()
             );
-            e
-        })?;
+        }
 
         log::debug!(
             "[open_workspace] cleanup_expired_trash at '{}'",

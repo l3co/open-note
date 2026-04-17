@@ -73,7 +73,9 @@ pub fn create_dir_all_0755(path: &Path) -> std::io::Result<()> {
             if p.exists() {
                 // Ensure even pre-existing dirs have 0o755 (e.g. the workspace
                 // root created by create_workspace with bare create_dir_all).
-                let _ = fs::set_permissions(&p, fs::Permissions::from_mode(0o755));
+                if let Err(e) = fs::set_permissions(&p, fs::Permissions::from_mode(0o755)) {
+                    log::warn!("chmod 0755 '{}' failed (non-fatal): {e}", p.display());
+                }
                 break;
             }
             to_create.push(p.clone());
@@ -89,11 +91,16 @@ pub fn create_dir_all_0755(path: &Path) -> std::io::Result<()> {
             // Another thread may have created it between our check and here.
             if let Err(e) = fs::create_dir(dir) {
                 if e.kind() != std::io::ErrorKind::AlreadyExists {
-                    return Err(e);
+                    return Err(std::io::Error::new(
+                        e.kind(),
+                        format!("mkdir '{}': {e}", dir.display()),
+                    ));
                 }
             }
             // chmod immediately so the next level can be entered.
-            let _ = fs::set_permissions(dir, fs::Permissions::from_mode(0o755));
+            if let Err(e) = fs::set_permissions(dir, fs::Permissions::from_mode(0o755)) {
+                log::warn!("chmod 0755 '{}' failed (non-fatal): {e}", dir.display());
+            }
         }
 
         Ok(())
