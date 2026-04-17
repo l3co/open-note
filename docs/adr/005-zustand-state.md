@@ -1,46 +1,46 @@
-# ADR-005: Zustand como State Management
+# ADR-005: Zustand for State Management
 
 ## Status
-Aceito
+Accepted
 
-## Contexto
-O frontend React precisa de uma solução de state management para gerenciar estado global (workspace, navegação, page atual, UI, anotações). A solução deve ser leve, tipável, e não exigir boilerplate excessivo.
+## Context
+The React frontend needs a state management solution for global state (workspace, navigation, current page, UI, annotations). The solution must be lightweight, typeable, and require minimal boilerplate.
 
-## Alternativas Consideradas
+## Alternatives Considered
 
-| Opção | Prós | Contras |
+| Option | Pros | Cons |
 |---|---|---|
-| **Zustand** | Mínimo boilerplate, TypeScript nativo, sem providers, API simples | Menos structure que Redux |
-| **Redux Toolkit** | Maduro, DevTools excelentes, middleware | Boilerplate (slices, actions, reducers), overhead |
-| **Jotai** | Atômico, mínimo, bottom-up | Menos intuitivo para estado complexo |
-| **React Context** | Nativo, sem dependência | Re-renders excessivos, não escala |
+| **Zustand** | Minimal boilerplate, native TypeScript, no providers, simple API | Less structure than Redux |
+| **Redux Toolkit** | Mature, excellent DevTools, middleware | Boilerplate (slices, actions, reducers), overhead |
+| **Jotai** | Atomic, minimal, bottom-up | Less intuitive for complex state |
+| **React Context** | Native, no dependency | Excessive re-renders, does not scale |
 
-## Decisão
-Adotar **Zustand** como biblioteca de state management.
+## Decision
+Adopt **Zustand** as the state management library.
 
-## Justificativa
-- **Simplicidade:** Store é uma função que retorna estado + ações — sem reducers, actions, dispatchers
-- **TypeScript:** Tipagem completa sem annotations extras
-- **Sem Provider:** Não precisa de `<Provider>` wrapping a app tree
-- **Performance:** Selectors granulares evitam re-renders desnecessários
-- **Tamanho:** ~1KB gzipped
-- **Acesso fora do React:** `useStore.getState()` funciona em qualquer contexto (útil para IPC callbacks)
+## Rationale
+- **Simplicity:** A store is a function that returns state + actions — no reducers, actions, or dispatchers
+- **TypeScript:** Complete typing without extra annotations
+- **No Provider:** No `<Provider>` wrapping the app tree needed
+- **Performance:** Granular selectors avoid unnecessary re-renders
+- **Size:** ~1KB gzipped
+- **Outside React access:** `useStore.getState()` works in any context (useful for IPC callbacks)
 
-## Consequências
+## Consequences
 
-### Positivas
-- 5 stores separados por domínio (SRP):
+### Positive
+- 5 stores separated by domain (SRP):
   - `useWorkspaceStore` — workspace, notebooks, sections
-  - `useNavigationStore` — seleção, expand/collapse, histórico
-  - `usePageStore` — page atual, save status
-  - `useUIStore` — sidebar, tema, modais
+  - `useNavigationStore` — selection, expand/collapse, history
+  - `usePageStore` — current page, save status
+  - `useUIStore` — sidebar, theme, modals
   - `useAnnotationStore` — ink strokes, highlights
-- Ações assíncronas naturais (chamam IPC e atualizam state)
-- Testável: stores podem ser testados isoladamente
+- Async actions are natural (call IPC then update state)
+- Testable: stores can be tested in isolation
 
-### Negativas
-- Sem middleware de logging/devtools por padrão (adicionável)
-- Stores separados podem ficar desincronizados se mal gerenciados
+### Negative
+- No logging/devtools middleware by default (can be added)
+- Separate stores may fall out of sync if actions are poorly coordinated
 
-### Riscos
-- State inconsistente entre stores (mitigado: ações coordenadas, testes)
+### Risks
+- Inconsistent state between stores (mitigated: coordinated actions, tests)

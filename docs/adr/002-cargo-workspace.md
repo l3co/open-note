@@ -1,41 +1,40 @@
-# ADR-002: Cargo Workspace com Crates Compartilhados
+# ADR-002: Cargo Workspace with Shared Crates
 
 ## Status
 
-Aceito
+Accepted
 
-## Contexto
+## Context
 
-A aplicação tem lógica de domínio (entidades, regras), persistência (filesystem),
-busca (indexação), e sync (cloud). Precisamos decidir como organizar o código Rust.
+The application has domain logic (entities, rules), persistence (filesystem), search (indexing), and sync (cloud). We need to decide how to organize the Rust code.
 
-Alternativas:
-- **Monolito em `src-tauri/`** — todo código Rust dentro do app Tauri
-- **Cargo workspace** — crates separados por bounded context
+Alternatives:
+- **Monolith in `src-tauri/`** — all Rust code inside the Tauri app
+- **Cargo workspace** — separate crates per bounded context
 
-## Decisão
+## Decision
 
-Usar **Cargo workspace** com 4 crates + o app Tauri:
+Use a **Cargo workspace** with 4 crates + the Tauri app:
 
 ```
-crates/core     → domínio puro (zero deps de framework)
+crates/core     → pure domain (zero framework dependencies)
 crates/storage  → filesystem, atomic writes, lock, trash
-crates/search   → Tantivy, indexação full-text
+crates/search   → Tantivy, full-text indexing
 crates/sync     → cloud sync (Google Drive, OneDrive, Dropbox)
-src-tauri       → camada fina de IPC (delega para crates)
+src-tauri       → thin IPC layer (delegates to crates)
 ```
 
-## Justificativa
+## Rationale
 
-- **Testabilidade:** `crates/core` pode ser testado sem Tauri, sem filesystem, sem I/O
-- **Clean Architecture:** dependências apontam para dentro (`src-tauri → storage → core`)
-- **Reuso:** crates podem ser usados em CLI, servidor, ou mobile sem mudanças
-- **Compilação incremental:** mudanças em um crate não recompilam os outros
-- **Separação de concerns:** cada crate tem responsabilidade clara (DDD bounded contexts)
+- **Testability:** `crates/core` can be tested without Tauri, without filesystem, without I/O
+- **Clean Architecture:** dependencies point inward (`src-tauri → storage → core`)
+- **Reuse:** crates can be used in a CLI, server, or mobile without changes
+- **Incremental compilation:** changes in one crate do not recompile the others
+- **Separation of concerns:** each crate has a clear responsibility (DDD bounded contexts)
 
-## Consequências
+## Consequences
 
-- Workspace dependencies compartilhadas via `[workspace.dependencies]`
-- TypeScript bindings gerados via `ts-rs` a partir de structs nos crates
-- `src-tauri` é thin — parse args → call crate → serialize response
-- Domínio (`crates/core`) nunca importa frameworks, Tauri, serde_json, ou filesystem
+- Shared workspace dependencies via `[workspace.dependencies]`
+- TypeScript bindings generated via `ts-rs` from structs in the crates
+- `src-tauri` is thin — parse args → call crate → serialize response
+- Domain (`crates/core`) never imports frameworks, Tauri, serde_json, or filesystem

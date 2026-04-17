@@ -1,70 +1,70 @@
-# ADR-008: Ink Híbrido (Overlay + Block)
+# ADR-008: Hybrid Ink (Overlay + Block)
 
 ## Status
-Aceito
+Accepted
 
-## Contexto
-O Open Note precisa suportar handwriting/desenho livre (ink) para anotações visuais. Existem dois cenários distintos de uso:
+## Context
+Open Note needs to support handwriting/freehand drawing (ink) for visual annotations. There are two distinct use cases:
 
-1. **Anotar por cima do conteúdo** — desenhar sobre texto, imagens, PDFs (como marcar um documento)
-2. **Desenho livre dedicado** — área em branco para sketches, diagramas, notas visuais
+1. **Annotating over content** — drawing on top of text, images, PDFs (like marking up a document)
+2. **Dedicated freehand drawing** — blank canvas area for sketches, diagrams, visual notes
 
-## Alternativas Consideradas
+## Alternatives Considered
 
-| Opção | Descrição |
+| Option | Description |
 |---|---|
-| **Ink Overlay only** | Canvas transparente sobre toda a page. Simples, mas sem área dedicada. |
-| **Ink Block only** | Bloco de canvas isolado. Bom para desenho, mas não permite anotar sobre texto. |
-| **Híbrido (Overlay + Block)** | Ambos os modos disponíveis. Overlay para anotação, Block para desenho dedicado. |
+| **Ink Overlay only** | Transparent canvas over the entire page. Simple, but no dedicated area. |
+| **Ink Block only** | Isolated block canvas. Good for drawing, but cannot annotate over text. |
+| **Hybrid (Overlay + Block)** | Both modes available. Overlay for annotation, Block for dedicated drawing. |
 
-## Decisão
-Adotar **modelo híbrido** com dois mecanismos independentes:
+## Decision
+Adopt a **hybrid model** with two independent mechanisms:
 
 ### Ink Overlay
-- Canvas transparente sobre o conteúdo da page
-- Strokes ancorados a blocos DOM via `StrokeAnchor { block_id, offset_x, offset_y }`
-- Ativado por toolbar de ink (pen, marker, eraser)
-- Strokes armazenados em `PageAnnotations.strokes`
-- Renderização via `perfect-freehand` (pontos com pressão → SVG path)
+- Transparent canvas over the page content
+- Strokes anchored to DOM blocks via `StrokeAnchor { block_id, offset_x, offset_y }`
+- Activated via the ink toolbar (pen, marker, eraser)
+- Strokes stored in `PageAnnotations.strokes`
+- Rendering via `perfect-freehand` (pressure points → SVG path)
 
 ### Ink Block (`type: "ink"`)
-- Bloco dedicado com canvas isolado
-- Dimensões fixas (width × height)
-- Strokes armazenados dentro do bloco
-- Inserido via SlashCommandMenu ou drag & drop
+- Dedicated block with an isolated canvas
+- Fixed dimensions (width × height)
+- Strokes stored inside the block
+- Inserted via SlashCommandMenu or drag & drop
 
-## Justificativa
-- **Flexibilidade:** Cobre ambos os casos de uso (anotar sobre conteúdo + desenho dedicado)
-- **Ancoragem:** Strokes do overlay se movem com o bloco quando o conteúdo muda
-- **Isolamento:** Ink Block tem seu próprio canvas, não interfere com o conteúdo
-- **Performance:** Canvas API é eficiente para renderização de strokes
-- **perfect-freehand:** Algoritmo de suavização que transforma pontos com pressão em paths naturais
+## Rationale
+- **Flexibility:** Covers both use cases (annotate over content + dedicated drawing)
+- **Anchoring:** Overlay strokes move with their block when content is reordered
+- **Isolation:** Ink Block has its own canvas, does not interfere with content
+- **Performance:** Canvas API is efficient for stroke rendering
+- **perfect-freehand:** Smoothing algorithm that transforms pressure points into natural paths
 
-## Ancoragem de Strokes
+## Stroke Anchoring
 
 ```rust
 pub struct StrokeAnchor {
-    pub block_id: BlockId,    // Bloco DOM ao qual o stroke está ancorado
-    pub offset_x: f64,        // Offset X relativo ao bloco
-    pub offset_y: f64,        // Offset Y relativo ao bloco
-    pub pdf_page: Option<u32>, // Se dentro de um PdfBlock
+    pub block_id: BlockId,     // DOM block the stroke is anchored to
+    pub offset_x: f64,         // X offset relative to the block
+    pub offset_y: f64,         // Y offset relative to the block
+    pub pdf_page: Option<u32>, // PDF page number if inside a PdfBlock
 }
 ```
 
-Se o bloco é deletado, o anchor é `None` e o stroke fica em coordenadas absolutas.
+If the block is deleted, the anchor is `None` and the stroke falls back to absolute coordinates.
 
-## Consequências
+## Consequences
 
-### Positivas
-- UX rica: anotar sobre qualquer conteúdo + desenho dedicado
-- Strokes sobrevivem a reordenação de blocos (ancoragem)
-- Suporte a pressão (pen tablets, Apple Pencil futuro)
+### Positive
+- Rich UX: annotate over any content + dedicated drawing area
+- Strokes survive block reordering (anchoring)
+- Pressure support (pen tablets, future Apple Pencil)
 
-### Negativas
-- Dois sistemas de ink para manter (overlay + block)
-- Complexidade de z-index (overlay acima do conteúdo, abaixo de modais)
-- Canvas API difícil de testar com jsdom (excluído de coverage)
+### Negative
+- Two ink systems to maintain (overlay + block)
+- z-index complexity (overlay above content, below modals)
+- Canvas API is hard to test with jsdom (excluded from coverage)
 
-### Riscos
-- Annotations órfãs quando blocos são deletados (mitigado: coordenadas absolutas como fallback)
-- Performance com muitos strokes (mitigado: SVG cache em `PageAnnotations.svg_cache`)
+### Risks
+- Orphaned annotations when blocks are deleted (mitigated: absolute coordinates as fallback)
+- Performance with many strokes (mitigated: SVG cache in `PageAnnotations.svg_cache`)

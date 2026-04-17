@@ -1,44 +1,44 @@
-# ADR-004: Tantivy como Engine de Busca Local
+# ADR-004: Tantivy as Local Search Engine
 
 ## Status
-Aceito
+Accepted
 
-## Contexto
-O Open Note precisa de busca full-text nas anotações do usuário. A busca deve funcionar 100% offline (local-first), suportar português e inglês, ser rápida e não exigir servidor externo.
+## Context
+Open Note needs full-text search across the user's notes. Search must work 100% offline (local-first), support Portuguese and English, be fast, and require no external server.
 
-## Alternativas Consideradas
+## Alternatives Considered
 
-| Opção | Prós | Contras |
+| Option | Pros | Cons |
 |---|---|---|
-| **Tantivy** | Rust nativo, similar ao Lucene, tokenizer customizável, sem servidor | Não tem fuzzy search nativo, índice ocupa espaço |
-| **SQLite FTS5** | Simples, embutido, maduro | Tokenizer menos flexível, sem boost por campo |
-| **MeiliSearch** | Fuzzy, typo-tolerant, REST API | Requer processo separado, não é embeddable |
-| **Grep no filesystem** | Zero dependência | Lento em workspaces grandes, sem ranking |
+| **Tantivy** | Native Rust, Lucene-like, customizable tokenizer, no server | No native fuzzy search, index occupies disk space |
+| **SQLite FTS5** | Simple, embedded, mature | Less flexible tokenizer, no per-field boosting |
+| **MeiliSearch** | Fuzzy, typo-tolerant, REST API | Requires a separate process, not embeddable |
+| **Grep on filesystem** | Zero dependency | Slow on large workspaces, no ranking |
 
-## Decisão
-Adotar **Tantivy 0.22** como engine de busca full-text local.
+## Decision
+Adopt **Tantivy 0.22** as the local full-text search engine.
 
-## Justificativa
-- **Rust nativo:** Compila junto com o app, sem processo externo
-- **Tokenizer customizável:** `SimpleTokenizer → RemoveLongFilter → LowerCaser → AsciiFoldingFilter` permite buscar "café" digitando "cafe"
-- **Boost por campo:** Título (2.0x) e tags (1.5x) têm peso maior que conteúdo
-- **Snippets:** Geração de trechos com contexto ao redor do match
-- **Performance:** Índice em disco com reader/writer separados, busca em ~1ms
-- **Local-first:** Índice vive em `.opennote/index/`, dados derivados (reconstruíveis)
+## Rationale
+- **Native Rust:** Compiles into the app, no external process
+- **Customizable tokenizer:** `SimpleTokenizer → RemoveLongFilter → LowerCaser → AsciiFoldingFilter` lets users search "café" by typing "cafe"
+- **Per-field boosting:** Title (2.0×) and tags (1.5×) rank higher than body content
+- **Snippets:** Generates text excerpts with surrounding context around each match
+- **Performance:** On-disk index with separate reader/writer, search in ~1ms
+- **Local-first:** Index lives in `.opennote/index/`, derived data (reconstructible anytime)
 
-## Consequências
+## Consequences
 
-### Positivas
-- Busca instantânea e offline
-- ASCII folding essencial para português
-- Índice reconstruível a qualquer momento (`rebuild_index`)
-- Incremental: cada save atualiza apenas a page alterada
+### Positive
+- Instant, offline search
+- ASCII folding essential for Portuguese
+- Index reconstructible at any time (`rebuild_index`)
+- Incremental: each save updates only the changed page
 
-### Negativas
-- Índice ocupa espaço (~1-5MB dependendo do conteúdo)
-- Sem fuzzy/typo-tolerant nativo (busca exata com tokenização)
-- `reader.reload()` necessário após cada commit para consistência imediata
+### Negative
+- Index occupies disk space (~1–5MB depending on content)
+- No native fuzzy/typo-tolerant search (exact match with tokenization)
+- `reader.reload()` required after each commit for immediate consistency
 
-### Riscos
-- Corrupção do índice (mitigado: reconstrução automática, índice é dado derivado)
-- Performance com workspaces muito grandes (mitigado: limites de resultados, paginação)
+### Risks
+- Index corruption (mitigated: automatic rebuild, index is derived data)
+- Performance on very large workspaces (mitigated: result limits, pagination)

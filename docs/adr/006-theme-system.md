@@ -1,49 +1,49 @@
-# ADR-006: Sistema de Temas com 3 Camadas
+# ADR-006: 3-Layer Theme System
 
 ## Status
-Aceito
+Accepted
 
-## Contexto
-O Open Note precisa de um sistema de personalização visual que ofereça variedade sem complexidade excessiva. Inspirado em apps como Todoist e TickTick, o objetivo é um visual premium com personalização rica.
+## Context
+Open Note needs a visual customization system that offers variety without excessive complexity. Inspired by apps like Todoist and TickTick, the goal is a premium look with rich personalization.
 
-## Decisão
-Adotar um sistema de temas com **3 camadas independentes**:
+## Decision
+Adopt a theme system with **3 independent layers**:
 
-1. **Base Theme** — Esquema de cores fundamental (light, dark, paper, system)
-2. **Accent Color** — Cor de destaque da UI (10 paletas)
-3. **Chrome Tint** — Tonalidade do chrome/sidebar (neutral ou tinted)
+1. **Base Theme** — fundamental color scheme (light, dark, paper, system)
+2. **Accent Color** — UI highlight color (10 palettes)
+3. **Chrome Tint** — chrome/sidebar tint (neutral or tinted)
 
-## Implementação
+## Implementation
 
 ### Base Themes
 
-| Tema | Estilo | Inspiração |
+| Theme | Style | Inspiration |
 |---|---|---|
-| `light` | Branco limpo | Notion, Linear |
-| `paper` | Creme/sépia | Kindle, iA Writer |
-| `dark` | Escuro profundo | VS Code, Obsidian |
-| `system` | Segue o OS | matchMedia |
+| `light` | Clean white | Notion, Linear |
+| `paper` | Cream/sepia | Kindle, iA Writer |
+| `dark` | Deep dark | VS Code, Obsidian |
+| `system` | Follows OS | matchMedia |
 
-Aplicado via `<html data-theme="dark">` com CSS custom properties.
+Applied via `<html data-theme="dark">` with CSS custom properties.
 
-### Accent Colors (10 paletas)
+### Accent Colors (10 palettes)
 
 Blue, Indigo, Purple, Berry, Red, Orange, Amber, Green, Teal, Graphite.
 
-Cada paleta gera 4 variantes CSS:
-- `--accent-base` — cor principal
+Each palette generates 4 CSS variants:
+- `--accent-base` — primary color
 - `--accent-hover` — hover state
 - `--accent-subtle` — 10% opacity (backgrounds)
-- `--accent-on` — texto sobre accent
+- `--accent-on` — text on accent
 
 ### Chrome Tint
 
-- `neutral` — sidebar/toolbar com cinza neutro
-- `tinted` — sidebar/toolbar com tonalidade suave da accent color via `color-mix(in srgb, var(--accent-base) 8%, var(--chrome-bg))`
+- `neutral` — sidebar/toolbar with neutral gray
+- `tinted` — sidebar/toolbar with a soft tint of the accent color via `color-mix(in srgb, var(--accent-base) 8%, var(--chrome-bg))`
 
-Aplicado via `<html data-chrome="tinted">`.
+Applied via `<html data-chrome="tinted">`.
 
-### Persistência
+### Persistence
 
 ```rust
 pub struct ThemeConfig {
@@ -53,22 +53,22 @@ pub struct ThemeConfig {
 }
 ```
 
-Persistido em `GlobalSettings.theme` → `~/.opennote/app_state.json`.
+Persisted in `GlobalSettings.theme` → `~/.opennote/app_state.json`.
 
-## Justificativa
-- **3 camadas independentes** permitem combinações ricas (3 × 10 × 2 = 60 variações) sem complexidade de implementação
-- **CSS custom properties** permitem troca instantânea sem re-render do React
-- **System theme** acompanha preferência do OS automaticamente
-- **Paper theme** diferencia o app de concorrentes (experiência de leitura)
+## Rationale
+- **3 independent layers** allow rich combinations (3 × 10 × 2 = 60 variations) without implementation complexity
+- **CSS custom properties** allow instant theme switching with zero React re-renders
+- **System theme** automatically follows OS preferences
+- **Paper theme** differentiates the app from competitors (reading experience)
 
-## Consequências
+## Consequences
 
-### Positivas
-- UX premium com personalização visual rica
-- Troca de tema instantânea (zero flicker)
-- Fácil de adicionar novos temas base ou paletas no futuro
-- Acessível: contraste garantido em todas as combinações
+### Positive
+- Premium UX with rich visual customization
+- Instant theme switching (zero flicker)
+- Easy to add new base themes or palettes in the future
+- Accessible: contrast guaranteed in all combinations
 
-### Negativas
-- CSS mais complexo (variáveis aninhadas, color-mix)
-- Necessidade de testar todas as combinações visualmente
+### Negative
+- More complex CSS (nested variables, color-mix)
+- All combinations require visual testing

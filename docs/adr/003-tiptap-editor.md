@@ -1,45 +1,45 @@
-# ADR-003: TipTap v3 como Editor Rich Text
+# ADR-003: TipTap v3 as Rich Text Editor
 
 ## Status
-Aceito
+Accepted
 
-## Contexto
-O Open Note precisa de um editor rich text robusto que suporte headings, listas, tabelas, blocos de código com syntax highlighting, checklists, imagens, embeds e extensões customizadas (callout). O editor precisa ser extensível para novos tipos de bloco sem reescrever a base.
+## Context
+Open Note needs a robust rich text editor that supports headings, lists, tables, syntax-highlighted code blocks, checklists, images, embeds, and custom extensions (callout). The editor must be extensible for new block types without rewriting the base.
 
-## Alternativas Consideradas
+## Alternatives Considered
 
-| Opção | Prós | Contras |
+| Option | Pros | Cons |
 |---|---|---|
-| **TipTap v3** | Extensível via nodes/marks, baseado em ProseMirror, comunidade ativa, TypeScript nativo, BubbleMenu/FloatingMenu built-in | Depende de ProseMirror (curva de aprendizado), bundle maior |
-| **Slate.js** | Flexível, React-native, customizável | API instável entre versões, menos plugins prontos |
-| **Lexical (Meta)** | Performance, tree-based, React-native | Ecossistema menor, menos extensões prontas |
-| **Quill** | Simples, maduro | Menos extensível, difícil de customizar profundamente |
+| **TipTap v3** | Extensible via nodes/marks, ProseMirror-based, active community, native TypeScript, built-in BubbleMenu/FloatingMenu | ProseMirror learning curve, larger bundle |
+| **Slate.js** | Flexible, React-native, customizable | Unstable API across versions, fewer ready-made plugins |
+| **Lexical (Meta)** | Performance, tree-based, React-native | Smaller ecosystem, fewer extensions |
+| **Quill** | Simple, mature | Less extensible, hard to deep-customize |
 
-## Decisão
-Adotar **TipTap v3** (baseado em ProseMirror) como engine do editor rich text.
+## Decision
+Adopt **TipTap v3** (ProseMirror-based) as the rich text editor engine.
 
-## Justificativa
-- **Extensibilidade:** Sistema de extensões permite adicionar novos node types (callout, embed) sem modificar o core do editor
-- **Ecossistema:** Extensões oficiais para table, code-block-lowlight, task-list, image, link, placeholder, character-count
-- **Serialização:** JSON nativo que mapeia bem para o modelo de Block[] do domínio
-- **BubbleMenu:** Toolbar flutuante ao selecionar texto — UX moderna sem toolbar fixa
-- **Slash Commands:** Possível implementar via suggestion API
-- **TypeScript:** Tipos completos, boa DX
-- **ProseMirror:** Engine battle-tested usado por NYT, Atlassian, GitLab
+## Rationale
+- **Extensibility:** Extension system allows adding new node types (callout, embed) without modifying the editor core
+- **Ecosystem:** Official extensions for table, code-block-lowlight, task-list, image, link, placeholder, character-count
+- **Serialization:** Native JSON that maps well to the domain's Block[] model
+- **BubbleMenu:** Floating toolbar on text selection — modern UX without a fixed toolbar
+- **Slash Commands:** Implementable via the suggestion API
+- **TypeScript:** Complete types, great DX
+- **ProseMirror:** Battle-tested engine used by NYT, Atlassian, GitLab
 
-## Consequências
+## Consequences
 
-### Positivas
-- Editor extensível e maduro
-- Slash commands e floating toolbar com boa UX
-- Conversão bidirecional Block[] ↔ TipTap JSON via serialization layer
+### Positive
+- Extensible and mature editor
+- Slash commands and floating toolbar with great UX
+- Bidirectional Block[] ↔ TipTap JSON conversion via a serialization layer
 - Syntax highlighting via lowlight (code blocks)
 
-### Negativas
-- Bundle size maior (~150KB gzipped com extensões)
-- Curva de aprendizado de ProseMirror para extensões custom
-- Table import usa `{ Table }` (named import, sem default export no v3)
+### Negative
+- Larger bundle size (~150KB gzipped with extensions)
+- ProseMirror learning curve for custom extensions
+- Table import uses `{ Table }` (named import, no default export in v3)
 
-### Riscos
-- Breaking changes entre versões do TipTap (mitigado: lock de versões no package.json)
-- Performance com muitos blocos (mitigado: soft limit 200, hard limit 500)
+### Risks
+- Breaking changes between TipTap versions (mitigated: version pinning in package.json)
+- Performance with many blocks (mitigated: soft limit 200, hard limit 500)
