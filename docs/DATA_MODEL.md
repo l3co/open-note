@@ -1,10 +1,10 @@
-# Modelo de Dados — Open Note
+# Data Model — Open Note
 
-Referência consolidada de todas as entidades, tipos, schemas JSON e estrutura de armazenamento do projeto. Extraído diretamente do código em `crates/core/`.
+Consolidated reference for all entities, types, JSON schemas, and storage structure. Derived directly from the code in `crates/core/`.
 
 ---
 
-## 1. Hierarquia de Conteúdo
+## 1. Content Hierarchy
 
 ```
 Workspace (1)
@@ -17,403 +17,403 @@ Workspace (1)
                      └── HighlightAnnotation[] (N)
 ```
 
-Cada nível mapeia para um **diretório** no filesystem, exceto Block e Annotations que são inline no `.opn.json` da Page.
+Each level maps to a **directory** on the filesystem, except Block and Annotations which are stored inline in the page's `.opn.json`.
 
 ---
 
-## 2. Entidades
+## 2. Entities
 
 ### Workspace
 
-Definido em `crates/core/src/workspace.rs`.
+Defined in `crates/core/src/workspace.rs`.
 
-| Campo | Tipo | Descrição |
+| Field | Type | Description |
 |---|---|---|
-| `id` | `WorkspaceId` (UUID) | Identificador único |
-| `name` | `String` | Nome do workspace (não vazio, trimmed) |
-| `root_path` | `PathBuf` | Caminho absoluto no filesystem |
-| `created_at` | `DateTime<Utc>` | Data de criação |
-| `updated_at` | `DateTime<Utc>` | Última atualização |
-| `settings` | `WorkspaceSettings` | Configurações por workspace |
+| `id` | `WorkspaceId` (UUID) | Unique identifier |
+| `name` | `String` | Workspace name (non-empty, trimmed) |
+| `root_path` | `PathBuf` | Absolute path on the filesystem |
+| `created_at` | `DateTime<Utc>` | Creation date |
+| `updated_at` | `DateTime<Utc>` | Last update |
+| `settings` | `WorkspaceSettings` | Per-workspace configuration |
 
-**Regras:**
-- Nome não pode ser vazio nem conter apenas espaços
-- Trim automático no nome
+**Rules:**
+- Name cannot be empty or contain only whitespace
+- Name is automatically trimmed
 
 **WorkspaceSettings:**
 
-| Campo | Tipo | Default | Descrição |
+| Field | Type | Default | Description |
 |---|---|---|---|
-| `default_notebook_id` | `Option<NotebookId>` | `None` | Notebook padrão |
-| `auto_save_interval_ms` | `u64` | `1000` | Intervalo do auto-save (ms) |
-| `sidebar_width` | `u32` | `260` | Largura da sidebar (px) |
-| `sidebar_open` | `bool` | `true` | Sidebar visível |
-| `last_opened_page_id` | `Option<PageId>` | `None` | Última page aberta (restore) |
+| `default_notebook_id` | `Option<NotebookId>` | `None` | Default notebook |
+| `auto_save_interval_ms` | `u64` | `1000` | Auto-save debounce interval (ms) |
+| `sidebar_width` | `u32` | `260` | Sidebar width (px) |
+| `sidebar_open` | `bool` | `true` | Sidebar visible |
+| `last_opened_page_id` | `Option<PageId>` | `None` | Last opened page (restored on launch) |
 
-**Persistência:** `workspace.json` na raiz do workspace.
+**Persistence:** `workspace.json` in the workspace root.
 
 ---
 
 ### Notebook
 
-Definido em `crates/core/src/notebook.rs`.
+Defined in `crates/core/src/notebook.rs`.
 
-| Campo | Tipo | Descrição |
+| Field | Type | Description |
 |---|---|---|
-| `id` | `NotebookId` (UUID) | Identificador único |
-| `name` | `String` | Nome (não vazio, trimmed) |
-| `color` | `Option<Color>` | Cor hexadecimal (#rrggbb) |
-| `icon` | `Option<String>` | Ícone (emoji ou nome) |
-| `order` | `u32` | Posição na lista |
-| `created_at` | `DateTime<Utc>` | Data de criação |
-| `updated_at` | `DateTime<Utc>` | Última atualização |
+| `id` | `NotebookId` (UUID) | Unique identifier |
+| `name` | `String` | Name (non-empty, trimmed) |
+| `color` | `Option<Color>` | Hex color (#rrggbb) |
+| `icon` | `Option<String>` | Icon (emoji or name) |
+| `order` | `u32` | Position in the list |
+| `created_at` | `DateTime<Utc>` | Creation date |
+| `updated_at` | `DateTime<Utc>` | Last update |
 
-**Persistência:** `notebook.json` dentro do diretório do notebook.
+**Persistence:** `notebook.json` inside the notebook's directory.
 
 ---
 
 ### Section
 
-Definido em `crates/core/src/section.rs`.
+Defined in `crates/core/src/section.rs`.
 
-| Campo | Tipo | Descrição |
+| Field | Type | Description |
 |---|---|---|
-| `id` | `SectionId` (UUID) | Identificador único |
-| `notebook_id` | `NotebookId` (UUID) | Notebook pai |
-| `name` | `String` | Nome (não vazio, trimmed) |
-| `color` | `Option<Color>` | Cor hexadecimal |
-| `order` | `u32` | Posição na lista |
-| `created_at` | `DateTime<Utc>` | Data de criação |
-| `updated_at` | `DateTime<Utc>` | Última atualização |
+| `id` | `SectionId` (UUID) | Unique identifier |
+| `notebook_id` | `NotebookId` (UUID) | Parent notebook |
+| `name` | `String` | Name (non-empty, trimmed) |
+| `color` | `Option<Color>` | Hex color |
+| `order` | `u32` | Position in the list |
+| `created_at` | `DateTime<Utc>` | Creation date |
+| `updated_at` | `DateTime<Utc>` | Last update |
 
-**Persistência:** `section.json` dentro do diretório da section.
+**Persistence:** `section.json` inside the section's directory.
 
 ---
 
 ### Page
 
-Definido em `crates/core/src/page.rs`.
+Defined in `crates/core/src/page.rs`.
 
-| Campo | Tipo | Descrição |
+| Field | Type | Description |
 |---|---|---|
-| `id` | `PageId` (UUID) | Identificador único |
-| `section_id` | `SectionId` (UUID) | Section pai |
-| `title` | `String` | Título ou `"[Página protegida]"` |
-| `tags` | `Vec<String>` | Tags livres (vazio se protegida) |
-| `blocks` | `Vec<Block>` | Blocos (vazio se protegida) |
-| `annotations` | `PageAnnotations` | Strokes e highlights (vazio se protegida) |
-| `editor_preferences` | `EditorPreferences` | Modo de edição por page |
-| `pdf_asset` | `Option<String>` | Caminho absoluto do PDF |
-| `pdf_total_pages` | `Option<u32>` | Número de páginas do PDF |
-| `created_at` | `DateTime<Utc>` | Data de criação |
-| `updated_at` | `DateTime<Utc>` | Última atualização |
-| `schema_version` | `u32` | Versão do schema (atual: 2) |
-| `protection` | `Option<PageProtection>` | Metadados de criptografia |
-| `encrypted_content` | `Option<String>` | Payload criptografado em Base64 |
+| `id` | `PageId` (UUID) | Unique identifier |
+| `section_id` | `SectionId` (UUID) | Parent section |
+| `title` | `String` | Title or `"[Protected page]"` |
+| `tags` | `Vec<String>` | Free-form tags (empty if protected) |
+| `blocks` | `Vec<Block>` | Content blocks (empty if protected) |
+| `annotations` | `PageAnnotations` | Strokes and highlights (empty if protected) |
+| `editor_preferences` | `EditorPreferences` | Per-page editor mode |
+| `pdf_asset` | `Option<String>` | Absolute path to PDF asset |
+| `pdf_total_pages` | `Option<u32>` | Number of PDF pages |
+| `created_at` | `DateTime<Utc>` | Creation date |
+| `updated_at` | `DateTime<Utc>` | Last update |
+| `schema_version` | `u32` | Schema version (current: 2) |
+| `protection` | `Option<PageProtection>` | Encryption metadata |
+| `encrypted_content` | `Option<String>` | Encrypted payload as Base64 |
 
 **`PageProtection`:**
 
-| Campo | Tipo | Descrição |
+| Field | Type | Description |
 |---|---|---|
 | `algorithm` | `EncryptionAlgorithm` | `aes_gcm_256` |
 | `kdf` | `KeyDerivationFunction` | `argon2id` |
-| `kdf_params` | `KdfParams` | Parâmetros do Argon2 (m_cost, t_cost, etc) |
-| `salt` | `String` | Salt aleatório (Base64) |
-| `nonce` | `String` | IV aleatório (Base64) |
+| `kdf_params` | `KdfParams` | Argon2 parameters (m_cost, t_cost, etc.) |
+| `salt` | `String` | Random salt (Base64) |
+| `nonce` | `String` | Random IV (Base64) |
 
 **`PageSummary`:**
 
-| Campo | Tipo | Descrição |
+| Field | Type | Description |
 |---|---|---|
-| `id` | `PageId` | Identificador único |
-| `title` | `String` | Título ou placeholder |
-| `is_protected` | `bool` | Indica se a página requer senha |
-| ... | ... | (demais campos de metadados) |
+| `id` | `PageId` | Unique identifier |
+| `title` | `String` | Title or placeholder |
+| `is_protected` | `bool` | Whether the page requires a password |
+| ... | ... | (other metadata fields) |
 
-**Constantes:**
+**Constants:**
 - `SOFT_BLOCK_LIMIT = 200`
 - `HARD_BLOCK_LIMIT = 500`
-- `PROTECTED_TITLE_PLACEHOLDER = "[Página protegida]"`
+- `PROTECTED_TITLE_PLACEHOLDER = "[Protected page]"`
 
-**Persistência:** `{slug}.opn.json` dentro do diretório da section.
+**Persistence:** `{slug}.opn.json` inside the section's directory.
 
 ---
 
 ### Block (Tagged Union)
 
-Definido em `crates/core/src/block.rs`.
+Defined in `crates/core/src/block.rs`.
 
-Todos os blocos compartilham uma base comum (`BlockBase`):
+All blocks share a common base (`BlockBase`):
 
-| Campo | Tipo | Descrição |
+| Field | Type | Description |
 |---|---|---|
-| `id` | `BlockId` (UUID) | Identificador único |
-| `order` | `u32` | Posição na page |
-| `created_at` | `DateTime<Utc>` | Data de criação |
-| `updated_at` | `DateTime<Utc>` | Última atualização |
+| `id` | `BlockId` (UUID) | Unique identifier |
+| `order` | `u32` | Position in the page |
+| `created_at` | `DateTime<Utc>` | Creation date |
+| `updated_at` | `DateTime<Utc>` | Last update |
 
-Serialização usa `#[serde(tag = "type", rename_all = "snake_case")]`:
+Serialization uses `#[serde(tag = "type", rename_all = "snake_case")]`:
 
 #### TextBlock (`"text"`)
-| Campo | Tipo | Descrição |
+| Field | Type | Description |
 |---|---|---|
 | `content` | `serde_json::Value` | TipTap JSON (`{ tiptap_json: { type: "doc", content: [...] } }`) |
 
 #### MarkdownBlock (`"markdown"`)
-| Campo | Tipo | Descrição |
+| Field | Type | Description |
 |---|---|---|
-| `content` | `String` | Texto Markdown raw |
+| `content` | `String` | Raw Markdown text |
 
 #### CodeBlock (`"code"`)
-| Campo | Tipo | Descrição |
+| Field | Type | Description |
 |---|---|---|
-| `language` | `Option<String>` | Linguagem (ex: "rust", "javascript") |
-| `content` | `String` | Código fonte |
+| `language` | `Option<String>` | Language tag (e.g. `"rust"`, `"javascript"`) |
+| `content` | `String` | Source code |
 
 #### ChecklistBlock (`"checklist"`)
-| Campo | Tipo | Descrição |
+| Field | Type | Description |
 |---|---|---|
 | `items` | `Vec<ChecklistItem>` | `{ text: String, checked: bool }` |
 
 #### TableBlock (`"table"`)
-| Campo | Tipo | Descrição |
+| Field | Type | Description |
 |---|---|---|
-| `rows` | `Vec<Vec<String>>` | Células como matriz de strings |
-| `has_header` | `bool` | Primeira linha é header |
+| `rows` | `Vec<Vec<String>>` | Cells as a matrix of strings |
+| `has_header` | `bool` | First row is a header |
 
 #### ImageBlock (`"image"`)
-| Campo | Tipo | Descrição |
+| Field | Type | Description |
 |---|---|---|
-| `src` | `String` | Caminho relativo ao asset (ex: `"assets/img-abc.png"`) |
-| `alt` | `Option<String>` | Texto alternativo |
-| `width` | `Option<u32>` | Largura em pixels |
-| `height` | `Option<u32>` | Altura em pixels |
+| `src` | `String` | Relative path to asset (e.g. `"assets/img-abc.png"`) |
+| `alt` | `Option<String>` | Alt text |
+| `width` | `Option<u32>` | Width in pixels |
+| `height` | `Option<u32>` | Height in pixels |
 
 #### InkBlock (`"ink"`)
-| Campo | Tipo | Descrição |
+| Field | Type | Description |
 |---|---|---|
-| `strokes` | `Vec<serde_json::Value>` | Strokes do canvas |
-| `width` | `u32` | Largura do canvas |
-| `height` | `u32` | Altura do canvas |
+| `strokes` | `Vec<serde_json::Value>` | Canvas strokes |
+| `width` | `u32` | Canvas width |
+| `height` | `u32` | Canvas height |
 
 #### PdfBlock (`"pdf"`)
-| Campo | Tipo | Descrição |
+| Field | Type | Description |
 |---|---|---|
-| `src` | `String` | Caminho relativo ao PDF |
-| `total_pages` | `u32` | Total de páginas do PDF |
+| `src` | `String` | Relative path to PDF |
+| `total_pages` | `u32` | Total PDF pages |
 
 #### DividerBlock (`"divider"`)
-Sem campos adicionais. Apenas a base.
+No additional fields. Base only.
 
 #### CalloutBlock (`"callout"`)
-| Campo | Tipo | Descrição |
+| Field | Type | Description |
 |---|---|---|
 | `variant` | `CalloutVariant` | `info`, `warning`, `error`, `success`, `tip` |
-| `content` | `String` | Texto do callout |
+| `content` | `String` | Callout text |
 
 #### EmbedBlock (`"embed"`)
-| Campo | Tipo | Descrição |
+| Field | Type | Description |
 |---|---|---|
-| `url` | `String` | URL do conteúdo embarcado |
-| `title` | `Option<String>` | Título OG |
-| `description` | `Option<String>` | Descrição OG |
-| `thumbnail` | `Option<String>` | URL da thumbnail |
+| `url` | `String` | Embedded content URL |
+| `title` | `Option<String>` | OG title |
+| `description` | `Option<String>` | OG description |
+| `thumbnail` | `Option<String>` | Thumbnail URL |
 
 ---
 
-## 3. Anotações
+## 3. Annotations
 
-Definido em `crates/core/src/annotation.rs`.
+Defined in `crates/core/src/annotation.rs`.
 
 ### PageAnnotations
 
-| Campo | Tipo | Descrição |
+| Field | Type | Description |
 |---|---|---|
-| `strokes` | `Vec<AnchoredStroke>` | Traços de tinta (ink overlay) |
-| `highlights` | `Vec<HighlightAnnotation>` | Marcações de texto |
-| `svg_cache` | `Option<String>` | Caminho para cache SVG |
+| `strokes` | `Vec<AnchoredStroke>` | Ink strokes (ink overlay) |
+| `highlights` | `Vec<HighlightAnnotation>` | Text markings |
+| `svg_cache` | `Option<String>` | Path to SVG cache |
 
 ### AnchoredStroke
 
-| Campo | Tipo | Descrição |
+| Field | Type | Description |
 |---|---|---|
-| `id` | `StrokeId` (UUID) | Identificador |
-| `points` | `Vec<StrokePoint>` | Pontos `{ x: f64, y: f64, pressure: f32 }` |
-| `color` | `String` | Cor hex |
-| `size` | `f32` | Espessura |
+| `id` | `StrokeId` (UUID) | Identifier |
+| `points` | `Vec<StrokePoint>` | Points `{ x: f64, y: f64, pressure: f32 }` |
+| `color` | `String` | Hex color |
+| `size` | `f32` | Stroke width |
 | `tool` | `InkTool` | `pen`, `marker`, `eraser` |
-| `opacity` | `f32` | Opacidade (0.0–1.0) |
-| `timestamp` | `i64` | Timestamp Unix |
-| `anchor` | `Option<StrokeAnchor>` | Ancoragem ao bloco |
+| `opacity` | `f32` | Opacity (0.0–1.0) |
+| `timestamp` | `i64` | Unix timestamp |
+| `anchor` | `Option<StrokeAnchor>` | Block anchor |
 
 ### StrokeAnchor
 
-| Campo | Tipo | Descrição |
+| Field | Type | Description |
 |---|---|---|
-| `block_id` | `BlockId` | Bloco alvo |
-| `offset_x` | `f64` | Offset X relativo ao bloco |
-| `offset_y` | `f64` | Offset Y relativo ao bloco |
-| `pdf_page` | `Option<u32>` | Página do PDF (se dentro de PdfBlock) |
+| `block_id` | `BlockId` | Target block |
+| `offset_x` | `f64` | X offset relative to block |
+| `offset_y` | `f64` | Y offset relative to block |
+| `pdf_page` | `Option<u32>` | PDF page number (if inside a PdfBlock) |
 
 ### HighlightAnnotation
 
-| Campo | Tipo | Descrição |
+| Field | Type | Description |
 |---|---|---|
-| `id` | `AnnotationId` (UUID) | Identificador |
-| `block_id` | `BlockId` | Bloco alvo |
-| `start_offset` | `u32` | Offset de caractere (início) |
-| `end_offset` | `u32` | Offset de caractere (fim) |
-| `color` | `String` | Cor hex |
-| `opacity` | `f32` | Opacidade (default 0.3) |
+| `id` | `AnnotationId` (UUID) | Identifier |
+| `block_id` | `BlockId` | Target block |
+| `start_offset` | `u32` | Character offset (start) |
+| `end_offset` | `u32` | Character offset (end) |
+| `color` | `String` | Hex color |
+| `opacity` | `f32` | Opacity (default 0.3) |
 
 ---
 
-## 4. Configurações Globais
+## 4. Global Settings
 
-Definido em `crates/core/src/settings.rs`.
+Defined in `crates/core/src/settings.rs`.
 
 ### AppState
 
-Persistido em `~/.opennote/app_state.json`.
+Persisted in `~/.opennote/app_state.json`.
 
-| Campo | Tipo | Descrição |
+| Field | Type | Description |
 |---|---|---|
-| `recent_workspaces` | `Vec<RecentWorkspace>` | Até 10 workspaces recentes |
-| `last_opened_workspace` | `Option<PathBuf>` | Último workspace aberto |
-| `global_settings` | `GlobalSettings` | Configurações globais |
+| `recent_workspaces` | `Vec<RecentWorkspace>` | Up to 10 recent workspaces |
+| `last_opened_workspace` | `Option<PathBuf>` | Last opened workspace |
+| `global_settings` | `GlobalSettings` | Global configuration |
 
 ### RecentWorkspace
 
-| Campo | Tipo | Descrição |
+| Field | Type | Description |
 |---|---|---|
-| `path` | `PathBuf` | Caminho absoluto |
-| `name` | `String` | Nome do workspace |
-| `last_opened_at` | `DateTime<Utc>` | Quando foi aberto pela última vez |
+| `path` | `PathBuf` | Absolute path |
+| `name` | `String` | Workspace name |
+| `last_opened_at` | `DateTime<Utc>` | When it was last opened |
 
 ### GlobalSettings
 
-| Campo | Tipo | Default | Descrição |
+| Field | Type | Default | Description |
 |---|---|---|---|
-| `theme` | `ThemeConfig` | System/Blue/Neutral | Configuração de tema |
-| `language` | `Language` | `En` | Idioma (pt_br, en) |
-| `window_bounds` | `Option<WindowBounds>` | `None` | Posição/tamanho da janela |
+| `theme` | `ThemeConfig` | System/Blue/Neutral | Theme configuration |
+| `language` | `Language` | `En` | Language (`pt_br`, `en`) |
+| `window_bounds` | `Option<WindowBounds>` | `None` | Window position/size |
 
 ### ThemeConfig
 
-| Campo | Tipo | Default | Descrição |
+| Field | Type | Default | Description |
 |---|---|---|---|
 | `base_theme` | `BaseTheme` | `System` | `light`, `dark`, `paper`, `system` |
-| `accent_color` | `String` | `"Blue"` | Nome da paleta (10 opções) |
+| `accent_color` | `String` | `"Blue"` | Palette name (10 options) |
 | `chrome_tint` | `ChromeTint` | `Neutral` | `neutral`, `tinted` |
 
 ### WindowBounds
 
-| Campo | Tipo | Descrição |
+| Field | Type | Description |
 |---|---|---|
-| `x` | `i32` | Posição X |
-| `y` | `i32` | Posição Y |
-| `width` | `u32` | Largura |
-| `height` | `u32` | Altura |
-| `maximized` | `bool` | Janela maximizada |
+| `x` | `i32` | X position |
+| `y` | `i32` | Y position |
+| `width` | `u32` | Width |
+| `height` | `u32` | Height |
+| `maximized` | `bool` | Window maximized |
 
 ---
 
-## 5. Lixeira (Trash)
+## 5. Trash
 
-Definido em `crates/core/src/trash.rs`.
+Defined in `crates/core/src/trash.rs`.
 
 ### TrashManifest
 
-Persistido em `.trash/trash_manifest.json`.
+Persisted in `.trash/trash_manifest.json`.
 
-| Campo | Tipo | Descrição |
+| Field | Type | Description |
 |---|---|---|
-| `items` | `Vec<TrashItem>` | Itens na lixeira |
+| `items` | `Vec<TrashItem>` | Items in the trash |
 
 ### TrashItem
 
-| Campo | Tipo | Descrição |
+| Field | Type | Description |
 |---|---|---|
-| `id` | `String` (UUID) | Identificador do item na lixeira |
+| `id` | `String` (UUID) | Trash item identifier |
 | `item_type` | `TrashItemType` | `page`, `section`, `notebook` |
-| `original_title` | `String` | Título original |
-| `original_path` | `String` | Path relativo original |
-| `original_notebook` | `String` | Nome do notebook |
-| `original_section` | `Option<String>` | Nome da section (se aplicável) |
-| `deleted_at` | `DateTime<Utc>` | Quando foi deletado |
-| `expires_at` | `DateTime<Utc>` | Quando expira (deleted_at + 30 dias) |
-| `size_bytes` | `u64` | Tamanho em bytes |
+| `original_title` | `String` | Original title |
+| `original_path` | `String` | Original relative path |
+| `original_notebook` | `String` | Notebook name |
+| `original_section` | `Option<String>` | Section name (if applicable) |
+| `deleted_at` | `DateTime<Utc>` | When it was deleted |
+| `expires_at` | `DateTime<Utc>` | Expiry date (deleted_at + 30 days) |
+| `size_bytes` | `u64` | Size in bytes |
 
-**Constante:** `DEFAULT_TRASH_RETENTION_DAYS = 30`
+**Constant:** `DEFAULT_TRASH_RETENTION_DAYS = 30`
 
 ---
 
 ## 6. Newtype IDs
 
-Definido em `crates/core/src/id.rs`. Todos gerados via macro `define_id!`:
+Defined in `crates/core/src/id.rs`. All generated via the `define_id!` macro:
 
-| Tipo | Wrapper | Uso |
+| Type | Wrapper | Usage |
 |---|---|---|
-| `WorkspaceId` | `Uuid` | Identifica workspace |
-| `NotebookId` | `Uuid` | Identifica notebook |
-| `SectionId` | `Uuid` | Identifica section |
-| `PageId` | `Uuid` | Identifica page |
-| `BlockId` | `Uuid` | Identifica block |
-| `StrokeId` | `Uuid` | Identifica stroke de tinta |
-| `AnnotationId` | `Uuid` | Identifica highlight |
+| `WorkspaceId` | `Uuid` | Identifies a workspace |
+| `NotebookId` | `Uuid` | Identifies a notebook |
+| `SectionId` | `Uuid` | Identifies a section |
+| `PageId` | `Uuid` | Identifies a page |
+| `BlockId` | `Uuid` | Identifies a block |
+| `StrokeId` | `Uuid` | Identifies an ink stroke |
+| `AnnotationId` | `Uuid` | Identifies a highlight |
 
-Implementam: `Debug`, `Clone`, `Copy`, `PartialEq`, `Eq`, `Hash`, `Serialize`, `Deserialize`, `Display`, `From<Uuid>`, `TS`.
+Implement: `Debug`, `Clone`, `Copy`, `PartialEq`, `Eq`, `Hash`, `Serialize`, `Deserialize`, `Display`, `From<Uuid>`, `TS`.
 
-Serialização JSON: string UUID (ex: `"550e8400-e29b-41d4-a716-446655440000"`).
+JSON serialization: UUID string (e.g. `"550e8400-e29b-41d4-a716-446655440000"`).
 
 ---
 
 ## 7. Color (Value Object)
 
-Definido em `crates/core/src/color.rs`.
+Defined in `crates/core/src/color.rs`.
 
-| Campo | Tipo | Validação |
+| Field | Type | Validation |
 |---|---|---|
-| `hex` | `String` | Formato `#rrggbb` ou `#rgb`. Auto-prepend `#`. |
+| `hex` | `String` | Format `#rrggbb` or `#rgb`. `#` is auto-prepended if missing. |
 
 ---
 
-## 8. Erros
+## 8. Errors
 
 ### CoreError (`crates/core/src/error.rs`)
 
-| Variante | Campos | Descrição |
+| Variant | Fields | Description |
 |---|---|---|
-| `Validation` | `message: String` | Erro de regra de negócio (nome vazio, limite excedido) |
-| `NotFound` | `entity: String, id: String` | Entidade não encontrada |
+| `Validation` | `message: String` | Business rule violation (empty name, limit exceeded) |
+| `NotFound` | `entity: String, id: String` | Entity not found |
 
 ### StorageError (`crates/storage/src/error.rs`)
 
-| Variante | Descrição |
+| Variant | Description |
 |---|---|
-| `WorkspaceNotFound` | Workspace não existe no path |
-| `NotebookAlreadyExists` | Nome duplicado |
-| `NotebookNotFound` | Notebook não encontrado |
-| `SectionAlreadyExists` | Nome duplicado |
-| `SectionNotFound` | Section não encontrada |
-| `PageNotFound` | Page não encontrada por ID |
-| `SchemaVersionMismatch` | Versão do schema incompatível |
-| `WorkspaceLocked` | Workspace em uso por outro processo (PID) |
-| `TrashItemNotFound` | Item de lixeira não encontrado |
-| `Io` | Erro de I/O (from `std::io::Error`) |
-| `Serialization` | Erro de JSON (from `serde_json::Error`) |
-| `Core` | Erro propagado do domínio (from `CoreError`) |
+| `WorkspaceNotFound` | Workspace does not exist at the given path |
+| `NotebookAlreadyExists` | Duplicate name |
+| `NotebookNotFound` | Notebook not found |
+| `SectionAlreadyExists` | Duplicate name |
+| `SectionNotFound` | Section not found |
+| `PageNotFound` | Page not found by ID |
+| `SchemaVersionMismatch` | Incompatible schema version |
+| `WorkspaceLocked` | Workspace in use by another process (PID) |
+| `TrashItemNotFound` | Trash item not found |
+| `Io` | I/O error (from `std::io::Error`) |
+| `Serialization` | JSON error (from `serde_json::Error`) |
+| `Core` | Domain error propagated (from `CoreError`) |
 
 ---
 
-## 9. Exemplo de `.opn.json`
+## 9. Example `.opn.json`
 
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
   "section_id": "6ba7b810-9dad-11d1-80b4-00c04fd430c8",
-  "title": "Aula 01 — Introdução",
-  "tags": ["estudo", "importante"],
+  "title": "Lecture 01 — Introduction",
+  "tags": ["study", "important"],
   "blocks": [
     {
       "type": "text",
@@ -428,11 +428,11 @@ Definido em `crates/core/src/color.rs`.
             {
               "type": "heading",
               "attrs": { "level": 1 },
-              "content": [{ "type": "text", "text": "Introdução" }]
+              "content": [{ "type": "text", "text": "Introduction" }]
             },
             {
               "type": "paragraph",
-              "content": [{ "type": "text", "text": "Primeira aula do curso." }]
+              "content": [{ "type": "text", "text": "First lecture of the course." }]
             }
           ]
         }
@@ -461,7 +461,7 @@ Definido em `crates/core/src/color.rs`.
       "created_at": "2026-03-07T12:15:00Z",
       "updated_at": "2026-03-07T12:15:00Z",
       "variant": "tip",
-      "content": "Lembre-se de revisar antes da prova!"
+      "content": "Remember to review before the exam!"
     }
   ],
   "annotations": {
@@ -475,7 +475,7 @@ Definido em `crates/core/src/color.rs`.
   },
   "created_at": "2026-03-07T12:00:00Z",
   "updated_at": "2026-03-07T14:30:00Z",
-  "schema_version": 1
+  "schema_version": 2
 }
 ```
 
@@ -483,7 +483,7 @@ Definido em `crates/core/src/color.rs`.
 
 ## 10. TypeScript Bindings
 
-Todos os tipos Rust com `#[derive(TS)]` geram automaticamente tipos TypeScript em `src/types/bindings/`:
+All Rust types with `#[derive(TS)]` automatically generate TypeScript types in `src/types/bindings/`:
 
 ```
 src/types/bindings/
@@ -494,20 +494,19 @@ src/types/bindings/
 ├── ChecklistBlock.ts
 ├── CodeBlock.ts
 ├── Color.ts
-├── ... (48 arquivos no total)
+├── ... (48 files total)
 ├── Workspace.ts
 └── WorkspaceSettings.ts
 ```
 
-O CI valida que os bindings estão atualizados: `git diff --exit-code src/types/bindings/`.
+CI validates that bindings are up-to-date: `git diff --exit-code src/types/bindings/`.
 
 ---
 
-## Documentos Relacionados
+## Related Documents
 
-| Documento | Conteúdo |
+| Document | Content |
 |---|---|
-| [GLOSSARY.md](./GLOSSARY.md) | Definições dos termos do domínio |
-| [SYSTEM_DESIGN.md](./SYSTEM_DESIGN.md) | Design do sistema |
-| [ARCHITECTURE.md](./ARCHITECTURE.md) | Diagramas visuais |
-| [IPC_REFERENCE.md](./IPC_REFERENCE.md) | Referência de IPC commands |
+| [GLOSSARY.md](./GLOSSARY.md) | Domain term definitions |
+| [SYSTEM_DESIGN.md](./SYSTEM_DESIGN.md) | System design |
+| [IPC_REFERENCE.md](./IPC_REFERENCE.md) | IPC command reference |
