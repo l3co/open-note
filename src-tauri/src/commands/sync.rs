@@ -379,6 +379,23 @@ pub async fn sync_initial_upload(
     Ok(uploaded)
 }
 
+/// Writes `content` to `path` with mode 0o644 on Unix, bypassing the process
+/// umask.  Without an explicit mode, files created under a restrictive umask
+/// (e.g. 0o077) end up 0o600 or less and cause EACCES on subsequent opens.
+/// Writes `content` to `path` and ensures the file ends up with mode 0o644.
+///
+/// `chmod(2)` ignores the process umask, so the post-write chmod reliably sets
+/// 0o644 regardless of what umask was in effect during the write.
+fn write_file_0644(path: &std::path::Path, content: &[u8]) -> std::io::Result<()> {
+    std::fs::write(path, content)?;
+    #[cfg(unix)]
+    {
+        use std::os::unix::fs::PermissionsExt;
+        let _ = std::fs::set_permissions(path, std::fs::Permissions::from_mode(0o644));
+    }
+    Ok(())
+}
+
 fn collect_sync_files(root: &PathBuf) -> Vec<PathBuf> {
     let mut result = Vec::new();
     collect_recursive(root, &mut result);
@@ -487,19 +504,12 @@ pub async fn download_workspace(
         .map_err(|e| e.to_string())?;
 
     let dest = PathBuf::from(&dest_path);
-    std::fs::create_dir_all(&dest).map_err(|e| {
+    opennote_storage::atomic::create_dir_all_0755(&dest).map_err(|e| {
         format!(
             "Não foi possível criar o diretório '{}': {e}",
             dest.display()
         )
     })?;
-
-    // Explicitly set directory permissions on Unix so the workspace is writable.
-    #[cfg(unix)]
-    {
-        use std::os::unix::fs::PermissionsExt;
-        let _ = std::fs::set_permissions(&dest, std::fs::Permissions::from_mode(0o755));
-    }
 
     let mut downloaded = 0u32;
     let mut last_write_error: Option<String> = None;
@@ -518,43 +528,18 @@ pub async fn download_workspace(
         let local_path = dest.join(relative);
 
         if let Some(parent) = local_path.parent() {
-            if let Err(e) = std::fs::create_dir_all(parent) {
+            if let Err(e) = opennote_storage::atomic::create_dir_all_0755(parent) {
                 last_write_error = Some(format!(
                     "Não foi possível criar '{}': {e}",
                     parent.display()
                 ));
                 continue;
             }
-            // Set 0o755 on ALL intermediate directories between dest and this file's parent,
-            // not just the direct parent. create_dir_all may create several levels that
-            // inherit the process umask instead of getting explicit permissions.
-            #[cfg(unix)]
-            {
-                use std::os::unix::fs::PermissionsExt;
-                let mut ancestor = parent;
-                while ancestor != dest {
-                    let _ =
-                        std::fs::set_permissions(ancestor, std::fs::Permissions::from_mode(0o755));
-                    match ancestor.parent() {
-                        Some(p) => ancestor = p,
-                        None => break,
-                    }
-                }
-            }
         }
 
         match provider.download_remote_file(&token, remote_file).await {
-            Ok(content) => match std::fs::write(&local_path, &content) {
+            Ok(content) => match write_file_0644(&local_path, &content) {
                 Ok(()) => {
-                    // Ensure files are readable/writable by the owner on Unix.
-                    #[cfg(unix)]
-                    {
-                        use std::os::unix::fs::PermissionsExt;
-                        let _ = std::fs::set_permissions(
-                            &local_path,
-                            std::fs::Permissions::from_mode(0o644),
-                        );
-                    }
                     downloaded += 1;
                 }
                 Err(e) => {
@@ -760,20 +745,10 @@ pub async fn sync_bidirectional(
                     match provider.download_remote_file(&token, rf).await {
                         Ok(content) => {
                             if let Some(parent) = local_path.parent() {
-                                let _ = std::fs::create_dir_all(parent);
+                                let _ = opennote_storage::atomic::create_dir_all_0755(parent);
                             }
-                            match std::fs::write(&local_path, &content) {
+                            match write_file_0644(&local_path, &content) {
                                 Ok(()) => {
-                                    // Garante permissão de leitura/escrita pelo dono, independente do umask.
-                                    // Sem isto, arquivos baixados podem ter 0o600 e bloquear abertura posterior.
-                                    #[cfg(unix)]
-                                    {
-                                        use std::os::unix::fs::PermissionsExt;
-                                        let _ = std::fs::set_permissions(
-                                            &local_path,
-                                            std::fs::Permissions::from_mode(0o644),
-                                        );
-                                    }
                                     let local_hash = compute_hash(&content);
                                     manifest.update_entry(
                                         &change.path,
