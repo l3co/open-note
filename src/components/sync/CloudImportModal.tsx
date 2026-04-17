@@ -14,6 +14,7 @@ import { toast } from "sonner";
 import * as ipc from "@/lib/ipc";
 import type { DownloadResult } from "@/lib/ipc";
 import type { RemoteWorkspaceInfo } from "@/types/sync";
+import { useWorkspaceStore } from "@/stores/useWorkspaceStore";
 
 interface CloudImportModalProps {
   providerName: string;
@@ -42,6 +43,7 @@ export function CloudImportModal({
   onClose,
 }: CloudImportModalProps) {
   const { t } = useTranslation();
+  const openWorkspace = useWorkspaceStore((s) => s.n);
   const [states, setStates] = useState<Record<string, WorkspaceState>>(
     Object.fromEntries(workspaces.map((w) => [w.name, { status: "idle" }])),
   );
@@ -85,7 +87,7 @@ export function CloudImportModal({
   const openOne = async (name: string, localPath: string) => {
     setWsState(name, (prev) => ({ ...prev, openError: undefined }));
     try {
-      await ipc.openWorkspace(localPath);
+      await openWorkspace(localPath);
       onClose();
     } catch (e) {
       const errStr = String(e);

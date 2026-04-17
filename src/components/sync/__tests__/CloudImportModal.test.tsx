@@ -13,6 +13,12 @@ const mockIpc = vi.hoisted(() => ({
 
 vi.mock("@/lib/ipc", () => mockIpc);
 
+const mockOpenWorkspace = vi.fn().mockResolvedValue(undefined);
+vi.mock("@/stores/useWorkspaceStore", () => ({
+  useWorkspaceStore: (selector: (s: { n: typeof mockOpenWorkspace }) => unknown) =>
+    selector({ n: mockOpenWorkspace }),
+}));
+
 const workspaces: RemoteWorkspaceInfo[] = [
   { name: "Trabalho", provider: "google_drive", file_count: null },
   { name: "Pessoal", provider: "google_drive", file_count: null },
@@ -27,7 +33,7 @@ describe("CloudImportModal", () => {
       count: 5,
       local_path: "/Users/user/Documents/OpenNote/Trabalho",
     });
-    mockIpc.openWorkspace.mockResolvedValue(undefined);
+    mockOpenWorkspace.mockResolvedValue(undefined);
   });
 
   it("renders modal title and workspace list", () => {
@@ -117,7 +123,7 @@ describe("CloudImportModal", () => {
     await waitFor(() =>
       expect(screen.getByText(/5 arquivo/i)).toBeInTheDocument(),
     );
-    expect(mockIpc.openWorkspace).not.toHaveBeenCalled();
+    expect(mockOpenWorkspace).not.toHaveBeenCalled();
   });
 
   it("opens workspace and closes modal when Open button is clicked", async () => {
@@ -137,7 +143,7 @@ describe("CloudImportModal", () => {
     await waitFor(() => expect(screen.getByText(/abrir/i)).toBeInTheDocument());
     await user.click(screen.getByText(/abrir/i));
     await waitFor(() =>
-      expect(mockIpc.openWorkspace).toHaveBeenCalledWith(
+      expect(mockOpenWorkspace).toHaveBeenCalledWith(
         "/Users/user/Documents/OpenNote/Trabalho",
       ),
     );
@@ -145,7 +151,7 @@ describe("CloudImportModal", () => {
   });
 
   it("shows open error when openWorkspace fails", async () => {
-    mockIpc.openWorkspace.mockRejectedValue(
+    mockOpenWorkspace.mockRejectedValue(
       new Error("permission denied (os error 13)"),
     );
     const user = userEvent.setup();
