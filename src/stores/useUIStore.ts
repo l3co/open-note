@@ -56,7 +56,7 @@ interface UIStore {
 
 export const useUIStore = create<UIStore>((set, get) => ({
   sidebarOpen: true,
-  sidebarWidth: 260,
+  sidebarWidth: 300,
   theme: {
     baseTheme: "system",
     accentColor: "Blue",
@@ -79,7 +79,7 @@ export const useUIStore = create<UIStore>((set, get) => ({
   toggleSidebar: () => set((s) => ({ sidebarOpen: !s.sidebarOpen })),
 
   setSidebarWidth: (width) =>
-    set({ sidebarWidth: Math.max(200, Math.min(400, width)) }),
+    set({ sidebarWidth: Math.max(260, Math.min(460, width)) }),
 
   setTheme: (partial) =>
     set((s) => {

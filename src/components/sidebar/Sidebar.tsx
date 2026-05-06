@@ -47,8 +47,8 @@ export function Sidebar() {
       className="relative flex flex-col border-r"
       style={{
         width: sidebarWidth,
-        minWidth: 200,
-        maxWidth: 400,
+        minWidth: 260,
+        maxWidth: 460,
         backgroundColor: "var(--bg-sidebar)",
         borderColor: "var(--border)",
       }}
@@ -57,15 +57,15 @@ export function Sidebar() {
       <WorkspaceSwitcher onOpenWorkspacePicker={openWorkspacePicker} />
 
       <nav
-        className="flex-1 overflow-y-auto px-3 pt-2"
+        className="flex-1 overflow-y-auto px-3.5 pt-3"
         aria-label={t("sidebar.notebooks")}
         data-testid="sidebar-nav"
       >
         <SidebarQuickNav />
 
-        <div className="mt-4 mb-1.5 flex items-center px-1">
+        <div className="mt-5 mb-2 flex items-center px-1">
           <h2
-            className="text-[11px] font-semibold tracking-widest uppercase"
+            className="text-xs font-semibold tracking-[0.16em] uppercase"
             style={{ color: "var(--text-tertiary)" }}
           >
             {t("sidebar.notebooks")}

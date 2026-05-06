@@ -15,8 +15,9 @@ vi.mock("@/lib/ipc", () => mockIpc);
 
 const mockOpenWorkspace = vi.fn().mockResolvedValue(undefined);
 vi.mock("@/stores/useWorkspaceStore", () => ({
-  useWorkspaceStore: (selector: (s: { n: typeof mockOpenWorkspace }) => unknown) =>
-    selector({ n: mockOpenWorkspace }),
+  useWorkspaceStore: (
+    selector: (s: { n: typeof mockOpenWorkspace }) => unknown,
+  ) => selector({ n: mockOpenWorkspace }),
 }));
 
 const workspaces: RemoteWorkspaceInfo[] = [
