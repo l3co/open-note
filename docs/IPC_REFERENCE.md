@@ -1,153 +1,209 @@
 # IPC Reference — Open Note
 
-Referência completa dos **46 IPC commands** registrados no Tauri. Cada command é uma função Rust em `src-tauri/src/commands/` invocável pelo frontend via `invoke()`.
+Complete reference for the IPC commands registered in Tauri. Each command is a Rust function in `src-tauri/src/commands/` callable from the frontend via `invoke()`.
 
-**Convenção:** O frontend chama via `src/lib/ipc.ts` que exporta wrappers tipados. Erros são retornados como `String` (Tauri padrão).
+**Convention:** The frontend calls commands through typed wrappers in `src/lib/ipc.ts`. Errors are returned as `String` (Tauri default).
 
 ---
 
-## Visão Geral por Módulo
+## Module Overview
 
-| Módulo | Commands | Arquivo Rust | Descrição |
+| Module | Commands | Rust file | Description |
 |---|---|---|---|
-| App | 2 | `commands/mod.rs` | Info do app e estado global |
-| Workspace | 8 | `commands/workspace.rs` | CRUD workspace + settings |
+| App | 1 | `commands/mod.rs` | App info |
+| Workspace | 14 | `commands/workspace.rs` | CRUD workspace + settings + multi-workspace |
 | Notebook | 5 | `commands/notebook.rs` | CRUD notebooks |
-| Section | 5 | `commands/section.rs` | CRUD sections |
-| Page | 11 | `commands/page.rs` | CRUD pages + file I/O + Password Protection |
-| PDF Canvas | 3 | `commands/page.rs` | Import PDF + PDF Canvas pages + anotações |
-| Tags | 1 | `commands/tags.rs` | Listar tags |
-| Trash | 4 | `commands/trash.rs` | Lixeira |
-| Assets | 3 | `commands/assets.rs` | Import/delete assets |
-| Search | 5 | `commands/search.rs` | Busca full-text |
-| Sync | 6 | `commands/sync.rs` | Sincronização cloud |
-| **Total** | **49** | | |
+| Section | 6 | `commands/section.rs` | CRUD sections + move |
+| Page | 20 | `commands/page.rs` | CRUD pages + password protection + PDF canvas + canvas |
+| Assets | 4 | `commands/assets.rs` | Import/read/delete assets |
+| Tags | 1 | `commands/tags.rs` | List tags |
+| Trash | 4 | `commands/trash.rs` | Trash management |
+| Search | 6 | `commands/search.rs` | Full-text search |
+| Sync | 17 | `commands/sync.rs` | Cloud synchronization |
+| Template | 4 | `commands/template.rs` | Page templates |
+| Spellcheck | 1 | `commands/spellcheck.rs` | Spell checking |
+| **Total** | **83** | | |
 
 ---
 
-## App (2 commands)
+## App (1 command)
 
 ### `get_app_info`
 
-Retorna nome e versão da aplicação.
+Returns the application name and version.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::get_app_info()` |
-| **Parâmetros** | — |
-| **Retorno** | `AppInfo { name: String, version: String }` |
-| **Erros** | — |
-| **TS** | `getAppInfo()` (não exposto em ipc.ts, usado internamente) |
-
-### `get_app_state`
-
-Retorna o estado global persistido (workspaces recentes, tema, idioma).
-
-| | Detalhe |
-|---|---|
-| **Rust** | `commands::workspace::get_app_state()` |
-| **Parâmetros** | — |
-| **Retorno** | `AppState` |
-| **Erros** | I/O ao ler `~/.opennote/app_state.json` |
-| **TS** | `getAppState(): Promise<AppState>` |
+| **Parameters** | — |
+| **Returns** | `AppInfo { name: String, version: String }` |
+| **Errors** | — |
+| **TS** | `getAppInfo()` |
 
 ---
 
-## Workspace (8 commands)
+## Workspace (14 commands)
+
+### `get_app_state`
+
+Returns the persisted global state (recent workspaces, theme, language).
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::workspace::get_app_state()` |
+| **Parameters** | — |
+| **Returns** | `AppState` |
+| **Errors** | I/O reading `~/.opennote/app_state.json` |
+| **TS** | `getAppState(): Promise<AppState>` |
 
 ### `create_workspace`
 
-Cria novo workspace no filesystem.
+Creates a new workspace on the filesystem.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::workspace::create_workspace(state, path, name)` |
-| **Parâmetros** | `path: String` — caminho absoluto, `name: String` — nome |
-| **Retorno** | `Workspace` |
-| **Erros** | Nome vazio, I/O |
-| **Efeitos** | Cria diretório, `workspace.json`, `.trash/`, init SearchEngine + SyncCoordinator, atualiza AppState |
+| **Parameters** | `path: String` — absolute path, `name: String` |
+| **Returns** | `Workspace` |
+| **Errors** | Empty name, I/O |
+| **Effects** | Creates directory, `workspace.json`, `.trash/`, initializes SearchEngine + SyncCoordinator, updates AppState |
 | **TS** | `createWorkspace(path, name): Promise<Workspace>` |
 
 ### `open_workspace`
 
-Abre workspace existente.
+Opens an existing workspace.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::workspace::open_workspace(state, path)` |
-| **Parâmetros** | `path: String` — caminho absoluto |
-| **Retorno** | `Workspace` |
-| **Erros** | `WorkspaceNotFound`, `WorkspaceLocked`, I/O |
-| **Efeitos** | Acquire `.lock`, init SearchEngine + SyncCoordinator, atualiza AppState |
+| **Parameters** | `path: String` — absolute path |
+| **Returns** | `Workspace` |
+| **Errors** | `WorkspaceNotFound`, `WorkspaceLocked`, I/O |
+| **Effects** | Acquires `.lock`, initializes SearchEngine + SyncCoordinator, updates AppState |
 | **TS** | `openWorkspace(path): Promise<Workspace>` |
+
+### `force_open_workspace`
+
+Opens a workspace ignoring an existing lock (use when the lock is stale).
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::workspace::force_open_workspace(state, path)` |
+| **Parameters** | `path: String` |
+| **Returns** | `Workspace` |
+| **TS** | `forceOpenWorkspace(path): Promise<Workspace>` |
 
 ### `close_workspace`
 
-Fecha workspace atual.
+Closes the active workspace.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::workspace::close_workspace(state)` |
-| **Parâmetros** | — |
-| **Retorno** | `()` |
-| **Erros** | Sem workspace aberto |
-| **Efeitos** | Release `.lock`, limpa workspace_root |
+| **Parameters** | — |
+| **Returns** | `()` |
+| **Errors** | No workspace open |
+| **Effects** | Releases `.lock`, clears workspace context |
 | **TS** | `closeWorkspace(): Promise<void>` |
+
+### `list_open_workspaces`
+
+Lists all currently open workspaces (up to 10).
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::workspace::list_open_workspaces(state)` |
+| **Parameters** | — |
+| **Returns** | `Vec<Workspace>` |
+| **TS** | `listOpenWorkspaces(): Promise<Workspace[]>` |
+
+### `focus_workspace`
+
+Sets the active workspace (when multiple are open).
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::workspace::focus_workspace(state, workspace_id)` |
+| **Parameters** | `workspace_id: WorkspaceId` |
+| **Returns** | `Workspace` |
+| **TS** | `focusWorkspace(workspaceId): Promise<Workspace>` |
+
+### `switch_workspace`
+
+Switches the active workspace, closing the previous one.
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::workspace::switch_workspace(state, path)` |
+| **Parameters** | `path: String` |
+| **Returns** | `Workspace` |
+| **TS** | `switchWorkspace(path): Promise<Workspace>` |
 
 ### `remove_recent_workspace`
 
-Remove workspace da lista de recentes.
+Removes a workspace from the recent list.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::workspace::remove_recent_workspace(path)` |
-| **Parâmetros** | `path: String` |
-| **Retorno** | `()` |
+| **Parameters** | `path: String` |
+| **Returns** | `()` |
 | **TS** | `removeRecentWorkspace(path): Promise<void>` |
 
 ### `get_workspace_settings`
 
-Retorna settings do workspace atual.
+Returns the current workspace settings.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::workspace::get_workspace_settings(state)` |
-| **Parâmetros** | — |
-| **Retorno** | `WorkspaceSettings` |
+| **Parameters** | — |
+| **Returns** | `WorkspaceSettings` |
 | **TS** | `getWorkspaceSettings(): Promise<WorkspaceSettings>` |
 
 ### `update_workspace_settings`
 
-Atualiza settings do workspace atual.
+Updates the current workspace settings.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::workspace::update_workspace_settings(state, settings)` |
-| **Parâmetros** | `settings: WorkspaceSettings` |
-| **Retorno** | `()` |
+| **Parameters** | `settings: WorkspaceSettings` |
+| **Returns** | `()` |
 | **TS** | `updateWorkspaceSettings(settings): Promise<void>` |
 
 ### `get_global_settings`
 
-Retorna settings globais (tema, idioma, janela).
+Returns global settings (theme, language, window).
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::workspace::get_global_settings()` |
-| **Parâmetros** | — |
-| **Retorno** | `GlobalSettings` |
+| **Parameters** | — |
+| **Returns** | `GlobalSettings` |
 | **TS** | `getGlobalSettings(): Promise<GlobalSettings>` |
 
 ### `update_global_settings`
 
-Atualiza settings globais.
+Updates global settings.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::workspace::update_global_settings(settings)` |
-| **Parâmetros** | `settings: GlobalSettings` |
-| **Retorno** | `()` |
+| **Parameters** | `settings: GlobalSettings` |
+| **Returns** | `()` |
 | **TS** | `updateGlobalSettings(settings): Promise<void>` |
+
+### `ensure_quick_notes`
+
+Ensures the "Quick Notes" notebook and section exist, creating them if needed.
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::workspace::ensure_quick_notes(state)` |
+| **Parameters** | — |
+| **Returns** | `(Notebook, Section)` |
+| **TS** | `ensureQuickNotes(): Promise<[Notebook, Section]>` |
 
 ---
 
@@ -155,344 +211,402 @@ Atualiza settings globais.
 
 ### `list_notebooks`
 
-Lista todos os notebooks do workspace.
+Lists all notebooks in the workspace.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::notebook::list_notebooks(state)` |
-| **Parâmetros** | — |
-| **Retorno** | `Vec<Notebook>` |
+| **Parameters** | — |
+| **Returns** | `Vec<Notebook>` |
 | **TS** | `listNotebooks(): Promise<Notebook[]>` |
 
 ### `create_notebook`
 
-Cria novo notebook.
+Creates a new notebook.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::notebook::create_notebook(state, name)` |
-| **Parâmetros** | `name: String` |
-| **Retorno** | `Notebook` |
-| **Erros** | `NotebookAlreadyExists`, nome vazio |
-| **Efeitos** | Cria diretório + `notebook.json` |
+| **Parameters** | `name: String` |
+| **Returns** | `Notebook` |
+| **Errors** | `NotebookAlreadyExists`, empty name |
+| **Effects** | Creates directory + `notebook.json` |
 | **TS** | `createNotebook(name): Promise<Notebook>` |
 
 ### `rename_notebook`
 
-Renomeia notebook existente.
+Renames an existing notebook.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::notebook::rename_notebook(state, id, name)` |
-| **Parâmetros** | `id: NotebookId`, `name: String` |
-| **Retorno** | `Notebook` |
-| **Erros** | `NotebookNotFound`, nome vazio |
+| **Parameters** | `id: NotebookId`, `name: String` |
+| **Returns** | `Notebook` |
+| **Errors** | `NotebookNotFound`, empty name |
 | **TS** | `renameNotebook(id, name): Promise<Notebook>` |
 
 ### `delete_notebook`
 
-Deleta notebook (soft-delete para `.trash/`).
+Deletes a notebook (soft-delete to `.trash/`).
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::notebook::delete_notebook(state, id)` |
-| **Parâmetros** | `id: NotebookId` |
-| **Retorno** | `()` |
-| **Erros** | `NotebookNotFound` |
+| **Parameters** | `id: NotebookId` |
+| **Returns** | `()` |
+| **Errors** | `NotebookNotFound` |
 | **TS** | `deleteNotebook(id): Promise<void>` |
 
 ### `reorder_notebooks`
 
-Reordena notebooks.
+Reorders notebooks.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::notebook::reorder_notebooks(state, order)` |
-| **Parâmetros** | `order: Vec<(NotebookId, u32)>` — pares (id, nova posição) |
-| **Retorno** | `()` |
+| **Parameters** | `order: Vec<(NotebookId, u32)>` — (id, new position) pairs |
+| **Returns** | `()` |
 | **TS** | `reorderNotebooks(order): Promise<void>` |
 
 ---
 
-## Section (5 commands)
+## Section (6 commands)
 
 ### `list_sections`
 
-Lista sections de um notebook.
+Lists sections in a notebook.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::section::list_sections(state, notebook_id)` |
-| **Parâmetros** | `notebook_id: NotebookId` |
-| **Retorno** | `Vec<Section>` |
+| **Parameters** | `notebook_id: NotebookId` |
+| **Returns** | `Vec<Section>` |
 | **TS** | `listSections(notebookId): Promise<Section[]>` |
 
 ### `create_section`
 
-Cria nova section em um notebook.
+Creates a new section in a notebook.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::section::create_section(state, notebook_id, name)` |
-| **Parâmetros** | `notebook_id: NotebookId`, `name: String` |
-| **Retorno** | `Section` |
-| **Erros** | `SectionAlreadyExists`, `NotebookNotFound`, nome vazio |
-| **Efeitos** | Cria diretório + `section.json` + `assets/` |
+| **Parameters** | `notebook_id: NotebookId`, `name: String` |
+| **Returns** | `Section` |
+| **Errors** | `SectionAlreadyExists`, `NotebookNotFound`, empty name |
+| **Effects** | Creates directory + `section.json` + `assets/` |
 | **TS** | `createSection(notebookId, name): Promise<Section>` |
 
 ### `rename_section`
 
-Renomeia section.
+Renames a section.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::section::rename_section(state, id, name)` |
-| **Parâmetros** | `id: SectionId`, `name: String` |
-| **Retorno** | `Section` |
+| **Parameters** | `id: SectionId`, `name: String` |
+| **Returns** | `Section` |
 | **TS** | `renameSection(id, name): Promise<Section>` |
 
 ### `delete_section`
 
-Deleta section (soft-delete).
+Deletes a section (soft-delete).
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::section::delete_section(state, id)` |
-| **Parâmetros** | `id: SectionId` |
-| **Retorno** | `()` |
+| **Parameters** | `id: SectionId` |
+| **Returns** | `()` |
 | **TS** | `deleteSection(id): Promise<void>` |
 
 ### `reorder_sections`
 
-Reordena sections.
+Reorders sections within a notebook.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::section::reorder_sections(state, order)` |
-| **Parâmetros** | `order: Vec<(SectionId, u32)>` |
-| **Retorno** | `()` |
+| **Parameters** | `order: Vec<(SectionId, u32)>` |
+| **Returns** | `()` |
 | **TS** | `reorderSections(order): Promise<void>` |
-
----
-
-## Page (7 commands)
-
-### `list_pages`
-
-Lista resumos de pages de uma section.
-
-| | Detalhe |
-|---|---|
-| **Rust** | `commands::page::list_pages(state, section_id)` |
-| **Parâmetros** | `section_id: SectionId` |
-| **Retorno** | `Vec<PageSummary>` — id, title, tags, created_at, updated_at |
-| **TS** | `listPages(sectionId): Promise<PageSummary[]>` |
-
-### `load_page`
-
-Carrega page completa (com todos os blocos).
-
-| | Detalhe |
-|---|---|
-| **Rust** | `commands::page::load_page(state, page_id)` |
-| **Parâmetros** | `page_id: PageId` |
-| **Retorno** | `Page` |
-| **Erros** | `PageNotFound` |
-| **TS** | `loadPage(pageId): Promise<Page>` |
-
-### `create_page`
-
-Cria nova page em uma section.
-
-| | Detalhe |
-|---|---|
-| **Rust** | `commands::page::create_page(state, section_id, title)` |
-| **Parâmetros** | `section_id: SectionId`, `title: String` |
-| **Retorno** | `Page` |
-| **Erros** | Título vazio, section not found |
-| **Efeitos** | Cria `{slug}.opn.json` |
-| **TS** | `createPage(sectionId, title): Promise<Page>` |
-
-### `update_page`
-
-Atualiza page inteira (título, tags, annotations, preferences).
-
-| | Detalhe |
-|---|---|
-| **Rust** | `commands::page::update_page(state, page)` |
-| **Parâmetros** | `page: Page` — page completa |
-| **Retorno** | `()` |
-| **TS** | `updatePage(page): Promise<void>` |
-
-### `update_page_blocks`
-
-Atualiza apenas os blocos de uma page (usado pelo auto-save).
-
-| | Detalhe |
-|---|---|
-| **Rust** | `commands::page::update_page_blocks(state, page_id, blocks)` |
-| **Parâmetros** | `page_id: PageId`, `blocks: Vec<Block>` |
-| **Retorno** | `Page` — page atualizada |
-| **Erros** | `PageNotFound` |
-| **Efeitos** | Usa `SaveCoordinator` (Mutex per-page) para read-modify-write seguro |
-| **TS** | `updatePageBlocks(pageId, blocks): Promise<Page>` |
-
-### `delete_page`
-
-Deleta page (soft-delete para `.trash/`).
-
-| | Detalhe |
-|---|---|
-| **Rust** | `commands::page::delete_page(state, page_id)` |
-| **Parâmetros** | `page_id: PageId` |
-| **Retorno** | `()` |
-| **TS** | `deletePage(pageId): Promise<void>` |
-
-### `move_page`
-
-Move page para outra section.
-
-| | Detalhe |
-|---|---|
-| **Rust** | `commands::page::move_page(state, page_id, target_section_id)` |
-| **Parâmetros** | `page_id: PageId`, `target_section_id: SectionId` |
-| **Retorno** | `Page` — page atualizada |
-| **Efeitos** | Move arquivo + assets para a section destino |
-| **TS** | `movePage(pageId, targetSectionId): Promise<Page>` |
 
 ### `move_section`
 
-Move section para outro notebook.
+Moves a section to another notebook.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::section::move_section(state, section_id, target_notebook_id, workspace_id)` |
-| **Parâmetros** | `section_id: SectionId`, `target_notebook_id: NotebookId`, `workspace_id?: string` |
-| **Retorno** | `Section` — section atualizada |
-| **Efeitos** | Move diretório da section + atualiza `notebook_id` e slug |
+| **Parameters** | `section_id: SectionId`, `target_notebook_id: NotebookId`, `workspace_id?: String` |
+| **Returns** | `Section` |
+| **Effects** | Moves the section directory, updates `notebook_id` and slug |
 | **TS** | `moveSection(sectionId, targetNotebookId, workspaceId?): Promise<Section>` |
 
 ---
 
-## Password Protection (4 commands)
+## Page (20 commands)
+
+### `list_pages`
+
+Lists page summaries for a section.
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::page::list_pages(state, section_id)` |
+| **Parameters** | `section_id: SectionId` |
+| **Returns** | `Vec<PageSummary>` — id, title, tags, created_at, updated_at |
+| **TS** | `listPages(sectionId): Promise<PageSummary[]>` |
+
+### `load_page`
+
+Loads a full page (with all blocks).
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::page::load_page(state, page_id)` |
+| **Parameters** | `page_id: PageId` |
+| **Returns** | `Page` |
+| **Errors** | `PageNotFound` |
+| **TS** | `loadPage(pageId): Promise<Page>` |
+
+### `create_page`
+
+Creates a new page in a section.
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::page::create_page(state, section_id, title)` |
+| **Parameters** | `section_id: SectionId`, `title: String` |
+| **Returns** | `Page` |
+| **Errors** | Empty title, section not found |
+| **Effects** | Creates `{slug}.opn.json` |
+| **TS** | `createPage(sectionId, title): Promise<Page>` |
+
+### `update_page`
+
+Updates an entire page (title, tags, annotations, preferences).
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::page::update_page(state, page)` |
+| **Parameters** | `page: Page` — full page object |
+| **Returns** | `()` |
+| **TS** | `updatePage(page): Promise<void>` |
+
+### `update_page_blocks`
+
+Updates only the blocks of a page (used by auto-save).
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::page::update_page_blocks(state, page_id, blocks)` |
+| **Parameters** | `page_id: PageId`, `blocks: Vec<Block>` |
+| **Returns** | `Page` — updated page |
+| **Errors** | `PageNotFound` |
+| **Effects** | Uses `SaveCoordinator` (per-page Mutex) for safe read-modify-write |
+| **TS** | `updatePageBlocks(pageId, blocks): Promise<Page>` |
+
+### `delete_page`
+
+Deletes a page (soft-delete to `.trash/`).
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::page::delete_page(state, page_id)` |
+| **Parameters** | `page_id: PageId` |
+| **Returns** | `()` |
+| **TS** | `deletePage(pageId): Promise<void>` |
+
+### `move_page`
+
+Moves a page to another section.
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::page::move_page(state, page_id, target_section_id)` |
+| **Parameters** | `page_id: PageId`, `target_section_id: SectionId` |
+| **Returns** | `Page` — updated page |
+| **Effects** | Moves file + assets to the target section |
+| **TS** | `movePage(pageId, targetSectionId): Promise<Page>` |
 
 ### `unlock_page`
 
-Desbloqueia uma página protegida nesta sessão.
+Unlocks a password-protected page for this session.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::page::unlock_page(state, page_id, password, workspace_id)` |
-| **Parâmetros** | `page_id: PageId`, `password: String`, `workspace_id?: String` |
-| **Retorno** | `Page` — a página descriptografada (em memória) |
-| **Erros** | `WRONG_PASSWORD`, `PageNotFound` |
-| **Efeitos** | Armazena a chave derivada no cache de sessão (RAM) do workspace |
+| **Parameters** | `page_id: PageId`, `password: String`, `workspace_id?: String` |
+| **Returns** | `Page` — decrypted page (in memory) |
+| **Errors** | `WRONG_PASSWORD`, `PageNotFound` |
+| **Effects** | Stores the derived key in the workspace session cache (RAM) |
 | **TS** | `unlockPage(pageId, password, workspaceId?): Promise<Page>` |
 
 ### `set_page_password`
 
-Protege uma página com senha pela primeira vez.
+Protects a page with a password for the first time.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::page::set_page_password(state, page_id, password, workspace_id)` |
-| **Parâmetros** | `page_id: PageId`, `password: String`, `workspace_id?: String` |
-| **Retorno** | `()` |
-| **Erros** | Senha curta (<6), Página já protegida |
-| **Efeitos** | Criptografa conteúdo, remove do índice de busca, cacheia chave na sessão |
+| **Parameters** | `page_id: PageId`, `password: String`, `workspace_id?: String` |
+| **Returns** | `()` |
+| **Errors** | Password too short (<6 chars), page already protected |
+| **Effects** | Encrypts content, removes from search index, caches key in session |
 | **TS** | `setPagePassword(pageId, password, workspaceId?): Promise<void>` |
 
 ### `remove_page_password`
 
-Remove permanentemente a proteção por senha de uma página.
+Permanently removes password protection from a page.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::page::remove_page_password(state, page_id, password, workspace_id)` |
-| **Parâmetros** | `page_id: PageId`, `password: String`, `workspace_id?: String` |
-| **Retorno** | `Page` — a página agora aberta (sem proteção) |
-| **Erros** | `WRONG_PASSWORD` |
-| **Efeitos** | Descriptografa arquivo no disco, remove chave da sessão, re-indexa para busca |
+| **Parameters** | `page_id: PageId`, `password: String`, `workspace_id?: String` |
+| **Returns** | `Page` — now unprotected page |
+| **Errors** | `WRONG_PASSWORD` |
+| **Effects** | Decrypts file on disk, removes key from session, re-indexes for search |
 | **TS** | `removePagePassword(pageId, password, workspaceId?): Promise<Page>` |
 
 ### `change_page_password`
 
-Altera a senha de uma página (rotação de chave).
+Changes a page's password (key rotation).
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::page::change_page_password(state, page_id, old_password, new_password, workspace_id)` |
-| **Parâmetros** | `page_id: PageId`, `old_password`, `new_password`, `workspace_id?` |
-| **Retorno** | `()` |
-| **Erros** | `WRONG_PASSWORD`, senha curta |
-| **Efeitos** | Re-criptografa com nova chave e novo salt/nonce, remove chave antiga da sessão |
+| **Parameters** | `page_id: PageId`, `old_password`, `new_password`, `workspace_id?` |
+| **Returns** | `()` |
+| **Errors** | `WRONG_PASSWORD`, password too short |
+| **Effects** | Re-encrypts with new key + new salt/nonce, removes old key from session |
 | **TS** | `changePagePassword(pageId, oldPw, newPw, workspaceId?): Promise<void>` |
 
----
+### `lock_page`
 
-## File I/O (2 commands)
+Locks a currently unlocked protected page (clears session key).
 
-### `read_file_content`
-
-Lê conteúdo de arquivo como texto.
-
-| | Detalhe |
+| | Detail |
 |---|---|
-| **Rust** | `commands::page::read_file_content(path)` |
-| **Parâmetros** | `path: String` — caminho absoluto |
-| **Retorno** | `String` |
-| **TS** | `readFileContent(path): Promise<string>` |
-
-### `save_file_content`
-
-Escreve conteúdo em arquivo.
-
-| | Detalhe |
-|---|---|
-| **Rust** | `commands::page::save_file_content(path, content)` |
-| **Parâmetros** | `path: String`, `content: String` |
-| **Retorno** | `()` |
-| **TS** | `saveFileContent(path, content): Promise<void>` |
-
----
-
-## PDF Canvas (3 commands)
+| **Rust** | `commands::page::lock_page(state, page_id)` |
+| **Parameters** | `page_id: PageId` |
+| **Returns** | `()` |
+| **TS** | `lockPage(pageId): Promise<void>` |
 
 ### `import_pdf`
 
-Importa arquivo PDF como asset de uma section.
+Imports a PDF file as an asset for a section.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::page::import_pdf(state, section_id, file_path)` |
-| **Parâmetros** | `section_id: SectionId`, `file_path: String` — caminho absoluto do PDF |
-| **Retorno** | `(String, String, u32)` — (caminho relativo do asset, caminho absoluto, total de páginas) |
-| **Erros** | Arquivo não encontrado, I/O |
+| **Parameters** | `section_id: SectionId`, `file_path: String` — absolute path |
+| **Returns** | `(String, String, u32)` — (relative asset path, absolute path, total pages) |
+| **Errors** | File not found, I/O |
 | **TS** | `importPdf(sectionId, filePath): Promise<[string, string, number]>` |
 
 ### `create_pdf_canvas_page`
 
-Cria uma nova page do tipo `pdf_canvas` com o PDF já importado.
+Creates a new page of type `pdf_canvas` with an already-imported PDF.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::page::create_pdf_canvas_page(state, section_id, title, pdf_asset, pdf_total_pages)` |
-| **Parâmetros** | `section_id: SectionId`, `title: String`, `pdf_asset: String` (caminho absoluto), `pdf_total_pages: u32` |
-| **Retorno** | `Page` — page criada com `editor_mode: PdfCanvas` |
-| **Erros** | Section não encontrada, I/O |
+| **Parameters** | `section_id: SectionId`, `title: String`, `pdf_asset: String` (absolute path), `pdf_total_pages: u32` |
+| **Returns** | `Page` — created page with `editor_mode: PdfCanvas` |
+| **Errors** | Section not found, I/O |
 | **TS** | `createPdfCanvasPage(sectionId, title, pdfAsset, pdfTotalPages): Promise<Page>` |
 
 ### `update_page_annotations`
 
-Salva as anotações (ink strokes) de uma PDF Canvas Page.
+Saves the ink stroke annotations for a PDF Canvas page.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::page::update_page_annotations(state, page_id, annotations)` |
-| **Parâmetros** | `page_id: PageId`, `annotations: PageAnnotations` — mapa `pdf_page → [AnchoredStroke]` |
-| **Retorno** | `()` |
-| **Erros** | Page não encontrada, I/O |
+| **Parameters** | `page_id: PageId`, `annotations: PageAnnotations` |
+| **Returns** | `()` |
+| **Errors** | Page not found, I/O |
 | **TS** | `updatePageAnnotations(pageId, annotations): Promise<void>` |
+
+### `create_canvas_page`
+
+Creates a blank canvas page (freehand drawing without a PDF).
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::page::create_canvas_page(state, section_id, title)` |
+| **Parameters** | `section_id: SectionId`, `title: String` |
+| **Returns** | `Page` |
+| **TS** | `createCanvasPage(sectionId, title): Promise<Page>` |
+
+### `read_file_content`
+
+Reads a file's content as text.
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::page::read_file_content(path)` |
+| **Parameters** | `path: String` — absolute path |
+| **Returns** | `String` |
+| **TS** | `readFileContent(path): Promise<string>` |
+
+### `save_file_content`
+
+Writes content to a file.
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::page::save_file_content(path, content)` |
+| **Parameters** | `path: String`, `content: String` |
+| **Returns** | `()` |
+| **TS** | `saveFileContent(path, content): Promise<void>` |
+
+---
+
+## Assets (4 commands)
+
+### `import_asset`
+
+Imports a file as a section asset (copy).
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::assets::import_asset(state, section_id, file_path)` |
+| **Parameters** | `section_id: SectionId`, `file_path: String` |
+| **Returns** | `AssetResult { asset_path: String }` — relative path |
+| **TS** | `importAsset(sectionId, filePath)` |
+
+### `import_asset_from_bytes`
+
+Imports an asset from raw bytes (e.g. clipboard paste).
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::assets::import_asset_from_bytes(state, section_id, bytes, extension)` |
+| **Parameters** | `section_id: SectionId`, `bytes: Vec<u8>`, `extension: String` |
+| **Returns** | `AssetResult { asset_path: String }` |
+| **TS** | `importAssetFromBytes(sectionId, bytes, extension)` |
+
+### `read_asset_base64`
+
+Reads an asset file and returns its content as a Base64 string.
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::assets::read_asset_base64(file_path)` |
+| **Parameters** | `file_path: String` — absolute path |
+| **Returns** | `String` — Base64-encoded content |
+| **TS** | `readAssetBase64(filePath): Promise<string>` |
+
+### `delete_asset`
+
+Removes an asset from the filesystem.
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::assets::delete_asset(state, asset_path)` |
+| **Parameters** | `asset_path: String` — relative path |
+| **Returns** | `()` |
+| **TS** | `deleteAsset(assetPath)` |
 
 ---
 
@@ -500,13 +614,13 @@ Salva as anotações (ink strokes) de uma PDF Canvas Page.
 
 ### `list_all_tags`
 
-Lista todas as tags de todas as pages do workspace (sorted, unique).
+Lists all tags across all pages in the workspace (sorted, unique).
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::tags::list_all_tags(state)` |
-| **Parâmetros** | — |
-| **Retorno** | `Vec<String>` |
+| **Parameters** | — |
+| **Returns** | `Vec<String>` |
 | **TS** | `listAllTags(): Promise<string[]>` |
 
 ---
@@ -515,245 +629,407 @@ Lista todas as tags de todas as pages do workspace (sorted, unique).
 
 ### `list_trash_items`
 
-Lista itens na lixeira.
+Lists items in the trash.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::trash::list_trash_items(state)` |
-| **Parâmetros** | — |
-| **Retorno** | `Vec<TrashItem>` |
+| **Parameters** | — |
+| **Returns** | `Vec<TrashItem>` |
 | **TS** | `listTrashItems(): Promise<TrashItem[]>` |
 
 ### `restore_from_trash`
 
-Restaura item da lixeira para o local original.
+Restores an item from the trash to its original location.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::trash::restore_from_trash(state, trash_item_id)` |
-| **Parâmetros** | `trash_item_id: String` |
-| **Retorno** | `()` |
-| **Erros** | `TrashItemNotFound` |
+| **Parameters** | `trash_item_id: String` |
+| **Returns** | `()` |
+| **Errors** | `TrashItemNotFound` |
 | **TS** | `restoreFromTrash(trashItemId): Promise<void>` |
 
 ### `permanently_delete`
 
-Remove item da lixeira permanentemente.
+Permanently removes an item from the trash.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::trash::permanently_delete(state, trash_item_id)` |
-| **Parâmetros** | `trash_item_id: String` |
-| **Retorno** | `()` |
-| **Erros** | `TrashItemNotFound` |
+| **Parameters** | `trash_item_id: String` |
+| **Returns** | `()` |
+| **Errors** | `TrashItemNotFound` |
 | **TS** | `permanentlyDelete(trashItemId): Promise<void>` |
 
 ### `empty_trash`
 
-Esvazia toda a lixeira.
+Empties the entire trash.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::trash::empty_trash(state)` |
-| **Parâmetros** | — |
-| **Retorno** | `()` |
+| **Parameters** | — |
+| **Returns** | `()` |
 | **TS** | `emptyTrash(): Promise<void>` |
 
 ---
 
-## Assets (3 commands)
-
-### `import_asset`
-
-Importa arquivo como asset de uma section (cópia).
-
-| | Detalhe |
-|---|---|
-| **Rust** | `commands::assets::import_asset(state, section_id, file_path)` |
-| **Parâmetros** | `section_id: SectionId`, `file_path: String` |
-| **Retorno** | `AssetResult { asset_path: String }` — caminho relativo |
-| **TS** | `importAsset(sectionId, filePath)` |
-
-### `import_asset_from_bytes`
-
-Importa asset a partir de bytes (ex: paste de clipboard).
-
-| | Detalhe |
-|---|---|
-| **Rust** | `commands::assets::import_asset_from_bytes(state, section_id, bytes, extension)` |
-| **Parâmetros** | `section_id: SectionId`, `bytes: Vec<u8>`, `extension: String` |
-| **Retorno** | `AssetResult { asset_path: String }` |
-| **TS** | `importAssetFromBytes(sectionId, bytes, extension)` |
-
-### `delete_asset`
-
-Remove asset do filesystem.
-
-| | Detalhe |
-|---|---|
-| **Rust** | `commands::assets::delete_asset(state, asset_path)` |
-| **Parâmetros** | `asset_path: String` — caminho relativo |
-| **Retorno** | `()` |
-| **TS** | `deleteAsset(assetPath)` |
-
----
-
-## Search (5 commands)
+## Search (6 commands)
 
 ### `search_pages`
 
-Busca full-text em todas as pages indexadas.
+Full-text search across all indexed pages.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::search::search_pages(state, query)` |
-| **Parâmetros** | `query: SearchQuery` — `{ query: String, notebook_id?: String, section_id?: String, limit?: usize }` |
-| **Retorno** | `SearchResults` — `{ items: Vec<SearchResultItem>, total: u64 }` |
+| **Parameters** | `query: SearchQuery` — `{ query: String, notebook_id?: String, section_id?: String, limit?: usize }` |
+| **Returns** | `SearchResults` — `{ items: Vec<SearchResultItem>, total: u64 }` |
 | **TS** | `searchPages(query): Promise<SearchResults>` |
 
 ### `quick_open`
 
-Busca rápida por título (QuickOpen dialog).
+Fast title search for the QuickOpen dialog (`Cmd+P`).
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::search::quick_open(state, query, limit)` |
-| **Parâmetros** | `query: String`, `limit?: usize` (default 10) |
-| **Retorno** | `Vec<SearchResultItem>` |
+| **Parameters** | `query: String`, `limit?: usize` (default 10) |
+| **Returns** | `Vec<SearchResultItem>` |
 | **TS** | `quickOpen(query, limit?): Promise<SearchResultItem[]>` |
 
 ### `reindex_page`
 
-Re-indexa uma page específica no search engine.
+Re-indexes a specific page in the search engine.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::search::reindex_page(state, page_id)` |
-| **Parâmetros** | `page_id: PageId` |
-| **Retorno** | `()` |
-| **Efeitos** | Remove documento antigo e insere novo no índice Tantivy |
+| **Parameters** | `page_id: PageId` |
+| **Returns** | `()` |
+| **Effects** | Removes old document and inserts updated one in Tantivy |
 | **TS** | `reindexPage(pageId): Promise<void>` |
 
 ### `rebuild_index`
 
-Reconstrói todo o índice de busca do zero.
+Rebuilds the entire search index from scratch.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::search::rebuild_index(state)` |
-| **Parâmetros** | — |
-| **Retorno** | `u64` — total de pages indexadas |
-| **Efeitos** | Itera todos notebooks → sections → pages, re-indexa tudo |
+| **Parameters** | — |
+| **Returns** | `u64` — total pages indexed |
+| **Effects** | Iterates all notebooks → sections → pages, re-indexes everything |
 | **TS** | `rebuildIndex(): Promise<number>` |
 
 ### `get_index_status`
 
-Retorna status do índice de busca.
+Returns the current search index status.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::search::get_index_status(state)` |
-| **Parâmetros** | — |
-| **Retorno** | `IndexStatus` — `{ total_docs: u64, index_size_bytes: u64 }` |
+| **Parameters** | — |
+| **Returns** | `IndexStatus` — `{ total_docs: u64, index_size_bytes: u64 }` |
 | **TS** | `getIndexStatus(): Promise<IndexStatus>` |
+
+### `search_all_workspaces`
+
+Full-text search across all currently open workspaces.
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::search::search_all_workspaces(state, query)` |
+| **Parameters** | `query: SearchQuery` |
+| **Returns** | `SearchResults` |
+| **TS** | `searchAllWorkspaces(query): Promise<SearchResults>` |
 
 ---
 
-## Sync (6 commands)
+## Sync (17 commands)
 
 ### `get_sync_providers`
 
-Lista provedores de sync disponíveis com status de conexão.
+Lists available sync providers with their connection status.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::sync::get_sync_providers(state)` |
-| **Parâmetros** | — |
-| **Retorno** | `Vec<ProviderInfo>` — `{ name, display_name, connected, user_email?, last_synced_at? }` |
+| **Parameters** | — |
+| **Returns** | `Vec<ProviderInfo>` — `{ name, display_name, connected, user_email?, last_synced_at? }` |
 | **TS** | `getSyncProviders(): Promise<ProviderInfo[]>` |
 
 ### `get_sync_status`
 
-Retorna status atual da sincronização.
+Returns the current synchronization status.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::sync::get_sync_status(state)` |
-| **Parâmetros** | — |
-| **Retorno** | `SyncStatus` — `{ is_syncing, provider?, progress?, last_synced_at?, last_error?, pending_conflicts }` |
+| **Parameters** | — |
+| **Returns** | `SyncStatus` — `{ is_syncing, provider?, progress?, last_synced_at?, last_error?, pending_conflicts }` |
 | **TS** | `getSyncStatus(): Promise<SyncStatus>` |
 
 ### `get_sync_config`
 
-Retorna configuração de sync atual.
+Returns the current sync configuration.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::sync::get_sync_config(state)` |
-| **Parâmetros** | — |
-| **Retorno** | `SyncPreferences` — `{ enabled, provider?, interval_seconds, synced_notebook_ids }` |
+| **Parameters** | — |
+| **Returns** | `SyncPreferences` — `{ enabled, provider?, interval_seconds, synced_notebook_ids }` |
 | **TS** | `getSyncConfig(): Promise<SyncPreferences>` |
 
 ### `set_sync_config`
 
-Atualiza configuração de sync.
+Updates the sync configuration.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::sync::set_sync_config(state, config)` |
-| **Parâmetros** | `config: SyncPreferences` |
-| **Retorno** | `()` |
-| **Erros** | Sync coordinator não inicializado |
-| **Efeitos** | Se `provider` definido, cria instância do provider |
+| **Parameters** | `config: SyncPreferences` |
+| **Returns** | `()` |
+| **Errors** | Sync coordinator not initialized |
+| **Effects** | If `provider` is set, creates a provider instance |
 | **TS** | `setSyncConfig(config): Promise<void>` |
 
 ### `get_sync_conflicts`
 
-Lista conflitos de sync pendentes.
+Lists pending sync conflicts.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::sync::get_sync_conflicts(state)` |
-| **Parâmetros** | — |
-| **Retorno** | `Vec<SyncConflict>` |
+| **Parameters** | — |
+| **Returns** | `Vec<SyncConflict>` |
 | **TS** | `getSyncConflicts(): Promise<SyncConflict[]>` |
 
 ### `resolve_sync_conflict`
 
-Resolve um conflito de sync específico.
+Resolves a specific sync conflict.
 
-| | Detalhe |
+| | Detail |
 |---|---|
 | **Rust** | `commands::sync::resolve_sync_conflict(state, conflict_id, resolution)` |
-| **Parâmetros** | `conflict_id: String`, `resolution: ConflictResolution` (`keep_local`, `keep_remote`, `keep_both`) |
-| **Retorno** | `()` |
-| **Erros** | Conflito não encontrado, sync coordinator não inicializado |
+| **Parameters** | `conflict_id: String`, `resolution: ConflictResolution` (`keep_local`, `keep_remote`, `keep_both`) |
+| **Returns** | `()` |
+| **Errors** | Conflict not found, sync coordinator not initialized |
 | **TS** | `resolveSyncConflict(conflictId, resolution): Promise<void>` |
 
+### `get_provider_status`
+
+Returns the connection status for all known providers (without requiring an open workspace).
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::sync::get_provider_status()` |
+| **Parameters** | — |
+| **Returns** | `Vec<ProviderConnectionStatus>` |
+| **TS** | `getProviderStatus(): Promise<ProviderConnectionStatus[]>` |
+
+### `connect_provider`
+
+Initiates the OAuth2 authentication flow for a provider.
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::sync::connect_provider(state, provider_name)` |
+| **Parameters** | `provider_name: String` (`"google_drive"`, `"onedrive"`, `"dropbox"`) |
+| **Returns** | `ProviderInfo` |
+| **Effects** | Opens browser for OAuth2 PKCE flow, stores token on success |
+| **TS** | `connectProvider(providerName): Promise<ProviderInfo>` |
+
+### `disconnect_provider`
+
+Disconnects and removes a provider's auth token.
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::sync::disconnect_provider(state, provider_name)` |
+| **Parameters** | `provider_name: String` |
+| **Returns** | `()` |
+| **TS** | `disconnectProvider(providerName): Promise<void>` |
+
+### `disconnect_provider_by_name`
+
+Disconnects a provider by name (stateless, does not require an open workspace).
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::sync::disconnect_provider_by_name(provider_name)` |
+| **Parameters** | `provider_name: String` |
+| **Returns** | `()` |
+| **TS** | `disconnectProviderByName(providerName): Promise<void>` |
+
+### `sync_initial_upload`
+
+Uploads the entire workspace to the cloud for the first time.
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::sync::sync_initial_upload(state, provider_name)` |
+| **Parameters** | `provider_name: String` |
+| **Returns** | `()` |
+| **Effects** | Uploads all workspace files, writes sync manifest |
+| **TS** | `syncInitialUpload(providerName): Promise<void>` |
+
+### `sync_bidirectional`
+
+Performs a full bidirectional sync (upload local changes, download remote changes).
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::sync::sync_bidirectional(state, provider_name)` |
+| **Parameters** | `provider_name: String` |
+| **Returns** | `()` |
+| **Effects** | Detects local/remote changes via SHA-256 manifest, resolves conflicts |
+| **TS** | `syncBidirectional(providerName): Promise<void>` |
+
+### `list_remote_workspaces`
+
+Lists workspaces available in the cloud for a given provider.
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::sync::list_remote_workspaces(state, provider_name)` |
+| **Parameters** | `provider_name: String` |
+| **Returns** | `Vec<RemoteWorkspace>` — `{ name, path, last_modified }` |
+| **TS** | `listRemoteWorkspaces(providerName): Promise<RemoteWorkspace[]>` |
+
+### `download_workspace`
+
+Downloads a remote workspace to a local directory.
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::sync::download_workspace(state, provider_name, remote_path, local_path)` |
+| **Parameters** | `provider_name: String`, `remote_path: String`, `local_path: String` |
+| **Returns** | `()` |
+| **Effects** | Downloads all workspace files, creates local directory structure |
+| **TS** | `downloadWorkspace(providerName, remotePath, localPath): Promise<void>` |
+
+### `list_downloaded_workspaces`
+
+Lists workspaces that have been downloaded from the cloud and are available locally.
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::sync::list_downloaded_workspaces()` |
+| **Parameters** | — |
+| **Returns** | `Vec<DownloadedWorkspace>` |
+| **TS** | `listDownloadedWorkspaces(): Promise<DownloadedWorkspace[]>` |
+
+### `get_opennote_dir`
+
+Returns the path to the `~/.opennote` configuration directory.
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::sync::get_opennote_dir()` |
+| **Parameters** | — |
+| **Returns** | `String` — absolute path |
+| **TS** | `getOpennoteDir(): Promise<string>` |
+
+### `get_default_sync_dir`
+
+Returns the default local directory used for downloaded workspaces.
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::sync::get_default_sync_dir()` |
+| **Parameters** | — |
+| **Returns** | `String` — absolute path |
+| **TS** | `getDefaultSyncDir(): Promise<string>` |
+
 ---
 
-## Tipos Referenciados
+## Template (4 commands)
 
-Para definições completas dos tipos usados nos commands, ver:
+### `list_templates`
 
-- [DATA_MODEL.md](./DATA_MODEL.md) — Entidades, value objects, enums
-- `src/types/bindings/` — TypeScript bindings gerados
-- `src/types/search.ts` — Tipos de busca
-- `src/types/sync.ts` — Tipos de sync
+Lists all saved page templates for the workspace.
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::template::list_templates(state)` |
+| **Parameters** | — |
+| **Returns** | `Vec<PageTemplate>` |
+| **TS** | `listTemplates(): Promise<PageTemplate[]>` |
+
+### `create_template_from_page`
+
+Creates a new template from an existing page.
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::template::create_template_from_page(state, page_id, template_name)` |
+| **Parameters** | `page_id: PageId`, `template_name: String` |
+| **Returns** | `PageTemplate` |
+| **TS** | `createTemplateFromPage(pageId, templateName): Promise<PageTemplate>` |
+
+### `delete_template`
+
+Deletes a page template.
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::template::delete_template(state, template_id)` |
+| **Parameters** | `template_id: String` |
+| **Returns** | `()` |
+| **TS** | `deleteTemplate(templateId): Promise<void>` |
+
+### `create_page_from_template`
+
+Creates a new page in a section using a template.
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::template::create_page_from_template(state, section_id, template_id)` |
+| **Parameters** | `section_id: SectionId`, `template_id: String` |
+| **Returns** | `Page` |
+| **TS** | `createPageFromTemplate(sectionId, templateId): Promise<Page>` |
 
 ---
 
-## Padrões de Uso
+## Spellcheck (1 command)
 
-### Fluxo típico de um IPC command
+### `check_spelling`
+
+Checks text for spelling and grammar errors via LanguageTool.
+
+| | Detail |
+|---|---|
+| **Rust** | `commands::spellcheck::check_spelling(request)` |
+| **Parameters** | `request: SpellCheckRequest` — `{ text: String, language: String }` |
+| **Returns** | `SpellCheckResponse` — list of matches with suggestions |
+| **TS** | `checkSpelling(request): Promise<SpellCheckResponse>` |
+
+---
+
+## Referenced Types
+
+For complete type definitions used in commands, see:
+
+- [DATA_MODEL.md](./DATA_MODEL.md) — Entities, value objects, enums
+- `src/types/bindings/` — Auto-generated TypeScript bindings
+- `src/types/search.ts` — Search types
+- `src/types/sync.ts` — Sync types
+
+---
+
+## Usage Patterns
+
+### Typical IPC command flow
 
 ```typescript
 // Frontend (src/lib/ipc.ts)
 export const createNotebook = (name: string) =>
   invoke<Notebook>("create_notebook", { name });
 
-// Chamada a partir de um store
-const notebook = await ipc.createNotebook("Estudos");
+// Called from a store
+const notebook = await ipc.createNotebook("Study Notes");
 ```
 
 ```rust
@@ -765,19 +1041,19 @@ pub fn create_notebook(state: State<AppManagedState>, name: String) -> Result<No
 }
 ```
 
-### Serialização de argumentos
+### Argument serialization
 
-Tauri converte automaticamente entre `camelCase` (JS) e `snake_case` (Rust):
-- Frontend envia: `{ notebookId: "abc-123" }`
-- Rust recebe: `notebook_id: NotebookId`
+Tauri automatically converts between `camelCase` (JS) and `snake_case` (Rust):
+- Frontend sends: `{ notebookId: "abc-123" }`
+- Rust receives: `notebook_id: NotebookId`
 
-### Tratamento de erros
+### Error handling
 
-Todos os commands retornam `Result<T, String>`. O frontend trata erros via try/catch:
+All commands return `Result<T, String>`. The frontend handles errors via try/catch:
 
 ```typescript
 try {
-  await ipc.createNotebook("Estudos");
+  await ipc.createNotebook("Study Notes");
 } catch (error) {
   toast.error(t('errors.notebookAlreadyExists'));
 }

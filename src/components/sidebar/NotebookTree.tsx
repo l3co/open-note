@@ -189,7 +189,11 @@ export function NotebookTree() {
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div role="tree" aria-label={t("sidebar.notebooks")}>
+      <div
+        className="space-y-0.5"
+        role="tree"
+        aria-label={t("sidebar.notebooks")}
+      >
         {notebooks.map((nb) => (
           <NotebookRow
             key={nb.id}
@@ -316,7 +320,7 @@ function NotebookRow({
     >
       <div ref={setDragRef} {...dragListeners} style={{ touchAction: "none" }}>
         <TreeItem
-          icon={isExpanded ? <BookOpen size={14} /> : <Book size={14} />}
+          icon={isExpanded ? <BookOpen size={16} /> : <Book size={16} />}
           label={nb.name}
           isExpanded={isExpanded}
           isSelected={isSelected}
@@ -407,7 +411,7 @@ function SectionNode({
       <div ref={setDragRef} {...dragListeners} style={{ touchAction: "none" }}>
         <TreeItem
           icon={
-            isExpanded ? <FolderOpen size={14} /> : <FolderClosed size={14} />
+            isExpanded ? <FolderOpen size={15} /> : <FolderClosed size={15} />
           }
           label={section.name}
           isExpanded={isExpanded}
@@ -472,10 +476,10 @@ function PageRow({
   });
 
   const getPageIcon = () => {
-    if (page.is_protected) return <Lock size={12} />;
-    if (page.mode === "canvas") return <LayoutDashboard size={12} />;
-    if (page.mode === "pdf_canvas") return <FileImage size={12} />;
-    return <FileText size={12} />;
+    if (page.is_protected) return <Lock size={14} />;
+    if (page.mode === "canvas") return <LayoutDashboard size={14} />;
+    if (page.mode === "pdf_canvas") return <FileImage size={14} />;
+    return <FileText size={14} />;
   };
 
   return (
@@ -513,13 +517,13 @@ function EmptyHint({
 }) {
   return (
     <div
-      className="flex items-center gap-2 py-2"
-      style={{ paddingLeft: 8 + depth * 16 }}
+      className="flex items-center gap-2 py-2.5"
+      style={{ paddingLeft: 10 + depth * 18 }}
     >
       <span style={{ color: "var(--text-tertiary)", opacity: 0.4 }}>
         {icon}
       </span>
-      <span className="text-xs" style={{ color: "var(--text-tertiary)" }}>
+      <span className="text-sm" style={{ color: "var(--text-tertiary)" }}>
         {label}
       </span>
     </div>
@@ -559,7 +563,7 @@ function TreeItem({
   onRename?: (name: string) => void;
   labelClassName?: string;
 }) {
-  const paddingLeft = 8 + depth * 16;
+  const paddingLeft = 10 + depth * 18;
   const [renaming, setRenaming] = useState(false);
   const [draft, setDraft] = useState(label);
 
@@ -575,8 +579,8 @@ function TreeItem({
   return (
     <div
       className={clsx(
-        "interactive-ghost group flex h-8 cursor-pointer items-center gap-2 rounded-lg pr-1",
-        depth >= 2 ? "text-[12px]" : "text-[13px]",
+        "interactive-ghost group relative flex h-9 cursor-pointer items-center gap-2 rounded pr-2",
+        depth >= 2 ? "text-[13px]" : "text-sm",
         (isSelected || isDragOver) &&
           "bg-[var(--accent-subtle)] text-[var(--accent)]",
         !isSelected && !isDragOver && "text-[var(--text-primary)]",
@@ -623,18 +627,21 @@ function TreeItem({
       }
       onDragEnd={onDragEnd}
     >
+      {(isSelected || isDragOver) && (
+        <span className="absolute top-1.5 bottom-1.5 left-0 w-0.5 rounded-full bg-[var(--accent)]" />
+      )}
       {isExpanded !== undefined ? (
         <span
-          className="flex h-4 w-4 shrink-0 items-center justify-center"
+          className="flex h-5 w-5 shrink-0 items-center justify-center"
           style={{ color: "var(--text-tertiary)" }}
         >
-          {isExpanded ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
+          {isExpanded ? <ChevronDown size={15} /> : <ChevronRight size={15} />}
         </span>
       ) : (
-        <span className="h-4 w-4 shrink-0" />
+        <span className="h-5 w-5 shrink-0" />
       )}
       <span
-        className="flex h-4 w-4 items-center justify-center"
+        className="flex h-5 w-5 items-center justify-center"
         style={{
           color: isSelected ? "var(--accent)" : "var(--text-secondary)",
         }}
@@ -644,7 +651,7 @@ function TreeItem({
       {renaming ? (
         <input
           autoFocus
-          className="h-5 flex-1 rounded border bg-transparent px-1 text-[14px] outline-none"
+          className="h-6 flex-1 rounded border bg-transparent px-1 text-sm outline-none"
           style={{
             borderColor: "var(--accent)",
             color: "var(--text-primary)",

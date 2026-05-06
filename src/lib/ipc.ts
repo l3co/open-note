@@ -210,8 +210,8 @@ export const importAsset = (
     workspaceId,
   });
 
-export const readAssetBase64 = (filePath: string) =>
-  invoke<string>("read_asset_base64", { filePath });
+export const readAssetBase64 = (filePath: string, workspaceId?: string) =>
+  invoke<string>("read_asset_base64", { filePath, workspaceId });
 
 // ─── PDF ───
 

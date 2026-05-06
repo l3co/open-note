@@ -1,18 +1,18 @@
 # Troubleshooting — Open Note
 
-Problemas comuns encontrados durante desenvolvimento e uso, com soluções.
+Common problems encountered during development and use, with solutions.
 
 ---
 
-## Ambiente de Desenvolvimento
+## Development Environment
 
-### Erro: "failed to run custom build command for webkit2gtk-sys"
+### Error: "failed to run custom build command for webkit2gtk-sys"
 
-**Plataforma:** Linux
+**Platform:** Linux
 
-**Causa:** Dependências de sistema faltando.
+**Cause:** Missing system dependencies.
 
-**Solução:**
+**Fix:**
 ```bash
 sudo apt-get update
 sudo apt-get install -y libwebkit2gtk-4.1-dev librsvg2-dev patchelf libssl-dev libgtk-3-dev libayatana-appindicator3-dev
@@ -20,66 +20,65 @@ sudo apt-get install -y libwebkit2gtk-4.1-dev librsvg2-dev patchelf libssl-dev l
 
 ---
 
-### Erro: "cargo build" falha com erros de linking
+### Error: `cargo build` fails with linking errors
 
-**Plataforma:** macOS
+**Platform:** macOS
 
-**Causa:** Xcode Command Line Tools não instalado.
+**Cause:** Xcode Command Line Tools not installed.
 
-**Solução:**
+**Fix:**
 ```bash
 xcode-select --install
 ```
 
 ---
 
-### Erro: "npm ci" falha com versão de Node incorreta
+### Error: `npm ci` fails with wrong Node version
 
-**Causa:** Versão de Node.js diferente da esperada.
+**Cause:** Node.js version differs from what's expected.
 
-**Solução:**
+**Fix:**
 ```bash
-nvm use              # Usa versão do .nvmrc
-node --version       # Deve ser 23.x
+nvm use              # Uses version from .nvmrc
+node --version       # Should be 23.x
 ```
 
 ---
 
-### Hot reload do Rust não funciona (tauri dev)
+### Rust hot reload doesn't work (`tauri dev`)
 
-**Causa:** O Tauri CLI pode não detectar mudanças em crates.
+**Cause:** Tauri CLI may not detect changes in nested crates.
 
-**Solução:**
-1. Salvar novamente o arquivo alterado
-2. Se persistir, reiniciar `npm run tauri dev`
-3. Verificar que `src-tauri/Cargo.toml` lista o crate como dependência
+**Fix:**
+1. Save the modified file again
+2. If it persists, restart `npm run tauri dev`
+3. Verify that `src-tauri/Cargo.toml` lists the crate as a dependency
 
 ---
 
-### TypeScript bindings desatualizados
+### TypeScript bindings are out of date
 
-**Sintoma:** Erro de tipo no frontend após alterar struct Rust.
+**Symptom:** Type error in the frontend after changing a Rust struct.
 
-**Causa:** Bindings em `src/types/bindings/` não foram regenerados.
+**Cause:** Bindings in `src/types/bindings/` were not regenerated.
 
-**Solução:**
+**Fix:**
 ```bash
-cargo test -p opennote-core    # Regenera bindings
-# Ou rodar qualquer teste que importe os tipos com #[derive(TS)]
+cargo test -p opennote-core    # Regenerates bindings
 ```
 
-CI verifica automaticamente via `git diff --exit-code src/types/bindings/`.
+CI automatically verifies this via `git diff --exit-code src/types/bindings/`.
 
 ---
 
-### ESLint ou Prettier falham no CI mas passam localmente
+### ESLint or Prettier fails in CI but passes locally
 
-**Causa:** Versão diferente de Node ou dependências.
+**Cause:** Different Node version or dependency mismatch.
 
-**Solução:**
+**Fix:**
 ```bash
 rm -rf node_modules
-npm ci                  # Instala exatamente o que está no lock file
+npm ci                  # Installs exactly what's in the lock file
 npm run lint
 npm run format:check
 ```
@@ -88,140 +87,143 @@ npm run format:check
 
 ## Runtime
 
-### Erro: "Workspace is locked by another process"
+### Error: "Workspace is locked by another process"
 
-**Causa:** Outra instância do app está usando o mesmo workspace, ou o app crashou sem liberar o `.lock`.
+**Cause:** Another app instance is using the same workspace, or the app crashed without releasing the `.lock` file.
 
-**Solução:**
-1. Fechar todas as instâncias do Open Note
-2. Se persistir, o `.lock` é stale — o app detecta locks de processos que não existem mais e remove automaticamente
-3. Em último caso, deletar manualmente o arquivo `.lock` na raiz do workspace
-
----
-
-### Erro: "WorkspaceNotFound"
-
-**Causa:** O diretório do workspace foi movido ou deletado externamente.
-
-**Solução:**
-1. O app abre o WorkspacePicker automaticamente
-2. Remover o workspace da lista de recentes
-3. Recriar ou apontar para o novo path
+**Fix:**
+1. Close all Open Note instances
+2. If it persists: the `.lock` is stale — the app automatically detects and removes locks from processes that no longer exist
+3. As a last resort, manually delete the `.lock` file in the workspace root
 
 ---
 
-### Busca não retorna resultados esperados
+### Error: "WorkspaceNotFound"
 
-**Causa:** Índice Tantivy desatualizado ou corrompido.
+**Cause:** The workspace directory was moved or deleted externally.
 
-**Solução:**
-1. Rebuild do índice via Settings ou programaticamente:
+**Fix:**
+1. The app opens the WorkspacePicker automatically
+2. Remove the workspace from the recent list
+3. Recreate it or point to the new path
+
+---
+
+### Search doesn't return expected results
+
+**Cause:** Tantivy index is out of date or corrupted.
+
+**Fix:**
+1. Rebuild the index via Settings or programmatically:
 ```typescript
 await ipc.rebuildIndex();
 ```
-2. Se persistir, deletar `.opennote/index/` e reabrir o workspace (recria automaticamente)
+2. If it persists, delete `.opennote/index/` and reopen the workspace (it rebuilds automatically)
 
 ---
 
-### Página não salva (status fica em "saving" indefinidamente)
+### Page not saving (status stuck on "saving")
 
-**Causa possíveis:**
-- Workspace root não definido (workspace fechado durante save)
-- Arquivo `.opn.json` com permissão read-only
-- Disco cheio
+**Possible causes:**
+- Workspace root is undefined (workspace closed during save)
+- `.opn.json` file has read-only permissions
+- Disk full
 
-**Solução:**
-1. Verificar se o workspace está aberto (StatusBar mostra o path)
-2. Verificar permissões do diretório do workspace
-3. Verificar espaço em disco
-4. Reiniciar o app (auto-save faz flush on unmount)
-
----
-
-### Tema não aplica corretamente
-
-**Causa:** `data-theme` ou `data-chrome` não atualizado no DOM.
-
-**Solução:**
-1. Ir em Settings → Aparência e reselecionar o tema
-2. Se tema "System" não acompanha o OS, verificar que `window.matchMedia('(prefers-color-scheme: dark)')` funciona no browser
-3. Reiniciar o app restaura tema do `app_state.json`
+**Fix:**
+1. Check if the workspace is open (StatusBar shows the path)
+2. Check permissions on the workspace directory
+3. Check disk space
+4. Restart the app (auto-save flushes on unmount)
 
 ---
 
-## Testes
+### Theme not applying correctly
 
-### Testes Rust falham com "Permission denied"
+**Cause:** `data-theme` or `data-chrome` not updated in the DOM.
 
-**Causa:** Testes de integração do storage criam arquivos temporários.
+**Fix:**
+1. Go to Settings → Appearance and reselect the theme
+2. If the "System" theme doesn't follow the OS, check that `window.matchMedia('(prefers-color-scheme: dark)')` works in the browser
+3. Restarting the app restores the theme from `app_state.json`
 
-**Solução:**
+---
+
+### Permission denied when opening a cloud-synced workspace
+
+**Cause:** Files downloaded from cloud sync may have been created with a restrictive `umask`, leaving directories without execute permissions.
+
+**Fix:** The app automatically repairs workspace permissions on open. If the problem persists, check the logs for `chmod` warnings and verify the workspace directory is owned by the current user.
+
+---
+
+## Tests
+
+### Rust tests fail with "Permission denied"
+
+**Cause:** Storage integration tests create temporary files.
+
+**Fix:**
 ```bash
-# Limpar diretórios temporários
 cargo clean
 cargo test --workspace
 ```
 
 ---
 
-### Testes E2E falham com timeout
+### E2E tests fail with timeout
 
-**Causa:** Dev server não iniciou a tempo ou porta 1420 ocupada.
+**Cause:** Dev server didn't start in time, or port 1420 is occupied.
 
-**Solução:**
-1. Verificar se porta 1420 está livre: `lsof -i :1420`
-2. Matar processo se necessário: `kill -9 <PID>`
-3. Aumentar timeout no `playwright.config.ts` se necessário
-4. Rodar com debug: `npx playwright test --debug`
-
----
-
-### Testes E2E falham com "Tauri IPC not available"
-
-**Causa:** Mock de IPC não foi injetado corretamente.
-
-**Solução:**
-1. Verificar que `setupIpcMock(page)` é chamado antes de `page.goto()`
-2. O mock deve ser injetado via `page.addInitScript()` (antes do React carregar)
-3. Verificar `e2e/helpers/ipc-mock.ts` para o mock completo
+**Fix:**
+1. Check if port 1420 is free: `lsof -i :1420`
+2. Kill the process if needed: `kill -9 <PID>`
+3. Increase timeout in `playwright.config.ts` if needed
+4. Run with debug: `npx playwright test --debug`
 
 ---
 
-### Coverage abaixo do threshold
+### E2E tests fail with "Tauri IPC not available"
 
-**Causa:** Código novo sem testes suficientes.
+**Cause:** IPC mock was not injected correctly.
 
-**Solução:**
-1. Verificar relatório: `npm run test:coverage` (gera HTML em `coverage/`)
-2. Adicionar testes para linhas e branches não cobertos
-3. Thresholds: lines 80%, branches 70% (configurável em `vitest.config.ts`)
+**Fix:**
+1. Verify `setupIpcMock(page)` is called before `page.goto()`
+2. The mock must be injected via `page.addInitScript()` (before React loads)
+3. Check `e2e/helpers/ipc-mock.ts` for the full mock
+
+---
+
+### Coverage below threshold
+
+**Cause:** New code without sufficient tests.
+
+**Fix:**
+1. Check the report: `npm run test:coverage` (generates HTML in `coverage/`)
+2. Add tests for uncovered lines and branches
+3. Thresholds: lines 80%, branches 70% (configurable in `vitest.config.ts`)
 
 ---
 
 ## Build
 
-### Build Tauri falha com "resource not found"
+### Tauri build fails with "resource not found"
 
-**Causa:** Icons ou assets faltando.
+**Cause:** Missing icons or assets.
 
-**Solução:**
+**Fix:**
 ```bash
-# Regenerar icons
 npx tauri icon src-tauri/icons/icon.png
 ```
 
 ---
 
-### Build produção muito grande
+### Production build is too large
 
-**Causa:** Debug symbols incluídos.
+**Cause:** Debug symbols included.
 
-**Solução:** Verificar que o build usa `--release`:
-```bash
-npm run tauri build    # Já usa --release por padrão
-```
+**Fix:** Verify the build uses `--release` (it does by default with `npm run tauri build`).
 
-Profile de release em `src-tauri/Cargo.toml`:
+Check the release profile in `src-tauri/Cargo.toml`:
 ```toml
 [profile.release]
 strip = true
@@ -230,10 +232,10 @@ lto = true
 
 ---
 
-## Documentos Relacionados
+## Related Documents
 
-| Documento | Conteúdo |
+| Document | Content |
 |---|---|
-| [DEVELOPMENT.md](./DEVELOPMENT.md) | Guia de setup |
-| [TESTING.md](./TESTING.md) | Estratégia de testes |
-| [BUILD_AND_DEPLOY.md](./BUILD_AND_DEPLOY.md) | Build e distribuição |
+| [DEVELOPMENT.md](./DEVELOPMENT.md) | Setup guide |
+| [TESTING.md](./TESTING.md) | Test strategy |
+| [BUILD_AND_DEPLOY.md](./BUILD_AND_DEPLOY.md) | Build and distribution |

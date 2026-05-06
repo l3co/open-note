@@ -99,7 +99,7 @@ export function SectionOverview() {
         filters: [{ name: "PDF", extensions: ["pdf"] }],
       });
       if (!selected) return;
-      const [, absolutePath, pageCount] = await importPdf(
+      const [assetPath, , pageCount] = await importPdf(
         selectedSectionId,
         selected as string,
       );
@@ -111,7 +111,7 @@ export function SectionOverview() {
       const page = await createPdfCanvasPage(
         selectedSectionId,
         fileName,
-        absolutePath,
+        assetPath,
         pageCount,
       );
       selectPage(page.id);

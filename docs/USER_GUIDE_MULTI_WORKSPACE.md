@@ -1,60 +1,60 @@
-# Multi-Workspace — Guia do Usuário
+# Multi-Workspace — User Guide
 
-## Como abrir múltiplos workspaces
+## How to open multiple workspaces
 
-1. Clique no nome do workspace na barra lateral (topo)
-2. Selecione **"Abrir outro workspace..."** ou **"Criar workspace..."**
-3. O novo workspace abrirá ao lado do atual — ambos ficam visíveis no seletor
+1. Click the workspace name in the sidebar (top)
+2. Select **"Open another workspace..."** or **"Create workspace..."**
+3. The new workspace opens alongside the current one — both are visible in the selector
 
-Ou use o atalho `⌘⇧O` (macOS) / `Ctrl+Shift+O` (Windows/Linux) para abrir o seletor de workspace.
+Or use the shortcut `⌘⇧O` (macOS) / `Ctrl+Shift+O` (Windows/Linux) to open the workspace selector.
 
-## Como alternar entre workspaces
+## How to switch between workspaces
 
-- **Seletor na sidebar**: clique no botão com o nome do workspace (topo da sidebar) para abrir o popover com todos os workspaces abertos e clique no desejado.
-- **Atalho próximo**: `⌘⇧]` (macOS) / `Ctrl+Shift+]` (Windows/Linux)
-- **Atalho anterior**: `⌘⇧[` (macOS) / `Ctrl+Shift+[` (Windows/Linux)
+- **Sidebar selector**: click the workspace name button (top of the sidebar) to open a popover with all open workspaces, then click the desired one.
+- **Next workspace**: `⌘⇧]` (macOS) / `Ctrl+Shift+]` (Windows/Linux)
+- **Previous workspace**: `⌘⇧[` (macOS) / `Ctrl+Shift+[` (Windows/Linux)
 
-## Atalhos de teclado
+## Keyboard shortcuts
 
-| Ação | macOS | Windows/Linux |
-|------|-------|---------------|
-| Abrir seletor de workspace | `⌘⇧W` ou `⌘⇧O` | `Ctrl+Shift+W` ou `Ctrl+Shift+O` |
-| Próximo workspace | `⌘⇧]` | `Ctrl+Shift+]` |
-| Workspace anterior | `⌘⇧[` | `Ctrl+Shift+[` |
+| Action | macOS | Windows/Linux |
+|--------|-------|---------------|
+| Open workspace selector | `⌘⇧W` or `⌘⇧O` | `Ctrl+Shift+W` or `Ctrl+Shift+O` |
+| Next workspace | `⌘⇧]` | `Ctrl+Shift+]` |
+| Previous workspace | `⌘⇧[` | `Ctrl+Shift+[` |
 
-## Como fechar um workspace
+## How to close a workspace
 
-1. Abra o seletor clicando no nome do workspace
-2. Passe o mouse sobre o workspace a fechar
-3. Clique no ícone **✕** que aparece à direita
-4. Confirme no diálogo que aparece
+1. Open the selector by clicking the workspace name
+2. Hover over the workspace you want to close
+3. Click the **✕** icon that appears on the right
+4. Confirm in the dialog
 
-> O workspace é apenas removido da sessão atual. Seus dados permanecem no disco.
+> The workspace is only removed from the current session. Your data remains on disk.
 
-## Busca cross-workspace
+## Cross-workspace search
 
-A busca normal (`⌘F` / `Ctrl+F`) está limitada ao workspace em foco.  
-Para buscar em todos os workspaces abertos, use a API `searchAllWorkspaces` (disponível para integrações externas).
+The normal search (`⌘F` / `Ctrl+F`) is limited to the focused workspace.  
+To search across all open workspaces, use `searchAllWorkspaces` via the IPC API.
 
-## Limites
+## Limits
 
-- Máximo de **10 workspaces** abertos simultaneamente
-- Cada workspace ocupa ~50–80 MB de RAM (índice Tantivy + cache)
-- O índice de busca é isolado por workspace
+- Maximum of **10 workspaces** open simultaneously
+- Each workspace uses ~50–80 MB of RAM (Tantivy index + cache)
+- The search index is isolated per workspace
 
 ## FAQ
 
-**"Meus dados são compartilhados entre workspaces?"**  
-Não. Notebooks, seções, páginas, lixeira e índice de busca são completamente isolados.
+**"Are my data shared between workspaces?"**  
+No. Notebooks, sections, pages, trash, and search index are completely isolated.
 
-**"Posso abrir o mesmo workspace em duas instâncias do app?"**  
-Não. O app usa um lock de arquivo por workspace para evitar corrupção de dados.
+**"Can I open the same workspace in two app instances?"**  
+No. The app uses a file lock per workspace to prevent data corruption.
 
-**"O que acontece se eu fechar o app com workspaces abertos?"**  
-Na próxima abertura, o app restaura o último workspace que estava em foco. Os outros podem ser reabertos manualmente pelo seletor.
+**"What happens if I close the app with multiple workspaces open?"**  
+On the next launch, the app restores the last focused workspace. Others can be reopened manually via the selector.
 
-**"Quanto de memória os workspaces usam?"**  
-Aproximadamente 50–80 MB por workspace aberto com ~100 páginas indexadas.
+**"How much memory do workspaces use?"**  
+Approximately 50–80 MB per open workspace with ~100 indexed pages.
 
-**"É possível sincronizar workspaces diferentes para provedores diferentes?"**  
-Sim. As configurações de sync (Google Drive, OneDrive, Dropbox) são independentes por workspace.
+**"Can I sync different workspaces to different providers?"**  
+Yes. Sync settings (Google Drive, OneDrive, Dropbox) are independent per workspace.

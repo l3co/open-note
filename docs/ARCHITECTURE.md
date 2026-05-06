@@ -1,76 +1,76 @@
-# Arquitetura — Diagramas
+# Architecture — Diagrams
 
-Diagramas visuais do Open Note em formato Mermaid (renderiza nativamente no GitHub). Complementa o [SYSTEM_DESIGN.md](./SYSTEM_DESIGN.md).
+Visual diagrams of Open Note in Mermaid format (renders natively on GitHub). Complements [SYSTEM_DESIGN.md](./SYSTEM_DESIGN.md).
 
 ---
 
-## 1. C4 — Contexto do Sistema
+## 1. C4 — System Context
 
-Visão mais externa: o Open Note e seus atores/sistemas vizinhos.
+Outermost view: Open Note and its actors/neighboring systems.
 
 ```mermaid
 C4Context
-    title Open Note — Diagrama de Contexto
+    title Open Note — Context Diagram
 
-    Person(user, "Usuário", "Pessoa que cria e organiza anotações")
+    Person(user, "User", "Person who creates and organizes notes")
 
-    System(opennote, "Open Note", "App desktop local-first para anotações com rich text, markdown, ink e PDF")
+    System(opennote, "Open Note", "Local-first desktop app for notes with rich text, markdown, ink, and PDF")
 
-    System_Ext(gdrive, "Google Drive", "Armazenamento cloud")
-    System_Ext(onedrive, "OneDrive", "Armazenamento cloud")
-    System_Ext(dropbox, "Dropbox", "Armazenamento cloud")
-    System_Ext(fs, "Filesystem Local", "~/OpenNote/ — dados do usuário")
+    System_Ext(gdrive, "Google Drive", "Cloud storage")
+    System_Ext(onedrive, "OneDrive", "Cloud storage")
+    System_Ext(dropbox, "Dropbox", "Cloud storage")
+    System_Ext(fs, "Local Filesystem", "~/OpenNote/ — user data")
 
-    Rel(user, opennote, "Cria, edita e organiza anotações")
-    Rel(opennote, fs, "Lê/escreve dados", "JSON, assets")
-    Rel(opennote, gdrive, "Sync bidirecional", "OAuth2, opt-in")
-    Rel(opennote, onedrive, "Sync bidirecional", "OAuth2, opt-in")
-    Rel(opennote, dropbox, "Sync bidirecional", "OAuth2, opt-in")
+    Rel(user, opennote, "Creates, edits, and organizes notes")
+    Rel(opennote, fs, "Reads/writes data", "JSON, assets")
+    Rel(opennote, gdrive, "Bidirectional sync", "OAuth2, opt-in")
+    Rel(opennote, onedrive, "Bidirectional sync", "OAuth2, opt-in")
+    Rel(opennote, dropbox, "Bidirectional sync", "OAuth2, opt-in")
 ```
 
 ---
 
 ## 2. C4 — Containers
 
-Camadas internas da aplicação.
+Internal layers of the application.
 
 ```mermaid
 C4Container
-    title Open Note — Diagrama de Containers
+    title Open Note — Container Diagram
 
-    Person(user, "Usuário")
+    Person(user, "User")
 
     Container_Boundary(app, "Open Note Desktop") {
         Container(frontend, "Frontend", "React 19, TypeScript, TailwindCSS", "UI: editor, sidebar, settings, search, ink, PDF")
-        Container(ipc, "Tauri IPC Bridge", "Tauri v2", "46 commands tipados — serialização serde ↔ JSON")
-        Container(backend, "Backend Rust", "Cargo Workspace", "Domínio, storage, search, sync")
+        Container(ipc, "Tauri IPC Bridge", "Tauri v2", "~80 typed commands — serde ↔ JSON serialization")
+        Container(backend, "Rust Backend", "Cargo Workspace", "Domain, storage, search, sync")
     }
 
-    System_Ext(fs, "Filesystem Local", "~/OpenNote/")
+    System_Ext(fs, "Local Filesystem", "~/OpenNote/")
     System_Ext(cloud, "Cloud Providers", "GDrive, OneDrive, Dropbox")
 
-    Rel(user, frontend, "Interage via UI")
+    Rel(user, frontend, "Interacts via UI")
     Rel(frontend, ipc, "invoke(command, args)", "JSON")
-    Rel(ipc, backend, "Chamada direta Rust")
-    Rel(backend, fs, "Lê/escreve", "atomic writes")
+    Rel(ipc, backend, "Direct Rust call")
+    Rel(backend, fs, "Reads/writes", "atomic writes")
     Rel(backend, cloud, "Upload/download", "OAuth2 HTTP")
 ```
 
 ---
 
-## 3. C4 — Componentes do Backend (Rust)
+## 3. C4 — Backend Components (Rust)
 
-Crates do Cargo workspace e suas dependências.
+Cargo workspace crates and their dependencies.
 
 ```mermaid
 graph TB
     subgraph "src-tauri (IPC Layer)"
-        commands["commands/<br/>46 handlers IPC"]
+        commands["commands/<br/>~80 IPC handlers"]
         state["state.rs<br/>AppManagedState<br/>SaveCoordinator"]
     end
 
     subgraph "crates/storage"
-        engine["FsStorageEngine<br/>CRUD filesystem"]
+        engine["FsStorageEngine<br/>filesystem CRUD"]
         atomic["atomic.rs<br/>write-tmp-rename-fsync"]
         lock["lock.rs<br/>workspace .lock + PID"]
         slug["slug.rs<br/>Unicode normalization"]
@@ -89,7 +89,7 @@ graph TB
         providers["providers/<br/>GDrive, OneDrive, Dropbox"]
     end
 
-    subgraph "crates/core (Domínio Puro)"
+    subgraph "crates/core (Pure Domain)"
         entities["Workspace, Notebook<br/>Section, Page, Block"]
         annotations["PageAnnotations<br/>Strokes, Highlights"]
         settings["AppState<br/>GlobalSettings<br/>ThemeConfig"]
@@ -131,7 +131,7 @@ graph TB
 
 ---
 
-## 4. C4 — Componentes do Frontend (React)
+## 4. C4 — Frontend Components (React)
 
 ```mermaid
 graph TB
@@ -174,7 +174,7 @@ graph TB
     end
 
     subgraph "Lib"
-        ipc["ipc.ts<br/>46 typed wrappers"]
+        ipc["ipc.ts<br/>~80 typed wrappers"]
         serial["serialization.ts<br/>Block ↔ TipTap"]
         markdown["markdown.ts<br/>TipTap ↔ MD"]
         theme["theme.ts<br/>CSS vars, palettes"]
@@ -213,7 +213,7 @@ graph TB
 
 ---
 
-## 5. Diagrama de Dependências Cargo
+## 5. Cargo Dependency Diagram
 
 ```mermaid
 graph LR
@@ -221,7 +221,7 @@ graph LR
     storage["crates/storage<br/>(filesystem)"]
     search["crates/search<br/>(Tantivy)"]
     sync["crates/sync<br/>(cloud)"]
-    core["crates/core<br/>(domínio puro)"]
+    core["crates/core<br/>(pure domain)"]
 
     src_tauri --> storage
     src_tauri --> search
@@ -237,22 +237,22 @@ graph LR
     style src_tauri fill:#f59e0b,color:#000
 ```
 
-**Regra inviolável:** Setas apontam para dentro. `core` nunca importa nada dos outros crates.
+**Inviolable rule:** Arrows point inward. `core` never imports anything from other crates.
 
 ---
 
-## 6. Diagrama ER — Modelo de Domínio
+## 6. ER Diagram — Domain Model
 
 ```mermaid
 erDiagram
-    Workspace ||--o{ Notebook : contém
-    Notebook ||--o{ Section : contém
-    Section ||--o{ Page : contém
-    Page ||--o{ Block : contém
-    Page ||--|| PageAnnotations : possui
-    PageAnnotations ||--o{ AnchoredStroke : contém
-    PageAnnotations ||--o{ HighlightAnnotation : contém
-    AnchoredStroke ||--o| StrokeAnchor : ancora_em
+    Workspace ||--o{ Notebook : contains
+    Notebook ||--o{ Section : contains
+    Section ||--o{ Page : contains
+    Page ||--o{ Block : contains
+    Page ||--|| PageAnnotations : has
+    PageAnnotations ||--o{ AnchoredStroke : contains
+    PageAnnotations ||--o{ HighlightAnnotation : contains
+    AnchoredStroke ||--o| StrokeAnchor : anchored_to
 
     Workspace {
         WorkspaceId id PK
@@ -337,33 +337,33 @@ erDiagram
 
 ---
 
-## 7. Diagrama de Estado — Ciclo de Vida do App
+## 7. State Diagram — App Lifecycle
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Initializing: App abre
+    [*] --> Initializing: App opens
 
-    Initializing --> RestoringSession: Carrega AppState
-    RestoringSession --> WorkspacePicker: Sem workspace anterior OU erro ao abrir
-    RestoringSession --> MainApp: Workspace restaurado com sucesso
+    Initializing --> RestoringSession: Loads AppState
+    RestoringSession --> WorkspacePicker: No previous workspace OR error opening
+    RestoringSession --> MainApp: Workspace restored successfully
 
-    WorkspacePicker --> CreatingWorkspace: "Criar novo"
-    WorkspacePicker --> OpeningWorkspace: "Abrir existente"
-    WorkspacePicker --> OpeningWorkspace: Clica em recente
+    WorkspacePicker --> CreatingWorkspace: "Create new"
+    WorkspacePicker --> OpeningWorkspace: "Open existing"
+    WorkspacePicker --> OpeningWorkspace: Clicks recent
 
-    CreatingWorkspace --> MainApp: Sucesso
-    CreatingWorkspace --> WorkspacePicker: Erro
+    CreatingWorkspace --> MainApp: Success
+    CreatingWorkspace --> WorkspacePicker: Error
 
-    OpeningWorkspace --> MainApp: Sucesso
-    OpeningWorkspace --> WorkspacePicker: Erro (lock, not found)
+    OpeningWorkspace --> MainApp: Success
+    OpeningWorkspace --> WorkspacePicker: Error (lock, not found)
 
     MainApp --> WorkspacePicker: Cmd+Shift+O
 
     state MainApp {
-        [*] --> WelcomePage: Nenhuma page selecionada
-        WelcomePage --> PageView: Seleciona page na sidebar
-        PageView --> WelcomePage: Deleta última page
-        PageView --> PageView: Navega para outra page
+        [*] --> WelcomePage: No page selected
+        WelcomePage --> PageView: Selects page in sidebar
+        PageView --> WelcomePage: Deletes last page
+        PageView --> PageView: Navigates to another page
 
         state PageView {
             [*] --> RichTextMode
@@ -375,7 +375,7 @@ stateDiagram-v2
 
 ---
 
-## 8. Diagrama de Sequência — Inicialização do App
+## 8. Sequence Diagram — App Initialization
 
 ```mermaid
 sequenceDiagram
@@ -387,7 +387,7 @@ sequenceDiagram
     participant Storage as FsStorageEngine
     participant FS as Filesystem
 
-    User->>App: Abre aplicação
+    User->>App: Opens application
     App->>App: useState(initializing=true)
 
     App->>IPC: getAppState()
@@ -402,7 +402,7 @@ sequenceDiagram
     App->>UIStore: setTheme(appState.theme)
     App->>UIStore: applyThemeToDOM()
 
-    alt Tem last_opened_workspace
+    alt Has last_opened_workspace
         App->>IPC: openWorkspace(path)
         IPC->>Rust: invoke("open_workspace", {path})
         Rust->>Storage: open_workspace(path)
@@ -415,7 +415,7 @@ sequenceDiagram
         Rust-->>IPC: Workspace
         IPC-->>App: Workspace
         App->>App: Render MainApp
-    else Sem workspace ou erro
+    else No workspace or error
         App->>UIStore: openWorkspacePicker()
         App->>App: Render WorkspacePicker
     end
@@ -426,7 +426,7 @@ sequenceDiagram
 
 ---
 
-## 9. Diagrama de Sequência — Salvar Página (Auto-Save)
+## 9. Sequence Diagram — Save Page (Auto-Save)
 
 ```mermaid
 sequenceDiagram
@@ -441,7 +441,7 @@ sequenceDiagram
     participant Storage as FsStorageEngine
     participant FS as Filesystem
 
-    User->>TipTap: Digita texto
+    User->>TipTap: Types text
     TipTap->>TipTap: onUpdate callback
     TipTap->>Serial: tiptapToBlocks(doc, existingBlocks)
     Serial-->>TipTap: Block[]
@@ -449,7 +449,7 @@ sequenceDiagram
     TipTap->>Hook: onChange(blocks)
     Hook->>Hook: Reset debounce timer (1s)
 
-    Note over Hook: 1 segundo sem edição...
+    Note over Hook: 1 second without edits...
 
     Hook->>Store: updateBlocks(pageId, blocks)
     Store->>Store: setSaveStatus("saving")
@@ -457,7 +457,7 @@ sequenceDiagram
     IPC->>Rust: invoke("update_page_blocks", {page_id, blocks})
 
     Rust->>SC: with_page_lock(pageId)
-    SC->>SC: Adquire Mutex para pageId
+    SC->>SC: Acquires Mutex for pageId
     SC->>Storage: load_page(root, pageId)
     Storage->>FS: read {slug}.opn.json
     FS-->>Storage: Page JSON
@@ -472,7 +472,7 @@ sequenceDiagram
     Storage->>FS: rename → {slug}.opn.json
     Storage->>FS: fsync(dir)
 
-    SC->>SC: Libera Mutex
+    SC->>SC: Releases Mutex
     SC-->>Rust: Page (updated)
     Rust-->>IPC: Page
     IPC-->>Store: Page
@@ -481,7 +481,7 @@ sequenceDiagram
 
 ---
 
-## 10. Diagrama de Sequência — Busca Full-Text
+## 10. Sequence Diagram — Full-Text Search
 
 ```mermaid
 sequenceDiagram
@@ -492,8 +492,8 @@ sequenceDiagram
     participant SE as SearchEngine
     participant Tantivy as Tantivy Index
 
-    User->>Panel: Cmd+Shift+F (abre painel)
-    User->>Panel: Digita "café"
+    User->>Panel: Cmd+Shift+F (opens panel)
+    User->>Panel: Types "café"
     Panel->>Panel: Debounce 150ms
 
     Panel->>IPC: searchPages({query: "café"})
@@ -503,22 +503,22 @@ sequenceDiagram
     SE->>SE: parse_query_lenient("café")
     SE->>Tantivy: searcher.search(query, limit)
     Tantivy->>Tantivy: AsciiFoldingFilter: "café" → "cafe"
-    Tantivy->>Tantivy: Match em title (boost 2.0), content, tags (boost 1.5)
+    Tantivy->>Tantivy: Match in title (boost 2.0), content, tags (boost 1.5)
     Tantivy-->>SE: TopDocs
 
-    SE->>SE: Gera snippets com contexto
+    SE->>SE: Generate snippets with context
     SE-->>Rust: SearchResults
     Rust-->>IPC: SearchResults
     IPC-->>Panel: SearchResults
 
-    Panel->>Panel: Renderiza resultados com snippets
-    User->>Panel: Clica em resultado
-    Panel->>Panel: Navega para page
+    Panel->>Panel: Renders results with snippets
+    User->>Panel: Clicks a result
+    Panel->>Panel: Navigates to page
 ```
 
 ---
 
-## 11. Diagrama de Sequência — Criar Notebook
+## 11. Sequence Diagram — Create Notebook
 
 ```mermaid
 sequenceDiagram
@@ -530,37 +530,37 @@ sequenceDiagram
     participant Storage as FsStorageEngine
     participant FS as Filesystem
 
-    User->>Dialog: Clica "Novo Notebook"
-    Dialog->>Dialog: Abre modal com input
+    User->>Dialog: Clicks "New Notebook"
+    Dialog->>Dialog: Opens modal with input
 
-    User->>Dialog: Digita "Estudos" + confirma
-    Dialog->>Store: createNotebook("Estudos")
+    User->>Dialog: Types "Study Notes" + confirms
+    Dialog->>Store: createNotebook("Study Notes")
 
-    Store->>IPC: createNotebook("Estudos")
-    IPC->>Rust: invoke("create_notebook", {name: "Estudos"})
+    Store->>IPC: createNotebook("Study Notes")
+    IPC->>Rust: invoke("create_notebook", {name: "Study Notes"})
 
-    Rust->>Storage: create_notebook(root, "Estudos")
-    Storage->>Storage: Notebook::new("Estudos", order)
-    Storage->>Storage: unique_slug("Estudos") → "estudos"
-    Storage->>FS: mkdir ~/OpenNote/estudos/
+    Rust->>Storage: create_notebook(root, "Study Notes")
+    Storage->>Storage: Notebook::new("Study Notes", order)
+    Storage->>Storage: unique_slug("Study Notes") → "study-notes"
+    Storage->>FS: mkdir ~/OpenNote/study-notes/
     Storage->>FS: write notebook.json (atomic)
     Storage-->>Rust: Notebook
     Rust-->>IPC: Notebook
     IPC-->>Store: Notebook
 
-    Store->>Store: Adiciona notebook à lista
-    Dialog->>Dialog: Fecha modal
+    Store->>Store: Adds notebook to list
+    Dialog->>Dialog: Closes modal
 ```
 
 ---
 
-## 12. Diagrama de Sequência — Sync (Detecção de Mudanças)
+## 12. Sequence Diagram — Sync (Change Detection)
 
 ```mermaid
 sequenceDiagram
     participant SC as SyncCoordinator
     participant Manifest as SyncManifest
-    participant FS as Filesystem Local
+    participant FS as Local Filesystem
     participant Provider as CloudProvider
     participant User as UI (Conflict Dialog)
 
@@ -573,7 +573,7 @@ sequenceDiagram
     SC->>Manifest: load()
     Manifest-->>SC: HashMap<path, hash>
 
-    loop Para cada arquivo
+    loop For each file
         SC->>SC: detect_change(local_hash, manifest_hash, remote_hash)
         alt LocalOnly
             SC->>Provider: upload_file(local, remote)
@@ -584,7 +584,7 @@ sequenceDiagram
         else RemoteModified
             SC->>Provider: download_file(remote, local)
         else BothModified
-            SC->>User: Exibe conflito
+            SC->>User: Show conflict
             User-->>SC: ConflictResolution (KeepLocal/Remote/Both)
             SC->>SC: resolve_conflict(resolution)
         else Unchanged
@@ -597,7 +597,7 @@ sequenceDiagram
 
 ---
 
-## 13. Diagrama de Sequência — Soft Delete e Restore
+## 13. Sequence Diagram — Soft Delete and Restore
 
 ```mermaid
 sequenceDiagram
@@ -609,39 +609,39 @@ sequenceDiagram
     participant Storage as FsStorageEngine
     participant FS as Filesystem
 
-    User->>Sidebar: Right-click page → "Excluir"
+    User->>Sidebar: Right-click page → "Delete"
 
     Sidebar->>Store: deletePage(pageId)
     Store->>IPC: deletePage(pageId)
     IPC->>Rust: invoke("delete_page", {page_id})
 
     Rust->>Storage: delete_page(root, pageId)
-    Storage->>FS: Lê page JSON
-    Storage->>Storage: Cria TrashItem com metadata
-    Storage->>FS: Move page + assets → .trash/{uuid}/
-    Storage->>FS: Atualiza trash_manifest.json (atomic)
+    Storage->>FS: Reads page JSON
+    Storage->>Storage: Creates TrashItem with metadata
+    Storage->>FS: Moves page + assets → .trash/{uuid}/
+    Storage->>FS: Updates trash_manifest.json (atomic)
     Storage-->>Rust: Ok
     Rust-->>IPC: Ok
     IPC-->>Store: Ok
-    Store->>Store: Remove page da lista
+    Store->>Store: Removes page from list
 
-    Note over User: Mais tarde...
+    Note over User: Later...
 
-    User->>User: Abre TrashPanel
+    User->>User: Opens TrashPanel
     User->>IPC: restoreFromTrash(trashItemId)
     IPC->>Rust: invoke("restore_from_trash", {id})
     Rust->>Storage: restore_from_trash(root, id)
-    Storage->>FS: Lê trash_manifest.json
-    Storage->>FS: Move de .trash/{uuid}/ → path original
-    Storage->>FS: Atualiza trash_manifest.json (atomic)
+    Storage->>FS: Reads trash_manifest.json
+    Storage->>FS: Moves from .trash/{uuid}/ → original path
+    Storage->>FS: Updates trash_manifest.json (atomic)
     Storage-->>Rust: Ok
     Rust-->>IPC: Ok
-    IPC-->>User: Page restaurada
+    IPC-->>User: Page restored
 ```
 
 ---
 
-## 14. Diagrama de Sequência — Troca de Tema
+## 14. Sequence Diagram — Theme Switch
 
 ```mermaid
 sequenceDiagram
@@ -652,30 +652,30 @@ sequenceDiagram
     participant IPC as ipc.ts
     participant Rust as src-tauri
 
-    User->>Settings: Clica em "Dark"
+    User->>Settings: Clicks "Dark"
     Settings->>Store: setTheme({baseTheme: "dark", ...})
 
-    Store->>Store: Atualiza state.theme
+    Store->>Store: Updates state.theme
     Store->>DOM: dataset.theme = "dark"
     Store->>DOM: dataset.chrome = "neutral"
-    Store->>DOM: style.setProperty("--accent-*", paleta)
+    Store->>DOM: style.setProperty("--accent-*", palette)
 
-    Note over DOM: CSS vars ativam tema imediatamente
+    Note over DOM: CSS vars apply theme immediately
 
     Settings->>IPC: updateGlobalSettings({theme: newConfig})
     IPC->>Rust: invoke("update_global_settings", {settings})
-    Rust->>Rust: Persiste em app_state.json
+    Rust->>Rust: Persists to app_state.json
     Rust-->>IPC: Ok
 ```
 
 ---
 
-## 15. Estrutura de Diretórios do Filesystem
+## 15. Filesystem Directory Structure
 
 ```mermaid
 graph TB
-    subgraph "Estado Global (~/.opennote/)"
-        app_state["app_state.json<br/>workspaces recentes, tema, idioma"]
+    subgraph "Global State (~/.opennote/)"
+        app_state["app_state.json<br/>recent workspaces, theme, language"]
     end
 
     subgraph "Workspace (~/OpenNote/)"
@@ -684,7 +684,7 @@ graph TB
 
         subgraph ".trash/"
             manifest["trash_manifest.json"]
-            trash_item["{uuid}/ — itens deletados"]
+            trash_item["{uuid}/ — deleted items"]
         end
 
         subgraph ".opennote/"
@@ -697,8 +697,8 @@ graph TB
 
             subgraph "section-1/"
                 sec_json["section.json"]
-                page1["aula-01.opn.json"]
-                page2["aula-02.opn.json"]
+                page1["lecture-01.opn.json"]
+                page2["lecture-02.opn.json"]
 
                 subgraph "assets/"
                     img["img-abc123.png"]
@@ -711,11 +711,11 @@ graph TB
 
 ---
 
-## Documentos Relacionados
+## Related Documents
 
-| Documento | Conteúdo |
+| Document | Content |
 |---|---|
-| [SYSTEM_DESIGN.md](./SYSTEM_DESIGN.md) | Design do sistema — visão, princípios, modelos |
-| [DATA_MODEL.md](./DATA_MODEL.md) | Modelo de dados detalhado com schemas JSON |
-| [IPC_REFERENCE.md](./IPC_REFERENCE.md) | Referência completa dos 46 IPC commands |
-| [GLOSSARY.md](./GLOSSARY.md) | Glossário DDD — linguagem ubíqua |
+| [SYSTEM_DESIGN.md](./SYSTEM_DESIGN.md) | System design — vision, principles, models |
+| [DATA_MODEL.md](./DATA_MODEL.md) | Detailed data model with JSON schemas |
+| [IPC_REFERENCE.md](./IPC_REFERENCE.md) | Complete IPC command reference |
+| [GLOSSARY.md](./GLOSSARY.md) | DDD glossary — ubiquitous language |

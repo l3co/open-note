@@ -1,16 +1,14 @@
-# Guia de Contribuição — Open Note
+# Contributing to Open Note
 
-Obrigado por considerar contribuir com o Open Note! Este guia explica como participar do projeto.
+Thank you for your interest in contributing. This guide covers everything you need to get started.
 
 ---
 
-## Pré-requisitos
+## Prerequisites
 
-Antes de começar, garanta que tem o ambiente configurado conforme o [Guia de Desenvolvimento](docs/DEVELOPMENT.md):
-
-- **Rust** 1.94+ (stable)
-- **Node.js** 23.x (ver `.nvmrc`)
-- **npm** 10.x
+- **Rust** stable (see `rust-toolchain.toml`)
+- **Node.js** 23+ (see `.nvmrc`)
+- **Tauri CLI** v2: `cargo install tauri-cli --version "^2"`
 
 ```bash
 git clone https://github.com/l3co/open-note.git
@@ -21,175 +19,65 @@ cargo build --workspace
 
 ---
 
-## Workflow de Contribuição
+## Workflow
 
-### 1. Criar branch
+### 1. Open an issue first (for large changes)
 
-```bash
-git checkout -b feat/minha-feature   # Para features
-git checkout -b fix/meu-bug          # Para bug fixes
-```
+Before starting a significant feature or refactor, open an issue to discuss the approach. This avoids wasted work and ensures the change aligns with the project direction.
 
-### 2. Desenvolver
-
-- Escreva testes **antes** da implementação (TDD quando possível)
-- Siga as [convenções de código](docs/DEVELOPMENT.md#5-convenções-de-código)
-- Mantenha commits pequenos e atômicos
-
-### 3. Verificar qualidade
+### 2. Create a branch
 
 ```bash
-# Rust
-cargo fmt --check --all
-cargo clippy --workspace -- -D warnings
-cargo test --workspace
-
-# Frontend
-npm run lint
-npm run format:check
-npm run typecheck
-npm run test
+git checkout -b feat/my-feature   # new feature
+git checkout -b fix/my-bug        # bug fix
+git checkout -b docs/update       # documentation
 ```
 
-### 4. Commit
+### 3. Make your changes
 
-Usamos **Conventional Commits**:
+Follow the conventions in [docs/DEVELOPMENT.md](./docs/DEVELOPMENT.md). Run checks before committing:
 
-| Prefixo | Uso |
-|---|---|
-| `feat:` | Nova funcionalidade |
-| `fix:` | Correção de bug |
-| `docs:` | Documentação |
-| `refactor:` | Refatoração (sem mudança de comportamento) |
-| `test:` | Adição/alteração de testes |
-| `chore:` | Manutenção, deps, CI |
-| `style:` | Formatação (sem mudança de lógica) |
-| `perf:` | Melhoria de performance |
+```bash
+npm run test:all     # Rust + frontend tests
+npm run lint:all     # ESLint + rustfmt + clippy
+npm run typecheck    # TypeScript
+```
 
-Exemplos:
+### 4. Commit with Conventional Commits
+
 ```
 feat: add export to PDF
-fix: prevent crash when closing empty workspace
-docs: add sequence diagram for sync flow
-refactor: extract page validation into separate module
-test: add integration tests for trash lifecycle
+fix: handle empty page title gracefully
+docs: update IPC reference
+refactor: extract slug generation to core crate
+test: add roundtrip tests for serialization
+chore: update dependencies
 ```
 
-### 5. Pull Request
+### 5. Open a pull request
 
-- Título claro seguindo Conventional Commits
-- Descrição do que mudou e por quê
-- Link para issue relacionada (se existir)
-- Screenshots (para mudanças visuais)
-
----
-
-## Princípios Arquiteturais
-
-Toda contribuição deve respeitar:
-
-### Clean Architecture
-- Dependências apontam para dentro: `src-tauri → storage → core`
-- **`crates/core`** nunca importa Tauri, filesystem ou frameworks
-- IPC commands são finos — delegam para crates
-
-### Domain-Driven Design
-- Linguagem ubíqua (ver [GLOSSARY.md](docs/GLOSSARY.md))
-- Regras de negócio no domínio, nunca em controllers
-- Modelos ricos com comportamento
-
-### SOLID
-- Funções pequenas (~10–20 linhas)
-- Uma responsabilidade por função/struct
-- Composição sobre herança
+- Target the `main` branch
+- Include a short description of what changed and why
+- Link the related issue if one exists
 
 ---
 
-## Checklist de PR
+## PR Checklist
 
-Antes de submeter, verifique:
-
-- [ ] Testes passam (`cargo test --workspace && npm run test`)
-- [ ] Lint passa (`cargo fmt && cargo clippy && npm run lint`)
-- [ ] TypeScript compila (`npm run typecheck`)
-- [ ] Bindings TS atualizados (se structs Rust mudaram)
-- [ ] Strings visíveis traduzidas (`t('key')` em ambos locales)
-- [ ] Commits seguem Conventional Commits
-- [ ] Documentação atualizada (se API/comportamento mudou)
+- [ ] Tests pass (`npm run test:all`)
+- [ ] Linters pass (`npm run lint:all`)
+- [ ] New IPC commands registered in `src-tauri/src/lib.rs` and `src/lib/ipc.ts`
+- [ ] New user-visible strings use `t('key')` and are added to both locale files
+- [ ] TypeScript bindings regenerated if Rust types changed (`cargo test -p opennote-core`)
 
 ---
 
-## Guias Específicos
+## Good First Issues
 
-### Adicionar novo IPC Command
-
-Ver [DEVELOPMENT.md — Como Adicionar um Novo IPC Command](docs/DEVELOPMENT.md#6-como-adicionar-um-novo-ipc-command).
-
-### Adicionar novo tipo de Block
-
-Ver [DEVELOPMENT.md — Como Adicionar um Novo Tipo de Block](docs/DEVELOPMENT.md#7-como-adicionar-um-novo-tipo-de-block).
-
-### Adicionar nova tradução
-
-Ver [DEVELOPMENT.md — Como Adicionar uma Nova Tradução](docs/DEVELOPMENT.md#8-como-adicionar-uma-nova-tradução).
-
-### Adicionar um ADR
-
-Architecture Decision Records são documentados em `docs/adr/`:
-
-```markdown
-# ADR-NNN: Título da Decisão
-
-## Status
-Aceito
-
-## Contexto
-[Descrever o problema ou necessidade]
-
-## Decisão
-[Descrever a decisão tomada]
-
-## Justificativa
-[Explicar o porquê]
-
-## Consequências
-### Positivas
-- ...
-### Negativas
-- ...
-### Riscos
-- ...
-```
+Look for issues tagged [`good first issue`](https://github.com/l3co/open-note/issues?q=is%3Aopen+label%3A%22good+first+issue%22) on GitHub. These are scoped, well-defined tasks with enough context to get started without deep knowledge of the codebase.
 
 ---
 
-## Estrutura de Testes
+## Questions
 
-Toda contribuição deve incluir testes:
-
-| Tipo de mudança | Testes esperados |
-|---|---|
-| Nova entidade/VO (core) | Unit tests de criação, validação, serde roundtrip |
-| Novo método storage | Integration test com filesystem real |
-| Novo IPC command | Teste do handler + teste no store (frontend) |
-| Novo componente React | Teste de renderização + interação |
-| Bug fix | Teste de regressão que falha sem o fix |
-
-Ver [TESTING.md](docs/TESTING.md) para detalhes completos.
-
----
-
-## Código de Conduta
-
-- Seja respeitoso e construtivo
-- Foque no código, não na pessoa
-- Aceite feedback como oportunidade de aprendizado
-- Documente decisões não-óbvias
-
----
-
-## Dúvidas?
-
-- Abra uma **Issue** para perguntas ou discussões
-- Consulte a [documentação completa](docs/README.md)
-- Leia os [ADRs](docs/adr/) para entender decisões anteriores
+Open a [GitHub Discussion](https://github.com/l3co/open-note/discussions) or comment on an existing issue.

@@ -597,7 +597,11 @@ pub fn import_pdf(
     std::fs::copy(source, &dest_path)
         .map_err(|error| CommandError::Storage(format!("Failed to copy PDF: {error}")))?;
 
-    let asset_rel = format!("assets/{dest_name}");
+    let asset_rel = dest_path
+        .strip_prefix(&root)
+        .unwrap_or(&dest_path)
+        .to_string_lossy()
+        .to_string();
     let absolute_path = dest_path.to_string_lossy().to_string();
 
     let page_count = count_pdf_pages(&dest_path).unwrap_or(0);

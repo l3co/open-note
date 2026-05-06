@@ -55,9 +55,22 @@ pub fn import_asset_from_bytes(
 }
 
 #[tauri::command]
-pub fn read_asset_base64(file_path: String) -> Result<String, String> {
-    let path = std::path::Path::new(&file_path);
-    let bytes = std::fs::read(path).map_err(|e| format!("Failed to read file: {e}"))?;
+pub fn read_asset_base64(
+    state: State<AppManagedState>,
+    file_path: String,
+    workspace_id: Option<String>,
+) -> Result<String, String> {
+    let raw_path = std::path::PathBuf::from(&file_path);
+    let path = if raw_path.is_absolute() {
+        raw_path
+    } else {
+        let id = super::resolve_workspace_id(&state, workspace_id).map_err(|e| e.to_string())?;
+        let root = state
+            .get_workspace_root_by_id(&id)
+            .map_err(|e| e.to_string())?;
+        root.join(raw_path)
+    };
+    let bytes = std::fs::read(&path).map_err(|e| format!("Failed to read file: {e}"))?;
 
     let mime = match path.extension().and_then(|e| e.to_str()) {
         Some("png") => "image/png",

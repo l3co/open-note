@@ -1,56 +1,56 @@
-# Estratégia de Testes — Open Note
+# Testing Strategy — Open Note
 
-Documento consolidado sobre a pirâmide de testes, ferramentas, convenções e targets de coverage do projeto.
+Consolidated document covering the test pyramid, tooling, conventions, and coverage targets.
 
 ---
 
-## 1. Pirâmide de Testes
+## 1. Test Pyramid
 
 ```
         ┌──────────┐
-        │   E2E    │  Playwright (54 testes)
-        │ Jornadas │  Chromium + IPC mock
+        │   E2E    │  Playwright (54 tests)
+        │ Journeys │  Chromium + IPC mock
         ├──────────┤
-        │Integração│  Rust: filesystem real (20 testes)
+        │Integrat. │  Rust: real filesystem (20 tests)
         │          │  Frontend: stores + IPC mock
         ├──────────┤
-        │  Unit    │  Rust: domínio puro (95+ testes)
-        │          │  Frontend: Vitest + Testing Library (129 testes)
+        │  Unit    │  Rust: pure domain (95+ tests)
+        │          │  Frontend: Vitest + Testing Library (129 tests)
         └──────────┘
 ```
 
-| Camada | Ferramentas | Escopo | Velocidade |
+| Layer | Tools | Scope | Speed |
 |---|---|---|---|
-| **Unit** | `cargo test`, Vitest | Domínio, value objects, stores, hooks, utils | ~ms |
-| **Integração** | `cargo test`, Vitest + MSW | Storage com filesystem, stores + IPC | ~100ms |
-| **E2E** | Playwright | Jornadas completas no browser | ~s |
+| **Unit** | `cargo test`, Vitest | Domain, value objects, stores, hooks, utils | ~ms |
+| **Integration** | `cargo test`, Vitest + MSW | Storage with real filesystem, stores + IPC | ~100ms |
+| **E2E** | Playwright | Full user journeys in the browser | ~s |
 
 ---
 
 ## 2. Coverage Targets
 
-| Camada | Alvo | Configuração |
+| Layer | Target | Command |
 |---|---|---|
-| **crates/core** (domínio) | 90% lines | `cargo test -p opennote-core` |
+| **crates/core** (domain) | 90% lines | `cargo test -p opennote-core` |
 | **crates/storage** (infra) | 85% lines | `cargo test -p opennote-storage` |
 | **crates/search** | 80% lines | `cargo test -p opennote-search` |
 | **crates/sync** | 80% lines | `cargo test -p opennote-sync` |
 | **Frontend (Vitest)** | 80% lines, 70% branches | `vitest.config.ts → thresholds` |
 
-Frontend coverage exclui (configurado em `vitest.config.ts`):
-- `src/test/**` — setup de testes
+Frontend coverage excludes (configured in `vitest.config.ts`):
+- `src/test/**` — test setup
 - `src/**/*.d.ts` — type declarations
 - `src/main.tsx` — entry point
-- `src/types/bindings/**` — gerado automaticamente
+- `src/types/bindings/**` — auto-generated
 - `src/types/search.ts`, `src/types/sync.ts` — type-only
-- `src/components/ink/**`, `src/components/pdf/**` — Canvas/PDF (difíceis de testar com jsdom)
+- `src/components/ink/**`, `src/components/pdf/**` — Canvas/PDF (hard to test with jsdom)
 - `src/lib/ink/index.ts` — Canvas API
 
 ---
 
-## 3. Testes Rust
+## 3. Rust Tests
 
-### Estrutura
+### Structure
 
 ```
 crates/core/src/
@@ -60,88 +60,83 @@ crates/core/src/
 ├── page.rs           # inline tests
 ├── section.rs        # inline tests
 ├── workspace.rs      # inline tests
-├── settings.rs       # inline tests
-├── trash.rs          # inline tests
-├── color.rs          # inline tests
-├── annotation.rs     # inline tests
-└── error.rs          # inline tests
+└── ...
 
 crates/storage/
-├── src/              # #[cfg(test)] inline tests
-└── tests/            # Testes de integração (filesystem real)
+├── src/              # #[cfg(test)] inline unit tests
+└── tests/            # Integration tests (real filesystem)
 
 crates/search/
-├── src/              # #[cfg(test)] inline tests
-└── tests/            # Testes de integração (Tantivy index)
+├── src/              # #[cfg(test)] inline unit tests
+└── tests/            # Integration tests (real Tantivy index)
 ```
 
-### Comandos
+### Commands
 
 ```bash
-# Todos os testes Rust
+# All Rust tests
 cargo test --workspace
 
-# Crate específico
+# Specific crate
 cargo test -p opennote-core
 cargo test -p opennote-storage
 cargo test -p opennote-search
 cargo test -p opennote-sync
 
-# Teste específico
+# Specific test
 cargo test -p opennote-core -- page::tests::create_page_with_valid_title
 
-# Com output (para debugging)
+# With output (for debugging)
 cargo test -p opennote-core -- --nocapture
 
-# Coverage (requer cargo-tarpaulin)
+# Coverage (requires cargo-tarpaulin)
 cargo tarpaulin --workspace --out html
 ```
 
-### Convenções Rust
+### Rust Conventions
 
-- Testes unitários **inline** com `#[cfg(test)]` no mesmo arquivo
-- Testes de integração em `tests/` (filesystem real, temp dirs)
-- Snapshots JSON via `insta` crate (quando aplicável)
+- Unit tests **inline** with `#[cfg(test)]` in the same file
+- Integration tests in `tests/` (real filesystem, temp dirs)
+- JSON snapshots via `insta` crate (where applicable)
 - Temp directories via `tempfile` crate
-- **Nunca** depender de estado global entre testes
-- Nomes descritivos: `fn create_page_rejects_empty_title()`
+- **Never** depend on global state between tests
+- Descriptive names: `fn create_page_rejects_empty_title()`
 
-### O que testar em cada crate
+### What to test in each crate
 
-**core (domínio):**
-- Criação de entidades com validação
-- Serialização/deserialização JSON (serde roundtrip)
-- Regras de negócio (block limits, tag normalization, trash expiration)
+**core (domain):**
+- Entity creation with validation
+- JSON serialization/deserialization (serde roundtrip)
+- Business rules (block limits, tag normalization, trash expiration)
 - Value objects (Color validation, ID uniqueness)
 
 **storage (infra):**
-- CRUD completo (create → read → update → delete)
-- Atomic writes (arquivo nunca corrompido)
+- Full CRUD (create → read → update → delete)
+- Atomic writes (file never corrupted)
 - Workspace lock (acquire, release, stale detection)
-- Slug generation (Unicode, colisões)
+- Slug generation (Unicode, collisions)
 - Schema migration pipeline
 - Trash lifecycle (soft-delete → restore → permanent delete)
 - Asset import/delete
 
 **search:**
-- Indexação e busca básica
-- Text extraction de todos os block types
+- Basic indexing and search
+- Text extraction from all block types
 - Custom tokenizer (ASCII folding: "café" → "cafe")
-- Rebuild completo
-- Snippets com contexto
+- Full rebuild
+- Snippets with context
 
 **sync:**
 - SHA-256 hashing
 - SyncManifest persistence
 - Change detection (LocalOnly, RemoteOnly, BothModified, etc.)
 - Conflict resolution
-- Provider stubs
 
 ---
 
-## 4. Testes Frontend (Vitest)
+## 4. Frontend Tests (Vitest)
 
-### Configuração
+### Configuration
 
 ```typescript
 // vitest.config.ts
@@ -158,66 +153,66 @@ cargo tarpaulin --workspace --out html
 ### Setup (`src/test/setup.ts`)
 
 - `@testing-library/jest-dom` matchers
-- Mock de `window.__TAURI_INTERNALS__` (IPC)
-- Mock de `window.matchMedia` (theme system)
-- Import de i18n config
+- Mock of `window.__TAURI_INTERNALS__` (IPC)
+- Mock of `window.matchMedia` (theme system)
+- i18n config import
 
-### Comandos
+### Commands
 
 ```bash
-# Rodar todos
+# Run all
 npm run test
 
 # Watch mode
 npm run test:watch
 
-# Com coverage
+# With coverage
 npm run test:coverage
 
-# Arquivo específico
+# Specific file
 npx vitest run src/lib/__tests__/serialization.test.ts
 ```
 
-### Convenções Frontend
+### Frontend Conventions
 
-- Arquivos de teste: `__tests__/NomeDoArquivo.test.ts` ou co-located `Componente.test.tsx`
-- Testing Library: queries por `role`, `text`, `testid` (nessa ordem de preferência)
+- Test files: `__tests__/FileName.test.ts` or co-located `Component.test.tsx`
+- Testing Library: prefer `role`, `text`, `testid` queries (in that order)
 - User events via `@testing-library/user-event`
-- IPC mocks no setup global
-- Assertions com `jest-dom` (`toBeInTheDocument`, `toHaveTextContent`, etc.)
+- IPC mocks in global setup
+- Assertions with `jest-dom` (`toBeInTheDocument`, `toHaveTextContent`, etc.)
 
-### O que testar no frontend
+### What to test on the frontend
 
 **Stores (Zustand):**
-- Ações e seus efeitos no state
+- Actions and their effects on state
 - Reset/cleanup
-- Interação com IPC (mock)
+- IPC interaction (mocked)
 
 **Hooks:**
 - `useAutoSave` — debounce, flush, disable
-- `useKeyboardShortcuts` — binding correto
+- `useKeyboardShortcuts` — correct binding
 
 **Serialization:**
-- `blocksToTiptap()` — conversão Block[] → TipTap JSON
-- `tiptapToBlocks()` — conversão de volta
-- Roundtrip (identidade)
-- Preservação de IDs e non-text blocks
+- `blocksToTiptap()` — Block[] → TipTap JSON conversion
+- `tiptapToBlocks()` — conversion back
+- Roundtrip (identity)
+- Preservation of IDs and non-text blocks
 
 **Theme:**
-- Paletas de cores
-- Geração de CSS vars
-- Aplicação no DOM
+- Color palettes
+- CSS var generation
+- DOM application
 
-**Componentes:**
-- Renderização condicional
-- Interações de usuário
-- Estados de loading/error/empty
+**Components:**
+- Conditional rendering
+- User interactions
+- Loading/error/empty states
 
 ---
 
-## 5. Testes E2E (Playwright)
+## 5. E2E Tests (Playwright)
 
-### Configuração
+### Configuration
 
 ```typescript
 // playwright.config.ts
@@ -234,47 +229,47 @@ npx vitest run src/lib/__tests__/serialization.test.ts
 }
 ```
 
-### Infraestrutura
+### Infrastructure
 
-| Arquivo | Função |
+| File | Purpose |
 |---|---|
-| `e2e/helpers/ipc-mock.ts` | Mock completo de 46 IPC commands via `addInitScript` |
-| `e2e/helpers/selectors.ts` | Page Object Model com seletores `data-testid` |
+| `e2e/helpers/ipc-mock.ts` | Full mock of IPC commands via `addInitScript` |
+| `e2e/helpers/selectors.ts` | Page Object Model with `data-testid` selectors |
 | `e2e/helpers/workspace.ts` | Setup helpers: `setupApp`, `setupWithWorkspace`, `setupWithPage` |
-| `e2e/fixtures/index.ts` | Dados realistas: notebooks, sections, pages, trash items |
+| `e2e/fixtures/index.ts` | Realistic test data: notebooks, sections, pages, trash items |
 
-### Abordagem
+### Approach
 
-- **Dev server Vite** (porta 1420) — sem necessidade de build Tauri
-- **IPC mock** via `page.addInitScript()` intercepta `window.__TAURI_INTERNALS__.invoke`
-- Mock é injetado **antes** do React carregar
-- Overrides por teste via `setupIpcMock(page, { command: customHandler })`
+- **Vite dev server** (port 1420) — no Tauri binary needed
+- **IPC mock** via `page.addInitScript()` intercepts `window.__TAURI_INTERNALS__.invoke`
+- Mock is injected **before** React loads
+- Per-test overrides via `setupIpcMock(page, { command: customHandler })`
 
-### Comandos
+### Commands
 
 ```bash
-# Rodar todos
+# Run all
 npm run test:e2e
 
-# Com UI (debug visual)
+# With UI (visual debug)
 npx playwright test --ui
 
-# Teste específico
+# Specific test
 npx playwright test e2e/fase-03-ui-shell.spec.ts
 
-# Listar testes
+# List tests
 npx playwright test --list
 
-# Gerar report
+# Generate report
 npx playwright show-report
 ```
 
-### Suíte de testes (54 testes)
+### Test suite
 
-| Arquivo | Testes | Escopo |
+| File | Tests | Scope |
 |---|---|---|
 | `fase-01-initialization.spec.ts` | 4 | Loading, WorkspacePicker, restore, fallback |
-| `fase-02-local-management.spec.ts` | 6 | Criar notebook, sidebar tree, lixeira |
+| `fase-02-local-management.spec.ts` | 6 | Create notebook, sidebar tree, trash |
 | `fase-03-ui-shell.spec.ts` | 10 | Workspace picker, sidebar, toolbar, shortcuts |
 | `fase-04-rich-text-editor.spec.ts` | 4 | Editor, mode toggle, status bar |
 | `fase-05-advanced-blocks.spec.ts` | 5 | Code, table, checklist, callout, image |
@@ -284,18 +279,18 @@ npx playwright show-report
 | `fase-09-cloud-sync.spec.ts` | 6 | SyncSettings, providers, conflicts |
 | `fase-10-settings-themes.spec.ts` | 8 | Settings tabs, theme DOM, chrome tint |
 
-### Convenções E2E
+### E2E Conventions
 
-- `data-testid` para seletores estáveis (não depender de texto ou classes CSS)
-- Um arquivo por fase/feature
-- Setup via helpers (não repetir boilerplate)
-- Assertions visuais via `expect(locator).toBeVisible()`
+- `data-testid` for stable selectors (never depend on text or CSS classes)
+- One file per feature area
+- Setup via helpers (don't repeat boilerplate)
+- Visual assertions via `expect(locator).toBeVisible()`
 
 ---
 
 ## 6. CI Pipeline
 
-Definido em `.github/workflows/ci.yml`:
+Defined in `.github/workflows/ci.yml`:
 
 ```mermaid
 graph LR
@@ -311,7 +306,7 @@ graph LR
     test_e2e --> build
 ```
 
-| Job | Runner | Passos |
+| Job | Runner | Steps |
 |---|---|---|
 | **lint-rust** | ubuntu-latest | `cargo fmt --check`, `cargo clippy -D warnings` |
 | **test-rust** | ubuntu-latest | `cargo test --workspace`, `git diff bindings/` |
@@ -320,13 +315,13 @@ graph LR
 | **test-e2e** | ubuntu-latest | `npx playwright test` + upload report |
 | **build** | macOS, Linux, Windows | `tauri-action@v0` (3 targets) |
 
-Build só roda se **todos os testes passam**.
+Build only runs if **all tests pass**.
 
 ---
 
-## 7. Checklist de Qualidade
+## 7. Quality Checklist
 
-Antes de abrir um PR, verificar:
+Before opening a PR:
 
 ```bash
 # Rust
@@ -340,16 +335,16 @@ npm run format:check
 npm run typecheck
 npm run test
 
-# E2E (opcional, CI roda)
+# E2E (optional locally — CI runs it)
 npm run test:e2e
 ```
 
 ---
 
-## Documentos Relacionados
+## Related Documents
 
-| Documento | Conteúdo |
+| Document | Content |
 |---|---|
-| [DEVELOPMENT.md](./DEVELOPMENT.md) | Guia de setup e desenvolvimento |
-| [BUILD_AND_DEPLOY.md](./BUILD_AND_DEPLOY.md) | Build e distribuição |
-| [CONTRIBUTING.md](../CONTRIBUTING.md) | Guia de contribuição |
+| [DEVELOPMENT.md](./DEVELOPMENT.md) | Setup and development guide |
+| [BUILD_AND_DEPLOY.md](./BUILD_AND_DEPLOY.md) | Build and distribution |
+| [CONTRIBUTING.md](../CONTRIBUTING.md) | Contribution guide |
