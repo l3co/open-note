@@ -43,7 +43,7 @@ export function CloudImportModal({
   onClose,
 }: CloudImportModalProps) {
   const { t } = useTranslation();
-  const openWorkspace = useWorkspaceStore((s) => s.n);
+  const openWorkspace = useWorkspaceStore((s) => s.openWorkspace);
   const [states, setStates] = useState<Record<string, WorkspaceState>>(
     Object.fromEntries(workspaces.map((w) => [w.name, { status: "idle" }])),
   );
